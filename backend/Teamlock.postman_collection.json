@@ -1,0 +1,1647 @@
+{
+	"info": {
+		"_postman_id": "d140be0d-6a83-4578-a510-a94a0b421f99",
+		"name": "FastAPI",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "api/v1",
+			"item": [
+				{
+					"name": "auth",
+					"item": [
+						{
+							"name": "Authenticate for Access Token",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = JSON.parse(responseBody)",
+											"pm.collectionVariables.set(\"access_token\", responseBody.access_token);",
+											"pm.collectionVariables.set(\"encrypted_password\", responseBody.encrypted_password)"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/x-www-form-urlencoded"
+									}
+								],
+								"body": {
+									"mode": "urlencoded",
+									"urlencoded": [
+										{
+											"key": "username",
+											"value": "test@test.com",
+											"description": "(Required)"
+										},
+										{
+											"key": "password",
+											"value": ":@C0mmanderie",
+											"description": "(Required) "
+										},
+										{
+											"key": "grant_type",
+											"value": "password"
+										},
+										{
+											"key": "scope",
+											"value": ""
+										},
+										{
+											"key": "client_id",
+											"value": "laboris tempor commodo"
+										},
+										{
+											"key": "client_secret",
+											"value": "Lorem do ipsum"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/auth/token",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"auth",
+										"token"
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "Successful Response",
+									"originalRequest": {
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "urlencoded",
+											"urlencoded": [
+												{
+													"key": "username",
+													"value": "Excepteur ipsum",
+													"description": "(Required) "
+												},
+												{
+													"key": "password",
+													"value": "laborum cillum Duis",
+													"description": "(Required) "
+												},
+												{
+													"key": "grant_type",
+													"value": "password"
+												},
+												{
+													"key": "scope",
+													"value": ""
+												},
+												{
+													"key": "client_id",
+													"value": "laboris tempor commodo"
+												},
+												{
+													"key": "client_secret",
+													"value": "Lorem do ipsum"
+												}
+											]
+										},
+										"url": {
+											"raw": "{{baseUrl}}/api/v1/auth/token",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"v1",
+												"auth",
+												"token"
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										}
+									],
+									"cookie": [],
+									"body": "{\n \"expire_at\": \"1953-09-30T10:03:59.537Z\",\n \"access_token\": \"exercitation anim\",\n \"encrypted_password\": \"incididunt id elit\",\n \"token_type\": \"bearer\"\n}"
+								},
+								{
+									"name": "Validation Error",
+									"originalRequest": {
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "urlencoded",
+											"urlencoded": [
+												{
+													"key": "username",
+													"value": "Excepteur ipsum",
+													"description": "(Required) "
+												},
+												{
+													"key": "password",
+													"value": "laborum cillum Duis",
+													"description": "(Required) "
+												},
+												{
+													"key": "grant_type",
+													"value": "password"
+												},
+												{
+													"key": "scope",
+													"value": ""
+												},
+												{
+													"key": "client_id",
+													"value": "laboris tempor commodo"
+												},
+												{
+													"key": "client_secret",
+													"value": "Lorem do ipsum"
+												}
+											]
+										},
+										"url": {
+											"raw": "{{baseUrl}}/api/v1/auth/token",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"v1",
+												"auth",
+												"token"
+											]
+										}
+									},
+									"status": "Unprocessable Entity (WebDAV) (RFC 4918)",
+									"code": 422,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										}
+									],
+									"cookie": [],
+									"body": "{\n \"detail\": [\n  {\n   \"loc\": [\n    \"officia\",\n    \"occaecat tempor dolore\"\n   ],\n   \"msg\": \"ex sint minim ea adipisicing\",\n   \"type\": \"dolore\"\n  },\n  {\n   \"loc\": [\n    \"voluptate Excepteur\",\n    \"quis dolor irure culpa\"\n   ],\n   \"msg\": \"ut in dolor dolore cillum\",\n   \"type\": \"est ullamco\"\n  }\n ]\n}"
+								}
+							]
+						},
+						{
+							"name": "Token verify",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "",
+										"value": "",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/auth/verify",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"auth",
+										"verify"
+									]
+								},
+								"description": "Endpoint to check if JWT Token is still valid"
+							},
+							"response": [
+								{
+									"name": "Successful Response",
+									"originalRequest": {
+										"method": "GET",
+										"header": [
+											{
+												"description": "Added as a part of security scheme: oauth2",
+												"key": "Authorization",
+												"value": "<token>"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/api/v1/auth/verify",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"v1",
+												"auth",
+												"verify"
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										}
+									],
+									"cookie": [],
+									"body": "{}"
+								}
+							]
+						},
+						{
+							"name": "Get user profile",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/auth/me",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"auth",
+										"me"
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "Successful Response",
+									"originalRequest": {
+										"method": "GET",
+										"header": [
+											{
+												"description": "Added as a part of security scheme: oauth2",
+												"key": "Authorization",
+												"value": "<token>"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/api/v1/auth/me",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"v1",
+												"auth",
+												"me"
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										}
+									],
+									"cookie": [],
+									"body": "{\n \"email\": \"labore exercitation nostrud aute\",\n \"first_seen\": \"2017-11-01T21:27:59.831Z\",\n \"last_seen\": \"1966-03-16T16:14:44.884Z\",\n \"_id\": \"non aute ex aliqua laboris\",\n \"otp\": {\n  \"enabled\": false,\n  \"validated\": false\n },\n \"favorite_workspace\": \"aliquip sint ut\",\n \"is_configured\": false,\n \"is_admin\": false,\n \"is_locked\": false\n}"
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "user",
+					"item": [
+						{
+							"name": "totp",
+							"item": [
+								{
+									"name": "Enable TOTP",
+									"request": {
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{baseUrl}}/api/v1/user/totp/enable",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"v1",
+												"user",
+												"totp",
+												"enable"
+											]
+										},
+										"description": "Enable TOTP for current user"
+									},
+									"response": [
+										{
+											"name": "Successful Response",
+											"originalRequest": {
+												"method": "GET",
+												"header": [
+													{
+														"description": "Added as a part of security scheme: oauth2",
+														"key": "Authorization",
+														"value": "<token>"
+													}
+												],
+												"url": {
+													"raw": "{{baseUrl}}/api/v1/user/totp/enable",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"api",
+														"v1",
+														"user",
+														"totp",
+														"enable"
+													]
+												}
+											},
+											"status": "OK",
+											"code": 200,
+											"_postman_previewlanguage": "json",
+											"header": [
+												{
+													"key": "Content-Type",
+													"value": "application/json"
+												}
+											],
+											"cookie": [],
+											"body": "{}"
+										}
+									]
+								},
+								{
+									"name": "Validate TOTP",
+									"request": {
+										"method": "POST",
+										"header": [],
+										"url": {
+											"raw": "{{baseUrl}}/api/v1/user/totp/validate?totp_value=-45202760",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"v1",
+												"user",
+												"totp",
+												"validate"
+											],
+											"query": [
+												{
+													"key": "totp_value",
+													"value": "-45202760",
+													"description": "(Required) "
+												}
+											]
+										},
+										"description": "Validate TOTP for current user. Only used once after OTP is enabled.\nTOTP will not be enabled while this endpoint is correctly called"
+									},
+									"response": [
+										{
+											"name": "Successful Response",
+											"originalRequest": {
+												"method": "POST",
+												"header": [
+													{
+														"description": "Added as a part of security scheme: oauth2",
+														"key": "Authorization",
+														"value": "<token>"
+													}
+												],
+												"url": {
+													"raw": "{{baseUrl}}/api/v1/user/totp/validate?totp_value=-45202760",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"api",
+														"v1",
+														"user",
+														"totp",
+														"validate"
+													],
+													"query": [
+														{
+															"key": "totp_value",
+															"value": "-45202760"
+														}
+													]
+												}
+											},
+											"status": "OK",
+											"code": 200,
+											"_postman_previewlanguage": "json",
+											"header": [
+												{
+													"key": "Content-Type",
+													"value": "application/json"
+												}
+											],
+											"cookie": [],
+											"body": "{}"
+										},
+										{
+											"name": "Validation Error",
+											"originalRequest": {
+												"method": "POST",
+												"header": [
+													{
+														"description": "Added as a part of security scheme: oauth2",
+														"key": "Authorization",
+														"value": "<token>"
+													}
+												],
+												"url": {
+													"raw": "{{baseUrl}}/api/v1/user/totp/validate?totp_value=-45202760",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"api",
+														"v1",
+														"user",
+														"totp",
+														"validate"
+													],
+													"query": [
+														{
+															"key": "totp_value",
+															"value": "-45202760"
+														}
+													]
+												}
+											},
+											"status": "Unprocessable Entity (WebDAV) (RFC 4918)",
+											"code": 422,
+											"_postman_previewlanguage": "json",
+											"header": [
+												{
+													"key": "Content-Type",
+													"value": "application/json"
+												}
+											],
+											"cookie": [],
+											"body": "{\n \"detail\": [\n  {\n   \"loc\": [\n    \"dolore consectetur nulla tempor\",\n    \"sint voluptate\"\n   ],\n   \"msg\": \"nostrud Duis quis in\",\n   \"type\": \"ipsum ullamco est\"\n  },\n  {\n   \"loc\": [\n    \"nostrud ad es\",\n    \"exercitation deserunt ad cillum est\"\n   ],\n   \"msg\": \"est adipisicing\",\n   \"type\": \"elit\"\n  }\n ]\n}"
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "Get users",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/user/?sort=occaecat Lorem proident adipisicing&page=1&per_page=10&search=cupidatat dolor id ipsum",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"user",
+										""
+									],
+									"query": [
+										{
+											"key": "sort",
+											"value": "occaecat Lorem proident adipisicing"
+										},
+										{
+											"key": "page",
+											"value": "1"
+										},
+										{
+											"key": "per_page",
+											"value": "10"
+										},
+										{
+											"key": "search",
+											"value": "cupidatat dolor id ipsum"
+										}
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "Successful Response",
+									"originalRequest": {
+										"method": "GET",
+										"header": [
+											{
+												"description": "Added as a part of security scheme: oauth2",
+												"key": "Authorization",
+												"value": "<token>"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/api/v1/user/?sort=occaecat Lorem proident adipisicing&page=1&per_page=10&search=cupidatat dolor id ipsum",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"v1",
+												"user",
+												""
+											],
+											"query": [
+												{
+													"key": "sort",
+													"value": "occaecat Lorem proident adipisicing"
+												},
+												{
+													"key": "page",
+													"value": "1"
+												},
+												{
+													"key": "per_page",
+													"value": "10"
+												},
+												{
+													"key": "search",
+													"value": "cupidatat dolor id ipsum"
+												}
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										}
+									],
+									"cookie": [],
+									"body": "{\n \"start\": 92337560,\n \"to\": -15322191,\n \"total\": 85992739,\n \"current_page\": -73106851,\n \"last_pages\": -78018534,\n \"data\": [\n  {\n   \"email\": \"elit et anim sed\",\n   \"first_seen\": \"1962-01-05T22:14:29.483Z\",\n   \"last_seen\": \"1981-08-14T02:04:38.671Z\",\n   \"_id\": \"ullamco Duis\",\n   \"otp\": {\n    \"enabled\": false,\n    \"validated\": false\n   },\n   \"favorite_workspace\": \"dolore aute\",\n   \"is_configured\": false,\n   \"is_admin\": false,\n   \"is_locked\": false\n  },\n  {\n   \"email\": \"fugiat\",\n   \"first_seen\": \"1979-08-03T11:14:28.970Z\",\n   \"last_seen\": \"2008-04-30T23:19:08.195Z\",\n   \"_id\": \"in reprehenderit culpa mollit\",\n   \"otp\": {\n    \"enabled\": false,\n    \"validated\": false\n   },\n   \"favorite_workspace\": \"est\",\n   \"is_configured\": false,\n   \"is_admin\": false,\n   \"is_locked\": false\n  }\n ]\n}"
+								},
+								{
+									"name": "Validation Error",
+									"originalRequest": {
+										"method": "GET",
+										"header": [
+											{
+												"description": "Added as a part of security scheme: oauth2",
+												"key": "Authorization",
+												"value": "<token>"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/api/v1/user/?sort=occaecat Lorem proident adipisicing&page=1&per_page=10&search=cupidatat dolor id ipsum",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"v1",
+												"user",
+												""
+											],
+											"query": [
+												{
+													"key": "sort",
+													"value": "occaecat Lorem proident adipisicing"
+												},
+												{
+													"key": "page",
+													"value": "1"
+												},
+												{
+													"key": "per_page",
+													"value": "10"
+												},
+												{
+													"key": "search",
+													"value": "cupidatat dolor id ipsum"
+												}
+											]
+										}
+									},
+									"status": "Unprocessable Entity (WebDAV) (RFC 4918)",
+									"code": 422,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										}
+									],
+									"cookie": [],
+									"body": "{\n \"detail\": [\n  {\n   \"loc\": [\n    \"dolore consectetur nulla tempor\",\n    \"sint voluptate\"\n   ],\n   \"msg\": \"nostrud Duis quis in\",\n   \"type\": \"ipsum ullamco est\"\n  },\n  {\n   \"loc\": [\n    \"nostrud ad es\",\n    \"exercitation deserunt ad cillum est\"\n   ],\n   \"msg\": \"est adipisicing\",\n   \"type\": \"elit\"\n  }\n ]\n}"
+								}
+							]
+						},
+						{
+							"name": "Endpoint to create an user",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"email\": \"in in\",\n    \"is_admin\": false\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/user/",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"user",
+										""
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "Successful Response",
+									"originalRequest": {
+										"method": "POST",
+										"header": [
+											{
+												"description": "Added as a part of security scheme: oauth2",
+												"key": "Authorization",
+												"value": "<token>"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"email\": \"in in\",\n    \"is_admin\": false\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{baseUrl}}/api/v1/user/",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"v1",
+												"user",
+												""
+											]
+										}
+									},
+									"status": "Created",
+									"code": 201,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										}
+									],
+									"cookie": [],
+									"body": "{}"
+								},
+								{
+									"name": "Validation Error",
+									"originalRequest": {
+										"method": "POST",
+										"header": [
+											{
+												"description": "Added as a part of security scheme: oauth2",
+												"key": "Authorization",
+												"value": "<token>"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"email\": \"in in\",\n    \"is_admin\": false\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{baseUrl}}/api/v1/user/",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"v1",
+												"user",
+												""
+											]
+										}
+									},
+									"status": "Unprocessable Entity (WebDAV) (RFC 4918)",
+									"code": 422,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										}
+									],
+									"cookie": [],
+									"body": "{\n \"detail\": [\n  {\n   \"loc\": [\n    \"dolore consectetur nulla tempor\",\n    \"sint voluptate\"\n   ],\n   \"msg\": \"nostrud Duis quis in\",\n   \"type\": \"ipsum ullamco est\"\n  },\n  {\n   \"loc\": [\n    \"nostrud ad es\",\n    \"exercitation deserunt ad cillum est\"\n   ],\n   \"msg\": \"est adipisicing\",\n   \"type\": \"elit\"\n  }\n ]\n}"
+								}
+							]
+						},
+						{
+							"name": "Lock/Unlock an user",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/user/lock/:user_id?lock=false",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"user",
+										"lock",
+										":user_id"
+									],
+									"query": [
+										{
+											"key": "lock",
+											"value": "false",
+											"description": "(Required) "
+										}
+									],
+									"variable": [
+										{
+											"key": "user_id",
+											"value": "id voluptate tempor et",
+											"description": "(Required) "
+										}
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "Successful Response",
+									"originalRequest": {
+										"method": "POST",
+										"header": [
+											{
+												"description": "Added as a part of security scheme: oauth2",
+												"key": "Authorization",
+												"value": "<token>"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/api/v1/user/lock/:user_id?lock=false",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"v1",
+												"user",
+												"lock",
+												":user_id"
+											],
+											"query": [
+												{
+													"key": "lock",
+													"value": "false"
+												}
+											],
+											"variable": [
+												{
+													"key": "user_id",
+													"value": "id voluptate tempor et",
+													"description": "(Required) "
+												}
+											]
+										}
+									},
+									"status": "Accepted",
+									"code": 202,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										}
+									],
+									"cookie": [],
+									"body": "{}"
+								},
+								{
+									"name": "Validation Error",
+									"originalRequest": {
+										"method": "POST",
+										"header": [
+											{
+												"description": "Added as a part of security scheme: oauth2",
+												"key": "Authorization",
+												"value": "<token>"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/api/v1/user/lock/:user_id?lock=false",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"v1",
+												"user",
+												"lock",
+												":user_id"
+											],
+											"query": [
+												{
+													"key": "lock",
+													"value": "false"
+												}
+											],
+											"variable": [
+												{
+													"key": "user_id",
+													"value": "id voluptate tempor et",
+													"description": "(Required) "
+												}
+											]
+										}
+									},
+									"status": "Unprocessable Entity (WebDAV) (RFC 4918)",
+									"code": 422,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										}
+									],
+									"cookie": [],
+									"body": "{\n \"detail\": [\n  {\n   \"loc\": [\n    \"dolore consectetur nulla tempor\",\n    \"sint voluptate\"\n   ],\n   \"msg\": \"nostrud Duis quis in\",\n   \"type\": \"ipsum ullamco est\"\n  },\n  {\n   \"loc\": [\n    \"nostrud ad es\",\n    \"exercitation deserunt ad cillum est\"\n   ],\n   \"msg\": \"est adipisicing\",\n   \"type\": \"elit\"\n  }\n ]\n}"
+								}
+							]
+						},
+						{
+							"name": "Delete an user",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/user/:user_id",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"user",
+										":user_id"
+									],
+									"variable": [
+										{
+											"key": "user_id",
+											"value": "id voluptate tempor et",
+											"description": "(Required) "
+										}
+									]
+								},
+								"description": "Delete all personal workspaces and delete the user"
+							},
+							"response": [
+								{
+									"name": "Successful Response",
+									"originalRequest": {
+										"method": "DELETE",
+										"header": [
+											{
+												"description": "Added as a part of security scheme: oauth2",
+												"key": "Authorization",
+												"value": "<token>"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/api/v1/user/:user_id",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"v1",
+												"user",
+												":user_id"
+											],
+											"variable": [
+												{
+													"key": "user_id",
+													"value": "id voluptate tempor et",
+													"description": "(Required) "
+												}
+											]
+										}
+									},
+									"status": "No Content",
+									"code": 204,
+									"_postman_previewlanguage": "text",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "text/plain"
+										}
+									],
+									"cookie": [],
+									"body": ""
+								},
+								{
+									"name": "Validation Error",
+									"originalRequest": {
+										"method": "DELETE",
+										"header": [
+											{
+												"description": "Added as a part of security scheme: oauth2",
+												"key": "Authorization",
+												"value": "<token>"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/api/v1/user/:user_id",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"v1",
+												"user",
+												":user_id"
+											],
+											"variable": [
+												{
+													"key": "user_id",
+													"value": "id voluptate tempor et",
+													"description": "(Required) "
+												}
+											]
+										}
+									},
+									"status": "Unprocessable Entity (WebDAV) (RFC 4918)",
+									"code": 422,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										}
+									],
+									"cookie": [],
+									"body": "{\n \"detail\": [\n  {\n   \"loc\": [\n    \"dolore consectetur nulla tempor\",\n    \"sint voluptate\"\n   ],\n   \"msg\": \"nostrud Duis quis in\",\n   \"type\": \"ipsum ullamco est\"\n  },\n  {\n   \"loc\": [\n    \"nostrud ad es\",\n    \"exercitation deserunt ad cillum est\"\n   ],\n   \"msg\": \"est adipisicing\",\n   \"type\": \"elit\"\n  }\n ]\n}"
+								}
+							]
+						},
+						{
+							"name": "Endpoint to configure an user",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"password\": \"Av€ryStr0ngP@5swOrd!\",\n    \"confirm_password\": \"Av€ryStr0ngP@5swOrd!\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/user/configure/:user_id",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"user",
+										"configure",
+										":user_id"
+									],
+									"variable": [
+										{
+											"key": "user_id",
+											"value": "id voluptate tempor et",
+											"description": "(Required) "
+										}
+									]
+								},
+								"description": "Configure an user. Set up internal password and generate Public & Private RSA Keys"
+							},
+							"response": [
+								{
+									"name": "Successful Response",
+									"originalRequest": {
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"password\": \"Av€ryStr0ngP@5swOrd!\",\n    \"confirm_password\": \"Av€ryStr0ngP@5swOrd!\"\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{baseUrl}}/api/v1/user/configure/:user_id",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"v1",
+												"user",
+												"configure",
+												":user_id"
+											],
+											"variable": [
+												{
+													"key": "user_id",
+													"value": "id voluptate tempor et",
+													"description": "(Required) "
+												}
+											]
+										}
+									},
+									"status": "Accepted",
+									"code": 202,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										}
+									],
+									"cookie": [],
+									"body": "{}"
+								},
+								{
+									"name": "Validation Error",
+									"originalRequest": {
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"password\": \"Av€ryStr0ngP@5swOrd!\",\n    \"confirm_password\": \"Av€ryStr0ngP@5swOrd!\"\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{baseUrl}}/api/v1/user/configure/:user_id",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"v1",
+												"user",
+												"configure",
+												":user_id"
+											],
+											"variable": [
+												{
+													"key": "user_id",
+													"value": "id voluptate tempor et",
+													"description": "(Required) "
+												}
+											]
+										}
+									},
+									"status": "Unprocessable Entity (WebDAV) (RFC 4918)",
+									"code": 422,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										}
+									],
+									"cookie": [],
+									"body": "{\n \"detail\": [\n  {\n   \"loc\": [\n    \"dolore consectetur nulla tempor\",\n    \"sint voluptate\"\n   ],\n   \"msg\": \"nostrud Duis quis in\",\n   \"type\": \"ipsum ullamco est\"\n  },\n  {\n   \"loc\": [\n    \"nostrud ad es\",\n    \"exercitation deserunt ad cillum est\"\n   ],\n   \"msg\": \"est adipisicing\",\n   \"type\": \"elit\"\n  }\n ]\n}"
+								}
+							]
+						},
+						{
+							"name": "Generate Recovery Key",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/user/recovery",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"user",
+										"recovery"
+									]
+								},
+								"description": "Generate a file that can be used to recover an account when password is lost"
+							},
+							"response": [
+								{
+									"name": "Successful Response",
+									"originalRequest": {
+										"method": "GET",
+										"header": [
+											{
+												"description": "Added as a part of security scheme: oauth2",
+												"key": "Authorization",
+												"value": "<token>"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/api/v1/user/recovery",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"v1",
+												"user",
+												"recovery"
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										}
+									],
+									"cookie": [],
+									"body": "{}"
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "config",
+					"item": [
+						{
+							"name": "Retreive Teamlock Configuration",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/config/",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"config",
+										""
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "Successful Response",
+									"originalRequest": {
+										"method": "GET",
+										"header": [
+											{
+												"description": "Added as a part of security scheme: oauth2",
+												"key": "Authorization",
+												"value": "<token>"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/api/v1/config/",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"v1",
+												"config",
+												""
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										}
+									],
+									"cookie": [],
+									"body": "{\n \"rsa_key_size\": 4096,\n \"enforce_totp\": false,\n \"password_policy\": {\n  \"length\": 12,\n  \"uppercase\": 1,\n  \"numbers\": 1,\n  \"special\": 1\n }\n}"
+								}
+							]
+						},
+						{
+							"name": "Update Configuration",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"rsa_key_size\": 4096,\n    \"enforce_totp\": false,\n    \"password_policy\": {\n        \"length\": 12,\n        \"uppercase\": 1,\n        \"numbers\": 1,\n        \"special\": 1\n    }\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/config/",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"config",
+										""
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "Successful Response",
+									"originalRequest": {
+										"method": "POST",
+										"header": [
+											{
+												"description": "Added as a part of security scheme: oauth2",
+												"key": "Authorization",
+												"value": "<token>"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"rsa_key_size\": 4096,\n    \"enforce_totp\": false,\n    \"password_policy\": {\n        \"length\": 12,\n        \"uppercase\": 1,\n        \"numbers\": 1,\n        \"special\": 1\n    }\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{baseUrl}}/api/v1/config/",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"v1",
+												"config",
+												""
+											]
+										}
+									},
+									"status": "Accepted",
+									"code": 202,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										}
+									],
+									"cookie": [],
+									"body": "{}"
+								},
+								{
+									"name": "Validation Error",
+									"originalRequest": {
+										"method": "POST",
+										"header": [
+											{
+												"description": "Added as a part of security scheme: oauth2",
+												"key": "Authorization",
+												"value": "<token>"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"rsa_key_size\": 4096,\n    \"enforce_totp\": false,\n    \"password_policy\": {\n        \"length\": 12,\n        \"uppercase\": 1,\n        \"numbers\": 1,\n        \"special\": 1\n    }\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{baseUrl}}/api/v1/config/",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"v1",
+												"config",
+												""
+											]
+										}
+									},
+									"status": "Unprocessable Entity (WebDAV) (RFC 4918)",
+									"code": 422,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										}
+									],
+									"cookie": [],
+									"body": "{\n \"detail\": [\n  {\n   \"loc\": [\n    \"dolore consectetur nulla tempor\",\n    \"sint voluptate\"\n   ],\n   \"msg\": \"nostrud Duis quis in\",\n   \"type\": \"ipsum ullamco est\"\n  },\n  {\n   \"loc\": [\n    \"nostrud ad es\",\n    \"exercitation deserunt ad cillum est\"\n   ],\n   \"msg\": \"est adipisicing\",\n   \"type\": \"elit\"\n  }\n ]\n}"
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "workspace",
+					"item": [
+						{
+							"name": "Fetch list of workspaces",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/workspace/",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"workspace",
+										""
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "Successful Response",
+									"originalRequest": {
+										"method": "GET",
+										"header": [
+											{
+												"description": "Added as a part of security scheme: oauth2",
+												"key": "Authorization",
+												"value": "<token>"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/api/v1/workspace/",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"v1",
+												"workspace",
+												""
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										}
+									],
+									"cookie": [],
+									"body": "[\n {\n  \"name\": \"in dolor in sed\",\n  \"created_at\": \"2013-05-04T19:52:33.824Z\",\n  \"last_change\": \"2005-08-19T04:41:23.403Z\",\n  \"owner\": {\n   \"email\": \"qui et nostrud\",\n   \"first_seen\": \"1983-05-18T21:04:41.437Z\",\n   \"last_seen\": \"2006-08-08T05:11:58.285Z\",\n   \"_id\": \"deserunt elit Excepteur\",\n   \"otp\": {\n    \"enabled\": false,\n    \"validated\": false\n   },\n   \"favorite_workspace\": \"id aliqua\",\n   \"is_configured\": false,\n   \"is_admin\": false,\n   \"is_locked\": false\n  },\n  \"_id\": \"do v\",\n  \"password_policy\": {\n   \"length\": 12,\n   \"uppercase\": 1,\n   \"numbers\": 1,\n   \"special\": 1\n  }\n },\n {\n  \"name\": \"adipisicing proident\",\n  \"created_at\": \"1969-08-28T00:46:39.148Z\",\n  \"last_change\": \"1983-06-09T06:05:11.195Z\",\n  \"owner\": {\n   \"email\": \"enim consectetur\",\n   \"first_seen\": \"1999-10-31T06:40:13.177Z\",\n   \"last_seen\": \"1957-04-12T05:10:06.157Z\",\n   \"_id\": \"elit\",\n   \"otp\": {\n    \"enabled\": false,\n    \"validated\": false\n   },\n   \"favorite_workspace\": \"nostrud enim\",\n   \"is_configured\": false,\n   \"is_admin\": false,\n   \"is_locked\": false\n  },\n  \"_id\": \"deserunt do\",\n  \"password_policy\": {\n   \"length\": 12,\n   \"uppercase\": 1,\n   \"numbers\": 1,\n   \"special\": 1\n  }\n }\n]"
+								}
+							]
+						}
+					]
+				}
+			]
+		}
+	],
+	"auth": {
+		"type": "oauth2",
+		"oauth2": [
+			{
+				"key": "username",
+				"value": "oderegis@gmail.com",
+				"type": "string"
+			},
+			{
+				"key": "grant_type",
+				"value": "password_credentials",
+				"type": "string"
+			},
+			{
+				"key": "password",
+				"value": ":@C0mmanderie",
+				"type": "string"
+			},
+			{
+				"key": "accessTokenUrl",
+				"value": "{{baseUrl}}/api/v1/auth/token",
+				"type": "string"
+			},
+			{
+				"key": "addTokenTo",
+				"value": "header",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"var tokenCreatedAt = pm.collectionVariables.get(\"token_created\");",
+					"",
+					"if (!tokenCreatedAt) {",
+					"    tokenCreatedAt = new Date(new Date().setDate(new Date().getDate() - 1))",
+					"}",
+					"",
+					"var tokenExpiresIn = pm.collectionVariables.get(\"expire_at\");",
+					"",
+					"if (!tokenExpiresIn) {",
+					"    tokenExpiresIn = 5000;",
+					"}",
+					"",
+					"var tokenCreatedTime = (new Date() - Date.parse(tokenCreatedAt))",
+					"",
+					"if (tokenCreatedTime >= tokenExpiresIn) {",
+					"",
+					"    console.log(\"The token has expired. Attempting to request a new token.\");",
+					"",
+					"    let url = pm.variables.get(\"baseUrl\") + \"/api/v1/auth/token\";",
+					"    pm.sendRequest({",
+					"        url: url,",
+					"        method: 'POST',",
+					"        header: {",
+					"            'Accept': 'application/json',",
+					"            'Content-Type': 'application/x-www-form-urlencoded'",
+					"        },",
+					"        body: {",
+					"            mode: 'urlencoded',",
+					"            urlencoded: [",
+					"                {",
+					"                    key: \"grant_type\",",
+					"                    value: \"password_credentials\",",
+					"                    disabled: false",
+					"                }, {",
+					"                    key: \"username\",",
+					"                    value: \"oderegis@gmail.com\"",
+					"                }, {",
+					"                    key: \"password\",",
+					"                    value: \":@C0mmanderie\"",
+					"                }",
+					"            ]",
+					"        }",
+					"    }, function(error, response) {",
+					"        console.log(response.json().access_token);",
+					"        ",
+					"        pm.collectionVariables.set(\"token_created\", new Date());",
+					"        pm.collectionVariables.set(\"access_token\", response.json().access_token);",
+					"",
+					"        var expiresIn = response.json().expires_in;",
+					"        ",
+					"        if (expiresIn) {",
+					"            tokenExpiresIn = expiresIn * 1000;",
+					"        }",
+					"        ",
+					"        pm.collectionVariables.set(\"expire_at\", tokenExpiresIn);",
+					"    });",
+					"}"
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8000",
+			"type": "string"
+		},
+		{
+			"key": "access_token",
+			"value": "---",
+			"type": "string",
+			"disabled": true
+		},
+		{
+			"key": "encrypted_password",
+			"value": "---",
+			"type": "string",
+			"disabled": true
+		},
+		{
+			"key": "access_token",
+			"value": ""
+		},
+		{
+			"key": "encrypted_password",
+			"value": ""
+		},
+		{
+			"key": "token_created",
+			"value": ""
+		},
+		{
+			"key": "expire_at",
+			"value": ""
+		}
+	]
+}

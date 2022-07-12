@@ -1,0 +1,32 @@
+[tool.poetry]
+name = "Teamlock"
+version = "0.1.0"
+description = "Enterprise Password Manager"
+authors = ["Olivier de Régis <olivier@deregis.fr>"]
+license = "GPLv3"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+bcrypt = "3.2.0"
+fastapi = "0.72.0"
+mongoengine = "0.23.1"
+passlib = "1.7.4"
+password-strength = "0.0.3.post2"
+pycryptodome = "3.12.0"
+pydantic = "1.9.0"
+pymongo = "3.12.3"
+python-dotenv = "0.19.2"
+python-jose = "3.3.0"
+python-multipart = "0.0.5"
+redis = "4.1.1"
+starlette = "0.17.1"
+uvicorn = "0.17.0"
+pyotp = "2.6.0"
+jinja2 = "3.0.3"
+pytest = "6.2.5"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
