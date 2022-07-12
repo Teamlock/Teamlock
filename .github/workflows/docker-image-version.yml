@@ -34,5 +34,5 @@ jobs:
       - name: Build and push Teamlock
         run: |
           docker build -t teamlock:$VERSION --build-arg VERSION=$VERSION .
-          docker tag teamlock:$VERSION raznak/teamlock:$VERSION
-          docker push raznak/teamlock:$VERSION
+          docker tag teamlock:$VERSION teamlockproject/teamlock:$VERSION
+          docker push teamlockproject/teamlock:$VERSION
