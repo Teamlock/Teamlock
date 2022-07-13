@@ -59,7 +59,7 @@
           v-if="!in_trash && (selected_workspace.owner === user._id || selected_workspace.can_write)"
         >
           <v-icon small>mdi-plus</v-icon>
-          {{ $t("button.add_key") }}
+          {{ $t("button.add_secret") }}
         </v-btn>     
       </template>
       <template v-slot:item="{ item,index }">
@@ -99,7 +99,7 @@
                 <span 
                   class="cursor"
                   v-on:click.stop
-                  v-on:dblclick.stop="copyPassword(item._id)"
+                  v-on:dblclick.stop="copySecret(item._id)"
                   v-bind="attrs"
                   v-on="on"
                   @contextmenu.prevent="can_share_external && is_pro? $refs.menuKey.open($event, item) : ''"
@@ -443,7 +443,7 @@ export default defineComponent({
         }
     },
 
-    copyPassword(key_id) {
+    copySecret(key_id) {
       this.loader_keys[key_id] = true
       this.$forceUpdate()
 
@@ -453,16 +453,16 @@ export default defineComponent({
         if (response.data.password.value) {
           if (!this.electron) {
             this.$copyText(response.data.password.value).then(() => {
-              this.copySuccess(this.$t("success.password_copied"), key_id)
+              this.copySuccess(this.$t("success.secret_copied"), key_id)
             })
           } else {
             window.ipc.send("COPY", response.data.password.value)
             window.ipc.on("COPY", () => {
-              this.copySuccess(this.$t("success.password_copied"), key_id)
+              this.copySuccess(this.$t("success.secret_copied"), key_id)
             })
           }
         } else {
-          this.copySuccess(this.$t("success.password_copied"), key_id)
+          this.copySuccess(this.$t("success.secret_copied"), key_id)
         }
       })    
     },

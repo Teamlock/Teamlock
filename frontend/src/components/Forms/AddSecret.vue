@@ -6,9 +6,7 @@
                     <v-app-bar-nav-icon>
                         <v-icon>mdi-key-plus</v-icon>
                     </v-app-bar-nav-icon>
-                    <v-toolbar-title class="pl-0">
-                        {{ $t("title.add_key") }}
-                    </v-toolbar-title>
+                    <v-toolbar-title class="pl-0" v-html="title"/>
                 </v-app-bar>
                 <v-card-text>
                     <v-row dense>
@@ -205,7 +203,7 @@ import EventBus from "@/event"
 import http from "@/utils/http"
 
 export default defineComponent({
-    name: "AddKey",
+    name: "AddSecret",
     data: () => ({
         open: false ,
         key_id: null,
@@ -223,6 +221,12 @@ export default defineComponent({
             informations: {encrypted: false, value: ""}
         }
     }),
+
+    computed: {
+        title() {
+            return this.key_id ? this.$t('title.edit_secret') : this.$t("title.add_secret")
+        }
+    },
 
     watch: {
         open(val) {
@@ -337,7 +341,7 @@ export default defineComponent({
             this.errorPassword = []
             this.loading = true;
             let uri = "/api/v1/key/"
-            let message = "Key created"
+            let message = "success.secret_created"
             const key_id = this.key_id
             this.form.folder = this.folder_id
 
@@ -345,7 +349,7 @@ export default defineComponent({
                 uri += key_id
                 try {
                     await http.put(uri, this.form)
-                    message = "Key updated"
+                    message = "success.secret_updated"
                 } catch (error){
                     if (this.hasErrors(error)) {
                         this.loading = false;
@@ -365,7 +369,7 @@ export default defineComponent({
 
             EventBus.$emit("refreshKeys")
             this.loading = false;
-            this.$toast.success(message, {
+            this.$toast.success(this.$t(message), {
                 closeOnClick: true,
                 timeout: 3000,
                 icon: true

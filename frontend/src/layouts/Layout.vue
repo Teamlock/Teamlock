@@ -27,7 +27,7 @@
             <treeview />
         </v-navigation-drawer>
 
-        <add-key />
+        <add-secret />
 
         <v-main>
             <router-view />
@@ -45,8 +45,8 @@ import FolderDialog from "../components/Dialogs/FolderDialog.vue"
 import ImportDialog from '../components/Dialogs/ImportDialog.vue'
 import ShareDialog from '../components/Dialogs/ShareDialog.vue'
 import WorkspaceList from '../components/WorkspaceList.vue'
+import AddSecret from '../components/Forms/AddSecret.vue'
 import { defineComponent } from '@vue/composition-api'
-import AddKey from '../components/Forms/AddKey.vue'
 import KeepAliveMixin from "@/mixins/keepalive"
 import Treeview from "../components/Treeview.vue"
 import AppBar from '../components/AppBar.vue'
@@ -60,7 +60,7 @@ export default defineComponent({
         ImportDialog,
         ShareDialog,
         Treeview,
-        AddKey,
+        AddSecret,
         AppBar
     },
 

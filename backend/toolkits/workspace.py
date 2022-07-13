@@ -555,7 +555,7 @@ class WorkspaceUtils:
         And then encrypt with the new public key
 
         Args:
-            user (User): Current suer
+            user (User): Current user
             old_password (str): Old password
             new_password (str): New password
         """

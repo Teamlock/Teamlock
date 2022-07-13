@@ -64,7 +64,8 @@
                             />
                             <v-switch
                                 v-model="form.encrypt_password"
-                                :label="$t('label.encrypt_password')"
+                                :label="$t('label.encrypt_secret')"
+                                disabled
                             />
                         </v-col>
                     </v-row>

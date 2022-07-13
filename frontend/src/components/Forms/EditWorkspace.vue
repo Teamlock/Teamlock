@@ -260,6 +260,25 @@ export default defineComponent({
             }
         }
     }),
+
+    watch: {
+        open(val) {
+            if (!val) {
+                this.workspace_id = false
+                this.form = {
+                    name: "",
+                    icon: "mdi-web",
+                    custom_policy: false,
+                    password_policy: {
+                        length: 12,
+                        uppercase: 1,
+                        numbers: 1,
+                        special: 1  
+                    }
+                }
+            }
+        }
+    },
     
     mounted() {
         EventBus.$on("editWorkspace", (workspace) => {

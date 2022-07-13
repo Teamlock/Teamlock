@@ -116,7 +116,7 @@ async def search_keys(
 @router.get(
     path="/{key_id}",
     response_model=KeySchema,
-    summary="Retreive password for a key"
+    summary="Retreive secret"
 )
 async def get_key(
     key_id: str,
@@ -144,10 +144,10 @@ async def get_key(
             user=user.in_db.email,
             workspace=workspace.name,
             workspace_owner=workspace.owner.email,
-            action=f"Retreive password for key {decrypted_key.name.value} in folder {key.folder.name}"
+            action=f"Retreive secret for key {decrypted_key.name.value} in folder {key.folder.name}"
         )
 
-        logger.info(f"[KEY][{str(workspace.pk)}][{workspace.name}] {user.in_db.email} retreive key {decrypted_key.name.value}")
+        logger.info(f"[SECRET][{str(workspace.pk)}][{workspace.name}] {user.in_db.email} retreive key {decrypted_key.name.value}")
         return decrypted_key.dict()
 
     except Key.DoesNotExist:
@@ -159,7 +159,7 @@ async def get_key(
 
 @router.post(
     path="/",
-    summary="Create a key",
+    summary="Create a secret",
     status_code=status.HTTP_201_CREATED
 )
 async def create_key(
@@ -171,7 +171,7 @@ async def create_key(
         if folder.in_trash or folder.is_trash:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Can't create a key inside the trash"
+                detail="Can't create a secret inside the trash"
             )
         workspace, sym_key = WorkspaceUtils.get_workspace(folder.workspace.pk, user)
 
@@ -198,10 +198,10 @@ async def create_key(
             user=user.in_db.email,
             workspace=workspace.name,
             workspace_owner=workspace.owner.email,
-            action=f"Create key {key_def.name.value} in folder {encrypted_key.folder.name}"
+            action=f"Create secret {key_def.name.value} in folder {encrypted_key.folder.name}"
         )
 
-        logger.info(f"[KEY][{str(workspace.pk)}][{workspace.name}] {user.in_db.email} create key {key_def.name.value}")
+        logger.info(f"[SECRET][{str(workspace.pk)}][{workspace.name}] {user.in_db.email} create secret {key_def.name.value}")
         return str(encrypted_key.pk)
 
     except Folder.DoesNotExist:
@@ -213,7 +213,7 @@ async def create_key(
 
 @router.post(
     path="/{key_id}/move",
-    summary="Move key to an other folder",
+    summary="Move secret to an other folder",
     status_code=status.HTTP_202_ACCEPTED
 )
 async def move_key(
@@ -231,7 +231,7 @@ async def move_key(
         key.folder = new_folder
         key.save()
 
-        logger.info(f"[KEY][{str(workspace.pk)}][{workspace.name}] {user.in_db.email} move key {key.name.value}")
+        logger.info(f"[SECRET][{str(workspace.pk)}][{workspace.name}] {user.in_db.email} move key {key.name.value}")
         return Response(status_code=status.HTTP_202_ACCEPTED)
     except Folder.DoesNotExist:
         raise HTTPException(
@@ -242,12 +242,12 @@ async def move_key(
     except Key.DoesNotExist:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Key not found"
+            detail="Secret not found"
         )
 
 @router.put(
     path="/{key_id}",
-    summary="Edit a key",
+    summary="Edit a secret",
     status_code=status.HTTP_202_ACCEPTED
 )
 async def update_key(
@@ -287,16 +287,16 @@ async def update_key(
             user=user.in_db.email,
             workspace=workspace.name,
             workspace_owner=workspace.owner.email,
-            action=f"Update key {key.name} in folder {key.folder.name}"
+            action=f"Update secret {key.name} in folder {key.folder.name}"
         )
 
-        logger.info(f"[KEY][{str(workspace.pk)}][{workspace.name}] {user.in_db.email} update key {key_def.name.value}")
+        logger.info(f"[SECRET][{str(workspace.pk)}][{workspace.name}] {user.in_db.email} update secret {key_def.name.value}")
         return Response(status_code=status.HTTP_202_ACCEPTED)
 
     except Key.DoesNotExist:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Key not found"
+            detail="Secret not found"
         )
     except Folder.DoesNotExist:
         raise HTTPException(
@@ -307,7 +307,7 @@ async def update_key(
 
 @router.delete(
     path="/{key_id}",
-    summary="Delete a key",
+    summary="Delete a secret",
     status_code=status.HTTP_204_NO_CONTENT
 )
 async def delete_key(
@@ -324,13 +324,13 @@ async def delete_key(
             user=user.email,
             workspace=workspace.name,
             workspace_owner=workspace.owner.email,
-            action=f"Delete key {key.name} in folder {key.folder.name}"
+            action=f"Delete secret {key.name} in folder {key.folder.name}"
         )
 
-        logger.info(f"[KEY][{str(workspace.pk)}][{workspace.name}] {user.in_db.email} delete key {key.name.value}")
+        logger.info(f"[SECRET][{str(workspace.pk)}][{workspace.name}] {user.in_db.email} delete key {key.name.value}")
     
     except Key.DoesNotExist:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Key not found"
+            detail="Secret not found"
         )
