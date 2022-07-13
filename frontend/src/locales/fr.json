@@ -1,5 +1,6 @@
 {
     "label": {
+        "secrets": "Secrets",
         "mfa": "Authentification multi facteur",
         "city": "Ville",
         "country": "Pays",
@@ -221,6 +222,8 @@
         "secret_shared": "Secret partagé"
     },
     "warning": {
+        "user_recovery": "Contactez votre administrateur avant utiliser la récupération.",
+        "user_recovery2": "Votre administrateur doit activer cette fonctionnalité sur votre compte.",
         "import": "Ici, vous pouvez impter un fichier XML d'une base de données Keepass, ou un fichier backup de Teamlock v1.",
         "need_change_password": "Votre mot de passe a expiré",
         "confirm_enable_recovery": "Activer le mode de récupération pour cet utilisateur ?",
@@ -256,6 +259,7 @@
         "unique_user": "Un utilisateur avec cette adresse email existe déjà",
         "unknown": "Une erreur est survenue",
         "invalid_otp": "Code invalide",
+        "not_allowed": "Action non autorisée",
         "provide_allowed_email_addresses": "Merci de renseigner au moins une adresse email",
         "invalid_domain": "Adresse email invalide",
         "passwords_mismatch": "Les mots de passe ne correspondent pas",

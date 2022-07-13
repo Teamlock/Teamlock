@@ -1,5 +1,6 @@
 {
     "label": {
+        "secrets": "Secrets",
         "mfa": "Multi Factor Authentication",
         "city": "City",
         "country": "Country",
@@ -223,6 +224,8 @@
         "secret_shared": "The secret is successfully shared"
     },
     "warning": {
+        "user_recovery": "Contact your IT Administrator before using the recovery.",
+        "user_recovery2": "Your administrator must enable this features onto your account.",
         "import": "Here you can import an XML File of a KeePass database, or a backup file from a Teamlock v1 workspace.",
         "need_change_password": "Your password has expired, please change it.",
         "confirm_enable_recovery": "Enable recovery mode for this user ?",
@@ -260,6 +263,7 @@
         "provide_allowed_email_addresses": "Provide at least one allowed email address",
         "invalid_domain": "Email address not valid",
         "passwords_mismatch": "Passwords mismatch",
+        "not_allowed": "Not allowed",
         "invalid_recovery_key": "Invalid recovery key",
         "max_users_limit": "You have reach the max users you can add. Please upgrade your subscription to add more.",
         "could_not_validate_credentials": "Incorrect username or password",

@@ -32,6 +32,19 @@
                                         {{ $t("success.account_recovered") }}
                                     </v-alert>
 
+                                    <v-alert
+                                        dark
+                                        border="top"
+                                        type="warning"
+                                        class="mt-4"
+                                        v-if="!error && !success"
+                                        prominent
+                                        block
+                                    >
+                                        {{ $t('warning.user_recovery') }}<br/>
+                                        {{ $t('warning.user_recovery2') }}
+                                    </v-alert>
+
                                     <v-form ref="form" v-model="valid" @submit.prevent="recover" class="v_form_login" v-if="!success">
                                         <v-file-input
                                             show-size
@@ -72,7 +85,7 @@
 
                                         <br/><br/>
 
-                                        <router-link 
+                                        <router-link
                                             text
                                             class="mb-0"
                                             :to="{name: 'Login'}"
@@ -115,10 +128,24 @@ export default defineComponent({
 
     methods: {
         recover() {
+            if (!this.file) return
+            if (!this.email) return
+            if (!this.new_password) return
+            if (!this.confirm_password) return
+
+            if (this.new_password !== this.confirm_password) {
+                this.$toast.error(this.$t("error.passwords_mismatch"), {
+                    closeOnClick: true,
+                    timeout: 5000,
+                    icon: true
+                })
+                return
+            }
+
             this.error = ""
             this.is_loading = true
             this.errorPassword = []
-            
+
             const url = `${process.env.VUE_APP_BASE_URL}/api/v1/auth/recover`
 
             const formData = new FormData()
@@ -165,10 +192,16 @@ export default defineComponent({
                         for (const {type, min} of error.response.data.detail.details) {
                             detail.push(`${mapping[type]}: ${min}`)
                         }
-    
+
                         this.errorPassword = detail
                         this.errorPasswordCount = detail.length + 1
                     }
+                } else if (error.response.status === 403) {
+                    this.$toast.error(this.$t("error.not_allowed"), {
+                        closeOnClick: true,
+                        timeout: 5000,
+                        icon: true
+                    })
                 }
             }).then(() => {
                 this.is_loading = false

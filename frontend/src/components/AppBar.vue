@@ -190,6 +190,7 @@ export default defineComponent({
         },
 
         logout() {
+            EventBus.$emit("stopKeepAlive")
             sessionStorage.clear()
             this.$router.push("/login")
         },

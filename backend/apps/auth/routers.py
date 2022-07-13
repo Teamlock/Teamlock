@@ -33,10 +33,11 @@ from fastapi.security import OAuth2PasswordRequestForm
 from exceptions import AuthenticationError, UserDontExist, UserLocked
 from toolkits.exceptions import UserExistException
 from toolkits.workspace import WorkspaceUtils
-from apps.config.schema import ConfigSchema
 from fastapi.exceptions import HTTPException
-from fastapi.responses import JSONResponse
+from toolkits.history import create_history
 from toolkits.redis_tools import RedisTools
+from fastapi.responses import JSONResponse
+from apps.config.schema import ConfigSchema
 from apps.config.models import Config
 from toolkits.mail import MailUtils
 from apps.user.models import User
@@ -229,7 +230,21 @@ async def recover_user(
         config: ConfigSchema = fetch_config(as_schema=True)
         check_password_complexity(config.password_policy, new_password)
 
-        user = User.objects(email=email, recovery_enabled=True).get()
+        user = User.objects(email=email).get()
+        if not user.recovery_enabled:
+            log_message: str = f"[RECOVER] User {email} attempts to recover, but recovery mode not enabled"
+            logger.info(log_message)
+            logger_security.info(log_message)
+
+            create_history(
+                user=email,
+                action="Attempts to recover account, but recovery mode not enabled"
+            )
+
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN
+            )
+
         sym_key: bytes = await recover_file.read()
         WorkspaceUtils.recover_account(user, sym_key.decode("utf-8"), new_password)
         user.recovery_enabled = False
@@ -239,8 +254,10 @@ async def recover_user(
         logger.info(log_message)
         logger_security.info(log_message)
 
-    except User.DoesNotExist:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Not found or not Allowed"
+        create_history(
+            user=email,
+            action="User recovered his account"
         )
+
+    except User.DoesNotExist:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
