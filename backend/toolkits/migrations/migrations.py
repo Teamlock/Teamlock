@@ -26,57 +26,19 @@ from datetime import datetime
 from settings import settings
 
 
-def migrate_0_2(db):
-    """Remove template_registration field on config model"""
-    db.config.update({}, {"$unset": {"template_registration": 1}})
+def migrate_1_0(db):
+    config = db.config.find_one()
+    if config.get("enforce_totp"):
+        db.pro_config.insert_one({
+            "enforce_totp": True
+        })
 
-def migrate_0_3(db):
-    """Add first_seen field on users"""
-    db.user.update_many({}, {"$set": {"first_seen": datetime.utcnow()}})
-
-def migrate_0_52(db):
-    """Remove Favorite Workspace in user"""
-    db.user.update_many({}, {"$unset": {"favorite_workspace": 1}})
-
-def migrate_0_6(db):
-    """Create trashs Folders"""
-    db.config.update({}, {
-        "$set": {
-            "twilio": {
-                "enabled": False,
-                "account_sid": "",
-                "auth_token": "",
-                "phone_number": ""
-            }
-        }
-    })
-
-    workspaces = db.workspace.find()
-    for workspace in workspaces:
-        try:
-            print(f"Creating Trash folder for Workspace { workspace['name'] }")
-            db.folder.insert_one({
-                "name": "Trash",
-                "icon": "mdi-delete",
-                "created_by": workspace["owner"],
-                "is_trash": True,
-                "workspace": workspace["_id"]
-            })
-        except KeyError:
-            db.workspace.remove({"_id": workspace["_id"]})
-
-def migrate_0_7(db):
     db.config.update({}, {"$unset": {"enforce_totp": 1}})
-
 
 
 class Migrations:
     MIGRATIONS_DICT: dict = {
-        0.2: migrate_0_2,
-        0.3: migrate_0_3,
-        0.52: migrate_0_52,
-        0.6: migrate_0_6,
-        0.7: migrate_0_7
+        1.0: migrate_1_0
     }
 
     def __init__(self):

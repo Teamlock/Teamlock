@@ -14,7 +14,7 @@
                     {{ $t("label.registration") }}
                 </v-tab>
                 <v-tab v-if="is_pro" key="tab-pro">
-                    {{ $t("label.pro") }}
+                    {{ $t("label.mfa") }}
                 </v-tab>
             </v-tabs>
 

@@ -1,5 +1,6 @@
 {
     "label": {
+        "mfa": "Authentification multi facteur",
         "city": "Ville",
         "country": "Pays",
         "send_by_mail": "Envoyer par mail",
