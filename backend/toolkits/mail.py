@@ -76,6 +76,15 @@ If these connections are not coming from you, please alert your IT Administrator
 Hello,<br/><br/>You're Teamlock password has been changed.<br/>
 If you did not make this change, please alert your IT Administrator to lock up your account"""
             }
+        },
+        "workspace_shared": {
+            "subject": "[TEAMLOCK] A workspace has been shared with you",
+            "context": {
+                "link": f"{settings.APP_URL}/",
+                "text": """
+Hello,<br/><br/>The workspace <b>{{ workspace_name }}</b> has been shared with you by {{ shared_by }}.""",
+                "link_text": "Go"
+            }
         }
     }
 

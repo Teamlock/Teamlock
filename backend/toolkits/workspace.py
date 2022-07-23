@@ -379,6 +379,13 @@ class WorkspaceUtils:
                     user=tmp_user
                 )
 
+                # Send email to warn user
+                context: dict = {
+                    "workspace_name": workspace.name,
+                    "shared_by": user.in_db.email
+                }
+                MailUtils.send_mail([tmp_user.email], "", "workspace_shared", context)
+
                 logger.info(
                     f"[SHARE][{str(workspace.pk)}][{workspace.name}] Shared by {user.in_db.email} to {user.email}"
                 )

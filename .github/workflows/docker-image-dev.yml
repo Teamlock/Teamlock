@@ -9,36 +9,22 @@ env:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      # This is the a separate action that sets up buildx runner
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
-      # So now you can use Actions' own caching!
-      - name: Cache Docker layers
-        uses: actions/cache@v2
-        with:
-          path: /tmp/.buildx-cache
-          key: ${{ runner.os }}-build-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-buildx-
-      - name: Login to DockerHub
-        uses: docker/login-action@v1
-        with:
-          username: ${{ secrets.DOCKER_HUB_USERNAME }}
-          password: ${{ secrets.DOCKER_HUB_TOKEN }}
-      # And make it available for the builds
-      - name: Build and push Teamlock Free Version
-        run: |
-          docker build -t teamlock:dev-$VERSION --build-arg VERSION=$VERSION .
-          docker tag teamlock:dev-$VERSION teamlockproject/teamlock:dev-$VERSION
-          docker push teamlockproject/teamlock:dev-$VERSION
+      - uses: actions/checkout@v3
+      - name: Build docker image
+        run: sudo docker build -t teamlock:dev-$VERSION --build-arg VERSION=$VERSION .
 
-      # - name: Build and push Teamlock Pro Version
-      #   run: |
-      #     docker build -t teamlock-pro:dev-$VERSION --build-arg VERSION=$VERSION .
-      #     docker tag teamlock-pro:dev-$VERSION teamlockproject/pro:dev-$VERSION
-      #     docker push teamlockproject/pro:dev-$VERSION
+  deploy:
+    runs-on: self-hosted
+    needs: build
+    env:
+      PERSONNAL_TOKEN: ${{ secrets.PERSONNAL_TOKEN }}
+    steps:
+      - name: Login on Container registry
+        run: echo $PERSONNAL_TOKEN | sudo docker login ghcr.io -u raznak --password-stdin
+      - name: Tag the image
+        run: sudo docker tag teamlock:dev-$VERSION ghcr.io/teamlock/teamlock:dev-$VERSION
+      - name: Push the image
+        run: sudo docker push ghcr.io/teamlock/teamlock:dev-$VERSION

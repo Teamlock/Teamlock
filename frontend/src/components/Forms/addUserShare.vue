@@ -240,6 +240,7 @@ export default defineComponent({
         },
 
         saveShare() {
+            this.isLoading = true
             const form = {
                 users: this.form.selectedUsers,
                 can_write: this.form.can_write,
@@ -254,6 +255,7 @@ export default defineComponent({
 
             const uri = `/api/v1/workspace/${this.selectedWorkspace}/share`
             http.post(uri, form).then(() => {
+                this.isLoading = false
                 this.emptyForm()
                 this.getUsers()
 
