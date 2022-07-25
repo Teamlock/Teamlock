@@ -194,6 +194,8 @@ async def update_folder(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Parent folder not found"
             )
+    elif folder_def.moved:
+        folder.parent = None
     
     folder.save()
     logger.info(f"[FOLDER][{str(folder.workspace.pk)}][{folder.workspace.name}] {user.in_db.email} update folder {folder_def.name}")

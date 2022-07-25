@@ -257,6 +257,7 @@
         "restore": "To restore that folder or those secrets, move them at the wanted place"
     },
     "error": {
+        "trash_cant_be_moved": "Trash can't be moved",
         "invalid_password": "Invalid password",
         "occurred": "An error has occurred",
         "otp_need_config": "Please configure MFA with your Authenticator application",

@@ -202,12 +202,25 @@ export default defineComponent({
         },
 
         dropEnd(node_dragged, node_dest) {
-            this.loading = true
             const folder_to_move = node_dragged[0].data
+            if (folder_to_move.is_trash) {
+                this.$toast.error(this.$t('error.trash_cant_be_moved'), {
+                    closeOnClick: true,
+                    timeout: 3000,
+                    icon: true
+                })
+                return
+            }
+
+            this.loading = true
             let folder_dest = node_dest.node.data
 
             if (node_dest.placement !== "inside") {
                 folder_dest = node_dest.node.data
+                if (!folder_dest.parent) {
+                    folder_dest._id = null
+                    folder_to_move.moved = true
+                }
             }
 
             folder_to_move.parent = folder_dest._id
