@@ -310,7 +310,11 @@
         "add_user": "Ajouter un utilisateur",
         "edit_key": "Editer un utilisateur",
         "empty_trash": "Vider la corbeille",
-        "context_menu_workspace": "Clic droit pour plus d'options"
+        "context_menu_workspace": "Clic droit pour plus d'options",
+        "tooltip_workspace_id": "Copier l'ID de l'espace de travail",
+        "tooltip_folder_id": "Copier l'ID du dossier",
+        "tooltip_secret_id": "Copier l'ID du secret",
+        "copied": "Copié"
     },
     "folder": {
         "edit": "Editer un dossier",

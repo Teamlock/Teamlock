@@ -312,7 +312,11 @@
         "add_user": "Add an user",
         "edit_key": "Edit user",
         "empty_trash": "Empty trash",
-        "context_menu_workspace": "Right click for more options"
+        "context_menu_workspace": "Right click for more options",
+        "tooltip_workspace_id": "Copy Workspace ID",
+        "tooltip_folder_id": "Copy Folder ID",
+        "tooltip_secret_id": "Copy Secret ID",
+        "copied": "Copied"
     },
     "folder": {
         "edit": "Edit folder",

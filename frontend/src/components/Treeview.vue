@@ -137,6 +137,7 @@ export default defineComponent({
                     tree[0].isSelected = true
                     this.$store.dispatch("set_current_folder", tree[0].data._id)
                     EventBus.$emit("selectedFolder", {
+                        _id: tree[0].data._id,
                         name: tree[0].data.name,
                         icon: tree[0].data.icon,
                     })
