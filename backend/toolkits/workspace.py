@@ -14,8 +14,8 @@ along with Teamlock.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from apps.key.schema import CreateKeySchema, KeySchema, KeyValueSchema, TMPKeySchema
-from apps.workspace.schema import EditShareSchema, ImportXMLFileSchema
 from apps.config.schema import PasswordPolicySchema
+from apps.workspace.schema import EditShareSchema
 from apps.config.models import PasswordPolicy
 from apps.workspace.models import Workspace
 from apps.folder.schema import FolderSchema
@@ -29,7 +29,6 @@ from .const import WHITELIST_RIGHTS
 from toolkits.schema import RSASchema
 from pykeepass import create_database
 from apps.folder.models import Folder
-import xml.etree.ElementTree as ET
 from toolkits.mail import MailUtils
 from apps.user.models import User
 from .crypto import CryptoUtils
@@ -167,176 +166,6 @@ class WorkspaceUtils:
         user.save()
         return str(workspace.pk)
 
-    @classmethod
-    def import_teamlock_backup(
-        cls,
-        user: User,
-        workspace: Workspace,
-        import_schema: ImportXMLFileSchema,
-        file: str
-    ):
-        file = json.loads(file)
-
-        sym_key: str = workspace.sym_key
-
-        def save_folders(user, folders, parent=None):
-            for tmp_folder in folders:
-                folder = Folder.objects.create(
-                    workspace=workspace,
-                    name=tmp_folder["name"],
-                    icon="mdi-folder",
-                    created_by=user.in_db.pk,
-                    parent=parent
-                )
-
-                keys: list = []
-                for tmp_key in tmp_folder['keys']:
-                    url = tmp_key.get("uri", "") or tmp_key.get("ipv4", "") or tmp_key.get("ipv6", "")
-                    if url is None:
-                        url = ""
-
-                    key_def: CreateKeySchema = CreateKeySchema(
-                        name=KeyValueSchema(
-                            encrypted=import_schema.encrypt_name,
-                            value=tmp_key["name"] or ""
-                        ),
-                        url=KeyValueSchema(
-                            encrypted=import_schema.encrypt_url,
-                            value=url
-                        ),
-                        login=KeyValueSchema(
-                            encrypted=import_schema.encrypt_login,
-                            value=tmp_key.get("login", "") or ""
-                        ),
-                        password=KeyValueSchema(
-                            encrypted=True,
-                            value=tmp_key.get("password", "") or ""
-                        ),
-                        informations=KeyValueSchema(
-                            encrypted=import_schema.encrypt_informations,
-                            value=tmp_key.get("informations", "") or ""
-                        )
-                    )
-
-                    key = WorkspaceUtils.encrypt_key(user, sym_key, key_def)
-                    key.folder = folder
-                    key.created_by = user.in_db
-                    key.updated_by = user.in_db
-                    keys.append(key)
-
-                if len(keys) > 0:
-                    Key.objects.insert(keys)
-
-                save_folders(user, tmp_folder["childs"], folder)
-
-        try:
-            save_folders(user, file)
-            workspace.import_in_progress = False
-            workspace.save()
-
-            logger.info(
-                f"[IMPORT][{str(workspace.pk)}][{workspace.name}] Import finished"
-            )
-        except Exception as error:
-            logger.critical(error, exc_info=1)
-            workspace.import_in_progress = False
-            workspace.save()
-
-    @classmethod
-    def import_xml_keepass(
-        cls,
-        user: User,
-        workspace: Workspace,
-        import_schema: ImportXMLFileSchema,
-        file: str
-    ):
-        key_mapping = {
-            'Password': 'password',
-            'Title': 'name',
-            'URL': 'url',
-            'UserName': 'login',
-            'Notes': 'informations'
-        }
-
-        sym_key: str = workspace.sym_key
-
-        def save_xml_folder(user, group, parent=None):
-            for subgroup in group.findall("Group"):
-                group_name = subgroup.find("Name").text
-
-                folder = Folder.objects.create(
-                    workspace=workspace,
-                    name=group_name,
-                    icon="mdi-folder",
-                    created_by=user.in_db.pk,
-                    parent=parent
-                )
-
-                keys: list = []
-                for entry in subgroup.findall("Entry"):
-                    tmp: dict = {}
-                    for entry_value in entry.findall("String"):
-                        key: str = entry_value.find("Key").text
-                        value: str = entry_value.find("Value").text
-
-                        if key in key_mapping.keys():
-                            if value:
-                                tmp[key_mapping[key]] = value
-                            else:
-                                tmp[key_mapping[key]] = ""
-
-                    key_def: CreateKeySchema = CreateKeySchema(
-                        name=KeyValueSchema(
-                            encrypted=import_schema.encrypt_name,
-                            value=tmp["name"]
-                        ),
-                        url=KeyValueSchema(
-                            encrypted=import_schema.encrypt_url,
-                            value=tmp["url"]
-                        ),
-                        login=KeyValueSchema(
-                            encrypted=import_schema.encrypt_login,
-                            value=tmp["login"]
-                        ),
-                        password=KeyValueSchema(
-                            encrypted=import_schema.encrypt_password,
-                            value=tmp["password"]
-                        ),
-                        informations=KeyValueSchema(
-                            encrypted=import_schema.encrypt_informations,
-                            value=tmp["informations"]
-                        ),
-                        folder=folder.pk,
-                        created_by=user.in_db.pk
-                    )
-
-                    key = WorkspaceUtils.encrypt_key(user, sym_key, key_def)
-                    key.folder = folder
-                    key.created_by = user.in_db
-                    key.updated_by = user.in_db
-                    keys.append(key)
-
-                if len(keys) > 0:
-                    Key.objects.insert(keys)
-
-                save_xml_folder(user, subgroup, folder)
-
-        try:
-            xml_file = ET.fromstring(file)
-            racine = xml_file.find('Root').find('Group')
-            save_xml_folder(user, racine)
-
-            workspace.import_in_progress = False
-            workspace.save()
-
-            logger.info(
-                f"[IMPORT][{str(workspace.pk)}][{workspace.name}] Import finished"
-            )
-
-        except Exception as error:
-            logger.critical(error, exc_info=1)
-            workspace.import_in_progress = False
-            workspace.save()
 
     @classmethod
     def share_workspace(

@@ -1,5 +1,7 @@
 {
     "label": {
+        "import_type": "Database format",
+        "file": "File",
         "secrets": "Secrets",
         "mfa": "Multi Factor Authentication",
         "city": "City",
