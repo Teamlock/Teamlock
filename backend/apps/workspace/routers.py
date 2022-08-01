@@ -21,7 +21,6 @@ __maintainer__ = "Teamlock Project"
 __email__ = "contact@teamlock.io"
 __doc__ = ''
 
-from toolkits.crypto import CryptoUtils
 from .schema import (EditShareSchema, EditWorkspaceSchema, ImportXMLFileSchema,
                      SharedWorkspaceSchema, UpdateShareSchema, UsersWorkspace, WorkspaceSchema)
 from fastapi import APIRouter, Depends, status, File, UploadFile, Form, BackgroundTasks
@@ -30,11 +29,13 @@ from mongoengine.errors import NotUniqueError
 from pymongo.errors import DuplicateKeyError
 from apps.config.models import PasswordPolicy
 from toolkits.workspace import WorkspaceUtils
-from toolkits.folder import FolderUtils
+from toolkits.import_utils import ImportUtils
 from fastapi.exceptions import HTTPException
 from apps.folder.schema import FolderSchema
 from apps.auth.tools import get_current_user
 from mongoengine.queryset.visitor import Q
+from toolkits.folder import FolderUtils
+from toolkits.crypto import CryptoUtils
 from apps.auth.schema import LoggedUser
 from fastapi.responses import Response
 from .models import Workspace, Share
@@ -353,22 +354,26 @@ async def import_keepass_file(
         encrypt_informations=encrypt_informations,
     )
 
-    workspace, _ = WorkspaceUtils.get_workspace(workspace_id, user)
+    workspace, sym_key = WorkspaceUtils.get_workspace(workspace_id, user)
     workspace.import_in_progress = True
     workspace.save()
 
     content_file: bytes = await file.read()
 
-    if import_type == "keepass":
-        background_task.add_task(
-            WorkspaceUtils.import_xml_keepass,
-            user, workspace, import_schema, content_file.decode("utf-8")
-        )
-    elif import_type == "teamlock_backup":
-        background_task.add_task(
-            WorkspaceUtils.import_teamlock_backup,
-            user, workspace, import_schema, content_file.decode("utf-8")
-        )
+    func_mapping: dict = {
+        "keepass": ImportUtils.import_xml_keepass,
+        "teamlock_v1": ImportUtils.import_teamlock_backup,
+        "bitwarden": ImportUtils.import_json_bitwarden
+    }
+
+    background_task.add_task(
+        func_mapping[import_type],
+        user,
+        workspace,
+        sym_key,
+        import_schema,
+        content_file.decode("utf-8")
+    )
 
     return Response(status_code=status.HTTP_200_OK)
 

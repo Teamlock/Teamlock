@@ -79,8 +79,6 @@ export default defineComponent({
             let open = false
 
             for (const folder of folders) {
-                if (!folder.parent) continue
-
                 if (folder.parent === parent_id) {
                     const { is_open, children } = this.findChildren(folders, folder._id, selected_folder)
                     if (is_open || folder._id === selected_folder) {
@@ -171,6 +169,7 @@ export default defineComponent({
         selectFolder(selected) {
             const folder_id = selected[0].data._id
             EventBus.$emit("selectedFolder", {
+                _id: selected[0].data._id,
                 name: selected[0].data.name,
                 icon: selected[0].data.icon,
             })

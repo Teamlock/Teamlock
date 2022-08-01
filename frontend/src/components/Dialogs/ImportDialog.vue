@@ -17,27 +17,23 @@
                     </v-row>
                     <v-row dense>
                         <v-col>
-                            <v-file-input
-                                @change="inputFileChange('xml')"
-                                show-size
-                                counter
-                                multiple
-                                ref="xmlFile"
-                                v-model="xml_file"
-                                :label="$t('label.xml_file')"
+                            <v-select
+                                :items="importChoices"
+                                :label="$t('label.import_type')"
+                                v-model="form.import_type"
+                                item-value="value"
+                                item-text="text"
                             />
                         </v-col>
                     </v-row>
                     <v-row dense>
                         <v-col>
                             <v-file-input
-                                @change="inputFileChange('backup')"
                                 show-size
                                 counter
-                                multiple
-                                ref="teamlockv1_file"
-                                v-model="teamlockv1_file"
-                                :label="$t('label.teamlockv1_file')"
+                                ref="file"
+                                v-model="file"
+                                :label="$t('label.file')"
                             />
                         </v-col>
                     </v-row>
@@ -90,9 +86,14 @@ export default defineComponent({
     data: () => ({
         loading: false,
         open: false,
-        xml_file: null,
-        teamlockv1_file: null,
+        file: null,
+        importChoices: [
+            {value: 'keepass', text: 'KeePass XML File'},
+            {value: 'teamlock_v1', text: 'Teamlock v1'},
+            {value: 'bitwarden', text: 'Bitwarden JSON'}
+        ],
         form: {
+            import_type: null,
             encrypt_name: false,
             encrypt_url: false,
             encrypt_login: false,
@@ -114,27 +115,12 @@ export default defineComponent({
     },
 
     methods: {
-        inputFileChange(filetype) {
-            if (filetype === "xml") {
-                this.teamlockv1_file = null
-            } else {
-                this.xml_file = null
-            }
-        },
-
         importFile() {
             this.loading = true;
 
             const formData = new FormData()
-
-            if (this.xml_file) {
-                formData.append("file", this.xml_file[0])
-                formData.append("import_type", "keepass")
-            } else {
-                formData.append("file", this.teamlockv1_file[0])
-                formData.append("import_type", "teamlock_backup")
-            }
-
+            formData.append("file", this.file)
+            formData.append("import_type", this.form.import_type)
             formData.append("encrypt_name", this.form.encrypt_name)
             formData.append("encrypt_url", this.form.encrypt_url)
             formData.append("encrypt_login", this.form.encrypt_login)
@@ -147,8 +133,9 @@ export default defineComponent({
                 }
             }).then(() => {
                 this.loading = false
-                this.xml_file = null
+                this.file = null
                 this.form = {
+                    import_type: null,
                     encrypt_name: false,
                     encrypt_url: false,
                     encrypt_login: false,
