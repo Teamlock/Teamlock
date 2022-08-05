@@ -1,7 +1,7 @@
 <template>
-    <v-navigation-drawer app hide-overlay right v-model="open" width="500px">
-        <v-form ref="form" @submit.prevent="saveKey">
-            <v-card :loading="loading" class="mx-auto" :min-width="400" flat>
+    <v-navigation-drawer app temporary hide-overlay right v-model="open" width="500px">
+        <v-form ref="form" @submit.prevent="saveBank" style="height: 100%">
+            <v-card :loading="loading" class="mx-auto" :min-width="400" flat style="height: 100%">
                 <v-app-bar flat dense class="edit_workspace_bar">
                     <v-app-bar-nav-icon>
                         <v-icon>mdi-key-plus</v-icon>
@@ -49,9 +49,9 @@
                     <v-row dense class="relative-row">
                         <v-text-field
                             color="#DAAB39"
-                            v-model="form.login.value"
+                            v-model="form.owner.value"
                             class="input-field pl-1 pr-1 mb-2"
-                            :label="$t('label.login')"
+                            :label="$t('label.owner')"
                             hide-details
                             required
                         >
@@ -60,9 +60,9 @@
                                     <v-icon
                                         v-on="on"
                                         v-bind="attrs"
-                                        :color="form.login.encrypted ? '#daab39' : ''"
-                                        v-html="form.login.encrypted ? 'mdi-lock' : 'mdi-lock-open'"
-                                        @click="form.login.encrypted = !form.login.encrypted"
+                                        :color="form.owner.encrypted ? '#daab39' : ''"
+                                        v-html="form.owner.encrypted ? 'mdi-lock' : 'mdi-lock-open'"
+                                        @click="form.owner.encrypted = !form.owner.encrypted"
                                         tabindex="-1"
                                     />
                                 </template>
@@ -73,9 +73,9 @@
                     <v-row dense class="relative-row">
                         <v-text-field
                             color="#DAAB39"
-                            v-model="form.url.value"
+                            v-model="form.bank_name.value"
                             class="input-field pl-1 pr-1 mb-2"
-                            :label="$t('label.url')"
+                            :label="$t('label.bank_name')"
                             hide-details
                             required
                         >
@@ -84,9 +84,9 @@
                                     <v-icon
                                         v-on="on"
                                         v-bind="attrs"
-                                        :color="form.url.encrypted ? '#daab39' : ''"
-                                        v-html="form.url.encrypted ? 'mdi-lock' : 'mdi-lock-open'"
-                                        @click="form.url.encrypted = !form.url.encrypted"
+                                        :color="form.bank_name.encrypted ? '#daab39' : ''"
+                                        v-html="form.bank_name.encrypted ? 'mdi-lock' : 'mdi-lock-open'"
+                                        @click="form.bank_name.encrypted = !form.bank_name.encrypted"
                                         tabindex="-1"
                                     />
                                 </template>
@@ -97,67 +97,47 @@
                     <v-row dense class="relative-row">
                         <v-text-field
                             class="input-field pl-1 pr-1 mb-2"
-                            v-model="form.password.value"
-                            :type="show_password ? 'text' : 'password'"
-                            :error-messages="errorPassword"
-                            :error-count="errorPasswordCount"
-                            :hide-details="errorPasswordCount === 0"
-                            :label="$t('label.secret')"
+                            v-model="form.iban.value"
+                            :type="show_iban ? 'text' : 'password'"
+                            :label="$t('label.iban')"
                         >
-                            <span slot="prepend">
-                                <v-tooltip bottom>
-                                    <template v-slot:activator="{ on, attrs }">
-                                        <v-icon
-                                            v-on="on"
-                                            v-bind="attrs"
-                                            @click="generatePassword"
-                                            class="mr-2"
-                                            tabindex="-1"
-                                        >
-                                            mdi-auto-fix
-                                        </v-icon>
-                                    </template>
-                                    <span v-html="$t('label.generate_secret')" />
-                                </v-tooltip>
-                            </span>
                             <span slot="append">
                                 <v-tooltip bottom>
                                     <template v-slot:activator="{ on, attrs }">
                                         <v-icon
                                             v-on="on"
                                             v-bind="attrs"
-                                            v-html="show_password ? 'mdi-eye' : 'mdi-eye-off'"
-                                            @click="show_password = !show_password"
+                                            v-html="show_iban ? 'mdi-eye' : 'mdi-eye-off'"
+                                            @click="show_iban = !show_iban"
                                             tabindex="-1"
                                         />                                    
                                     </template>
-                                    <span v-html="$t('label.show_secret')" />
+                                    <span v-html="$t('label.show_pin')" />
                                 </v-tooltip>
                             </span>
                         </v-text-field>
                     </v-row>
                     <v-row dense class="relative-row">
                         <v-text-field
-                            color="#DAAB39"
-                            v-model="form.ip.value"
-                            :label="$t('label.ip')"
                             class="input-field pl-1 pr-1 mb-2"
-                            type="text"
-                            hide-details
+                            v-model="form.bic.value"
+                            :type="show_bic ? 'text' : 'password'"
+                            :label="$t('label.bic')"
                         >
-                            <v-tooltip bottom slot="append">
-                                <template v-slot:activator="{ on, attrs }">
-                                    <v-icon
-                                        v-on="on"
-                                        v-bind="attrs"
-                                        :color="form.ip.encrypted ? '#daab39' : ''"
-                                        v-html="form.ip.encrypted ? 'mdi-lock' : 'mdi-lock-open'"
-                                        @click="form.ip.encrypted = !form.ip.encrypted"
-                                        tabindex="-1"
-                                    />
-                                </template>
-                                <span v-html="$t('label.encrypt')" />
-                            </v-tooltip>
+                            <span slot="append">
+                                <v-tooltip bottom>
+                                    <template v-slot:activator="{ on, attrs }">
+                                        <v-icon
+                                            v-on="on"
+                                            v-bind="attrs"
+                                            v-html="show_bic ? 'mdi-eye' : 'mdi-eye-off'"
+                                            @click="show_bic = !show_bic"
+                                            tabindex="-1"
+                                        />                                    
+                                    </template>
+                                    <span v-html="$t('label.show_pin')" />
+                                </v-tooltip>
+                            </span>
                         </v-text-field>
                     </v-row>
                     <v-row dense class="relative-row">
@@ -187,7 +167,7 @@
                     </v-row>
                 </v-card-text>
 
-                <v-card-actions>
+                <v-card-actions class="card-actions">
                     <v-spacer></v-spacer>
                     <v-btn small text @click="closePanel">{{ $t("button.cancel") }}</v-btn>
                     <v-btn small color="primary" text type="submit">{{ $t("button.submit") }}</v-btn>
@@ -203,28 +183,28 @@ import EventBus from "@/event"
 import http from "@/utils/http"
 
 export default defineComponent({
-    name: "AddSecret",
+    name: "AddPhone",
     data: () => ({
         open: false ,
-        key_id: null,
-        show_password: false,
+        secret_id: null,
+        show_iban: false,
+        show_bic: false,
         loading: false,
-        errorPassword: [],
-        errorPasswordCount: 0,
         errors: [],
         form: {
+            secret_type: "bank",
             name: {encrypted: false, value: ""},
-            url: {encrypted: false, value: ""},
-            login: {encrypted: false, value: ""},
-            password: {encrypted: true, value: ""},
-            ip: {encrypted: false, value: ""},
+            owner: {encrypted: false, value: ""},
+            bank_name: {encrypted: false, value: ""},
+            iban: {encrypted: true, value: ""},
+            bic: {encrypted: true, value: ""},
             informations: {encrypted: false, value: ""}
         }
     }),
 
     computed: {
         title() {
-            return this.key_id ? this.$t('title.edit_secret') : this.$t("title.add_secret")
+            return this.secret_id ? this.$t('title.edit_bank') : this.$t("title.add_bank")
         }
     },
 
@@ -232,11 +212,12 @@ export default defineComponent({
         open(val) {
             if (!val) {
                 this.form = {
+                    secret_type: "bank",
                     name: {encrypted: false, value: ""},
-                    url: {encrypted: false, value: ""},
-                    login: {encrypted: false, value: ""},
-                    password: {encrypted: true, value: ""},
-                    ip: {encrypted: false, value: ""},
+                    owner: {encrypted: false, value: ""},
+                    bank_name: {encrypted: false, value: ""},
+                    iban: {encrypted: true, value: ""},
+                    bic: {encrypted: true, value: ""},
                     informations: {encrypted: false, value: ""}
                 }
             } else {
@@ -248,33 +229,34 @@ export default defineComponent({
     },
 
     mounted() {
-        EventBus.$on("editKey", (key_id, folder_id) => {
-            this.key_id = key_id
+        EventBus.$on("edit_bank", (secret_id, folder_id) => {
+            this.secret_id = secret_id
             this.folder_id = folder_id
             this.open = true
 
-            if (this.key_id) {
-                this.getKey()
+            if (this.secret_id) {
+                this.getSecret()
             }
         })
     },
 
     methods: {
-        getKey() {
+        getSecret() {
             this.loading = true
-            const uri =  `/api/v1/key/${this.key_id}`
+            const uri =  `/api/v1/secret/${this.secret_id}`
 
             http.get(uri).then((response) => {
-                const key = response.data
-                this.folder_id = key.folder
+                const secret = response.data
+                this.folder_id = secret.folder
 
                 this.form = {
-                    name: key.name,
-                    login: key.login,
-                    password: key.password,
-                    url: key.url,
-                    ip: key.ip,
-                    informations: key.informations
+                    secret_type: 'bank',
+                    name: secret.name,
+                    owner: secret.owner,
+                    bank_name: secret.bank_name,
+                    iban: secret.iban,
+                    bic: secret.bic,
+                    informations: secret.informations
                 }
             }).then(() => {
                 this.loading = false
@@ -283,91 +265,36 @@ export default defineComponent({
 
         closePanel() {
             this.form = {
+                secret_type: 'bank',
                 name: "",
-                url: "",
-                login: "",
-                password: "",
-                ip: "",
+                owner: "",
+                bank_name: "",
+                iban: "",
+                bic: "",
                 informations: ""
             }
-            this.show_password = false
-            this.errorPassword = []
-            this.errorPasswordCount = 0
+            this.show_iban = false
+            this.show_bic = false
             this.open = false
         },
 
-        generatePassword() {
-            this.loading = true
-
-            const params = {
-                folder_id: this.folder_id
-            }
-
-            http.get("/api/v1/key/generate", { params: params })
-                .then((response) => {
-                    this.form.password.value = response.data
-                })
-                .then(() => {
-                    this.loading = false
-                })
-        },
-
-        hasErrors(error) {
-            const mapping = {
-                length: this.$t("label.password_length"),
-                uppercase: this.$t("label.password_upper"),
-                numbers: this.$t("label.password_number"),
-                special: this.$t("label.password_special")
-            }
-
-            if (!error.response) {
-                return false
-            }
-
-            if (error.response.status === 400) {
-                let detail = [error.response.data.detail.error]
-                for (const {type, min} of error.response.data.detail.details) {
-                    detail.push(`${mapping[type]}: ${min}`)
-                }
-
-                this.errorPassword = detail
-                this.errorPasswordCount = detail.length + 1
-            }
-
-            return this.errorPasswordCount > 0
-        },
-
-        async saveKey() {
-            this.errorPassword = []
+        async saveBank() {
             this.loading = true;
-            let uri = "/api/v1/key/"
+            let uri = "/api/v1/secret/"
             let message = "success.secret_created"
-            const key_id = this.key_id
+            const secret_id = this.secret_id
             this.form.folder = this.folder_id
 
-            if (key_id) {
-                uri += key_id
-                try {
-                    await http.put(uri, this.form)
-                    message = "success.secret_updated"
-                } catch (error){
-                    if (this.hasErrors(error)) {
-                        this.loading = false;
-                        return
-                    }
-                }
+            if (secret_id) {
+                uri += secret_id
+                await http.put(uri, {secret: this.form})
+                message = "success.secret_updated"
             } else {
-                try {
-                    await http.post(uri, this.form)
-                } catch(error) {
-                    if (this.hasErrors(error)) {
-                        this.loading = false;
-                        return
-                    }
-                }
+                await http.post(uri, {secret: this.form})
             }
 
-            EventBus.$emit("refreshKeys")
+            EventBus.$emit("refreshSecrets")
+            EventBus.$emit("refreshStats")
             this.loading = false;
             this.$toast.success(this.$t(message), {
                 closeOnClick: true,

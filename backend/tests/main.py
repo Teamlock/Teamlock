@@ -107,9 +107,9 @@ def test_create_key():
     params: dict = variables.CREATE_KEY_PARAMS
     params["folder"] = pytest.folder_id
 
-    response = client.post("/api/v1/key/", json=params)
+    response = client.post("/api/v1/secret/", json=params)
     assert response.status_code == 201
-    pytest.key_id = response.text
+    pytest.secret_id = response.text
 
 
 def test_get_keys():
@@ -126,7 +126,7 @@ def test_get_keys():
 
 
 def test_get_password():
-    response = client.get(f"/api/v1/key/{pytest.key['_id']}")
+    response = client.get(f"/api/v1/secret/{pytest.key['_id']}")
     assert response.status_code == 200
     data = response.json()
 
@@ -143,11 +143,11 @@ def test_update_key():
         "value": "update"
     }
 
-    response = client.put(f"/api/v1/key/{pytest.key['_id']}", json=params)
+    response = client.put(f"/api/v1/secret/{pytest.key['_id']}", json=params)
     assert response.status_code == 202
 
 
 def test_delete_key():
-    response = client.delete(f"/api/v1/key/{pytest.key['_id']}")
+    response = client.delete(f"/api/v1/secret/{pytest.key['_id']}")
     assert response.status_code == 204
     

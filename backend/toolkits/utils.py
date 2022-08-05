@@ -55,16 +55,22 @@ def fetch_config(as_schema: bool = False) -> Config | ConfigSchema:
 
     return config
 
-def check_password_complexity(policy: PasswordPolicySchema, password):
-    errors: list = policy.verify(
-        password=password
-    )
+def check_password_complexity(policy: PasswordPolicySchema, secret_def):
+    print(secret_def)
+    # Check field
+    policy_fields = secret_def.Base.policy_field
+
+    errors: list = []
+    for field in policy_fields:
+        errors.extend(policy.verify(
+            password=getattr(secret_def, field).value
+        ))
 
     if len(errors) > 0:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail={
-                "error": "Password not allowed by internal policy",
+                "error": f"Value for field {field} not allowed by policy",
                 "details": errors
             }
         )

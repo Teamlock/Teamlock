@@ -27,7 +27,10 @@
             <treeview />
         </v-navigation-drawer>
 
-        <add-secret />
+        <add-login />
+        <add-server />
+        <add-phone />
+        <add-bank />
 
         <v-main>
             <router-view />
@@ -45,8 +48,11 @@ import FolderDialog from "../components/Dialogs/FolderDialog.vue"
 import ImportDialog from '../components/Dialogs/ImportDialog.vue'
 import ShareDialog from '../components/Dialogs/ShareDialog.vue'
 import WorkspaceList from '../components/WorkspaceList.vue'
-import AddSecret from '../components/Forms/AddSecret.vue'
+import AddLogin from '../components/Forms/AddLogin.vue'
+import AddPhone from '../components/Forms/AddPhone.vue'
+import AddServer from '../components/Forms/AddServer.vue'
 import { defineComponent } from '@vue/composition-api'
+import AddBank from "../components/Forms/AddBank.vue"
 import KeepAliveMixin from "@/mixins/keepalive"
 import Treeview from "../components/Treeview.vue"
 import AppBar from '../components/AppBar.vue'
@@ -60,8 +66,11 @@ export default defineComponent({
         ImportDialog,
         ShareDialog,
         Treeview,
-        AddSecret,
-        AppBar
+        AddServer,
+        AddLogin,
+        AddPhone,
+        AppBar,
+        AddBank
     },
 
     mixins: [KeepAliveMixin, renderMixin],

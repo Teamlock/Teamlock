@@ -21,22 +21,24 @@ __maintainer__ = "Teamlock Project"
 __email__ = "contact@teamlock.io"
 __doc__ = ''
 
-from apps.key.schema import CreateKeySchema, KeySchema, TMPKeySchema
-from apps.config.schema import PasswordPolicySchema
 from toolkits.utils import check_password_complexity
 from fastapi import APIRouter, Depends, status, Body
+from apps.config.schema import PasswordPolicySchema
 from toolkits.workspace import WorkspaceUtils
 from apps.workspace.models import Workspace
 from fastapi.exceptions import HTTPException
 from apps.auth.tools import get_current_user
 from mongoengine.queryset.visitor import Q
-from apps.auth.schema import LoggedUser
 from toolkits.history import create_history
+from apps.auth.schema import LoggedUser
 from toolkits.crypto import CryptoUtils
 from fastapi.responses import Response
 from apps.folder.models import Folder
+from .models import Login, Secret
 from settings import settings
-from .models import Key
+from toolkits import const
+from typing import Union
+from . import schema
 import logging.config
 import logging
 
@@ -49,12 +51,10 @@ router: APIRouter = APIRouter()
 @router.get(
     path="/generate",
     summary="Generate a password",
-    response_model=str
+    response_model=str,
+    dependencies=[Depends(get_current_user)]
 )
-async def generate_password(
-    folder_id: str,
-    user: LoggedUser = Depends(get_current_user)
-) -> str:
+async def generate_password(folder_id: str) -> str:
     try:
         folder = Folder.objects(pk=folder_id).get()
         password_policy = folder.password_policy
@@ -76,11 +76,12 @@ async def generate_password(
 
 @router.get(
     path="/search",
-    summary="Search Keys",
-    response_model=list[KeySchema]
+    summary="Search Secrets",
+    response_model=list[schema.BankSchema] | list[schema.ServerSchema] | list[schema.LoginSchema] | list[schema.PhoneSchema]
 )
-async def search_keys(
+async def search_secrets(
     search: str,
+    category: str,
     workspace: str,
     user: LoggedUser = Depends(get_current_user)
 ):
@@ -99,12 +100,13 @@ async def search_keys(
             CryptoUtils.decrypt_password(user)
         )
 
-        keys: list = []
-        for tmp in Key.objects(in_folder_query & (name_query | url_query)):
-            tmp: TMPKeySchema = TMPKeySchema(**tmp.to_mongo())
-            keys.append(WorkspaceUtils.decrypt_key(decrypted_sym_key, tmp))
+        secrets: list = []
+        model_ = const.MAPPING_SECRET[category]["model"]
+        for tmp in model_.objects(in_folder_query & (name_query | url_query)):
+            tmp = const.MAPPING_SECRET[category]["schema"]
+            secrets.append(WorkspaceUtils.decrypt_secret(decrypted_sym_key, tmp))
 
-        return keys
+        return secrets
     
     except Workspace.DoesNotExist:
         raise HTTPException(
@@ -114,19 +116,19 @@ async def search_keys(
 
 
 @router.get(
-    path="/{key_id}",
-    response_model=KeySchema,
-    summary="Retreive secret"
+    path="/{secret_id}",
+    summary="Retreive secret",
+    response_model=Union[schema.LoginSchema, schema.ServerSchema, schema.BankSchema, schema.PhoneSchema]
 )
-async def get_key(
-    key_id: str,
+async def get_secret(
+    secret_id: str,
     user: LoggedUser = Depends(get_current_user)
-) -> KeySchema:
+):
     try:
-        key = Key.objects(pk=key_id).get()
-        key_schema = TMPKeySchema(**key.to_mongo())
+        secret = Secret.objects(pk=secret_id).get()
+        secret_schema = secret.schema()
 
-        workspace, sym_key = WorkspaceUtils.get_workspace(key.folder.workspace.pk, user)
+        workspace, sym_key = WorkspaceUtils.get_workspace(secret.folder.workspace.pk, user)
 
         decrypted_sym_key = CryptoUtils.rsa_decrypt(
             sym_key,
@@ -134,26 +136,28 @@ async def get_key(
             CryptoUtils.decrypt_password(user)
         )
 
-        decrypted_key: KeySchema = WorkspaceUtils.decrypt_key(
+        decrypted_secret = WorkspaceUtils.decrypt_secret(
             decrypted_sym_key,
-            key_schema,
-            get_password=True
+            secret_schema,
+            get_protected_fields=True
         )
 
         create_history(
             user=user.in_db.email,
             workspace=workspace.name,
             workspace_owner=workspace.owner.email,
-            action=f"Retreive secret for key {decrypted_key.name.value} in folder {key.folder.name}"
+            action=f"Retreive secret for secret {decrypted_secret.name.value} in folder {secret.folder.name}"
         )
 
-        logger.info(f"[SECRET][{str(workspace.pk)}][{workspace.name}] {user.in_db.email} retreive key {decrypted_key.name.value}")
-        return decrypted_key.dict()
+        logger.info(f"[SECRET][{str(workspace.pk)}][{workspace.name}] {user.in_db.email} retreive secret {decrypted_secret.name.value}")
+        
+        # tmp = decrypted_secret.dict()
+        return decrypted_secret
 
-    except Key.DoesNotExist:
+    except Secret.DoesNotExist:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Key not found"
+            detail="Secret not found"
         )
     
 
@@ -162,17 +166,18 @@ async def get_key(
     summary="Create a secret",
     status_code=status.HTTP_201_CREATED
 )
-async def create_key(
-    key_def: CreateKeySchema,
+async def create_secret(
+    schema: schema.CreateSecretSchema,
     user: LoggedUser = Depends(get_current_user)
 ) -> str:
     try:
-        folder: Folder = Folder.objects(pk=key_def.folder).get()
+        folder: Folder = Folder.objects(pk=schema.secret.folder).get()
         if folder.in_trash or folder.is_trash:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Can't create a secret inside the trash"
             )
+
         workspace, sym_key = WorkspaceUtils.get_workspace(folder.workspace.pk, user)
 
         # Check if user is allowed to create a key in this workspace
@@ -185,24 +190,24 @@ async def create_key(
             policy: PasswordPolicySchema = PasswordPolicySchema(**workspace.password_policy.to_mongo())
 
         if policy:
-            check_password_complexity(policy, key_def.password.value)
+            check_password_complexity(policy, schema.secret)
             
-        encrypted_key: Key = WorkspaceUtils.encrypt_key(user, sym_key, key_def)
-        encrypted_key.folder = folder
+        encrypted_secret = WorkspaceUtils.encrypt_secret(user, sym_key, schema.secret)
+        encrypted_secret.folder = folder
 
-        encrypted_key.created_by = user.in_db
-        encrypted_key.updated_by = user.in_db
-        encrypted_key.save()
+        encrypted_secret.created_by = user.in_db
+        encrypted_secret.updated_by = user.in_db
+        encrypted_secret.save()
 
         create_history(
             user=user.in_db.email,
             workspace=workspace.name,
             workspace_owner=workspace.owner.email,
-            action=f"Create secret {key_def.name.value} in folder {encrypted_key.folder.name}"
+            action=f"Create secret {schema.secret.name.value} in folder {encrypted_secret.folder.name}"
         )
 
-        logger.info(f"[SECRET][{str(workspace.pk)}][{workspace.name}] {user.in_db.email} create secret {key_def.name.value}")
-        return str(encrypted_key.pk)
+        logger.info(f"[SECRET][{str(workspace.pk)}][{workspace.name}] {user.in_db.email} create secret {schema.secret.name.value}")
+        return str(encrypted_secret.pk)
 
     except Folder.DoesNotExist:
         raise HTTPException(
@@ -212,26 +217,26 @@ async def create_key(
 
 
 @router.post(
-    path="/{key_id}/move",
+    path="/{secret_id}/move",
     summary="Move secret to an other folder",
     status_code=status.HTTP_202_ACCEPTED
 )
 async def move_key(
-    key_id: str,
+    secret_id: str,
     folder_id: str = Body(...),
     user: LoggedUser = Depends(get_current_user)
 ):
     try:
-        key: Key = Key.objects(pk=key_id).get()
+        secret: Secret = Secret.objects(pk=secret_id).get()
         new_folder: Folder = Folder.objects(pk=folder_id).get()
 
-        workspace, _ = WorkspaceUtils.get_workspace(key.folder.workspace.pk, user)
+        workspace, _ = WorkspaceUtils.get_workspace(secret.folder.workspace.pk, user)
         WorkspaceUtils.have_rights(workspace, user)
 
-        key.folder = new_folder
-        key.save()
+        secret.folder = new_folder
+        secret.save()
 
-        logger.info(f"[SECRET][{str(workspace.pk)}][{workspace.name}] {user.in_db.email} move key {key.name.value}")
+        logger.info(f"[SECRET][{str(workspace.pk)}][{workspace.name}] {user.in_db.email} move secret {secret.name.value}")
         return Response(status_code=status.HTTP_202_ACCEPTED)
     except Folder.DoesNotExist:
         raise HTTPException(
@@ -239,61 +244,61 @@ async def move_key(
             detail="Folder not found"
         )
 
-    except Key.DoesNotExist:
+    except Secret.DoesNotExist:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Secret not found"
         )
 
 @router.put(
-    path="/{key_id}",
+    path="/{secret_id}",
     summary="Edit a secret",
     status_code=status.HTTP_202_ACCEPTED
 )
-async def update_key(
-    key_id: str,
-    key_def: CreateKeySchema,
+async def update_secret(
+    secret_id: str,
+    schema: schema.CreateSecretSchema,
     user: LoggedUser = Depends(get_current_user)
 ) -> None:
     try:
-        key: Key = Key.objects(pk=key_id).get()
-        if key.folder.in_trash or key.folder.is_trash:
+        secret: Secret = Secret.objects(pk=secret_id).get()
+        if secret.folder.in_trash or secret.folder.is_trash:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Can't edit a key inside the trash"
+                detail="Can't edit a secret inside the trash"
             )
-        workspace, sym_key = WorkspaceUtils.get_workspace(key.folder.workspace.pk, user)
+        workspace, sym_key = WorkspaceUtils.get_workspace(secret.folder.workspace.pk, user)
 
         WorkspaceUtils.have_rights(workspace, user)
 
         policy = None
-        if key.folder.password_policy:
-            policy: PasswordPolicySchema = PasswordPolicySchema(**key.folder.password_policy.to_mongo())
+        if secret.folder.password_policy:
+            policy: PasswordPolicySchema = PasswordPolicySchema(**secret.folder.password_policy.to_mongo())
         elif workspace.password_policy:
             policy: PasswordPolicySchema = PasswordPolicySchema(**workspace.password_policy.to_mongo())
 
         if policy:
-            check_password_complexity(policy, key_def.password.value)
+            check_password_complexity(policy, schema.secret)
 
-        encrypted_key: Key = WorkspaceUtils.encrypt_key(user, sym_key, key_def)
+        encrypted_secret: Secret = WorkspaceUtils.encrypt_secret(user, sym_key, schema.secret)
 
-        encrypted_key.folder = key.folder
-        encrypted_key.pk = key.pk
+        encrypted_secret.folder = secret.folder
+        encrypted_secret.pk = secret.pk
 
-        encrypted_key.updated_by = user.in_db
-        encrypted_key.save()
+        encrypted_secret.updated_by = user.in_db
+        encrypted_secret.save()
 
         create_history(
             user=user.in_db.email,
             workspace=workspace.name,
             workspace_owner=workspace.owner.email,
-            action=f"Update secret {key.name} in folder {key.folder.name}"
+            action=f"Update secret {schema.secret.name.value} in folder {secret.folder.name}"
         )
 
-        logger.info(f"[SECRET][{str(workspace.pk)}][{workspace.name}] {user.in_db.email} update secret {key_def.name.value}")
+        logger.info(f"[SECRET][{str(workspace.pk)}][{workspace.name}] {user.in_db.email} update secret {schema.secret.name.value}")
         return Response(status_code=status.HTTP_202_ACCEPTED)
 
-    except Key.DoesNotExist:
+    except Login.DoesNotExist:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Secret not found"
@@ -306,30 +311,30 @@ async def update_key(
 
 
 @router.delete(
-    path="/{key_id}",
+    path="/{secret_id}",
     summary="Delete a secret",
     status_code=status.HTTP_204_NO_CONTENT
 )
-async def delete_key(
-    key_id: str,
+async def delete_secret(
+    secret_id: str,
     user: LoggedUser = Depends(get_current_user)
 ) -> None:
     try:
-        key: Key = Key.objects(pk=key_id).get()
-        workspace: Workspace = key.folder.workspace
+        secret: Secret = Secret.objects(pk=secret_id).get()
+        workspace: Workspace = secret.folder.workspace
         WorkspaceUtils.have_rights(workspace, user)
-        key.delete()
+        secret.delete()
 
         create_history(
             user=user.email,
             workspace=workspace.name,
             workspace_owner=workspace.owner.email,
-            action=f"Delete secret {key.name} in folder {key.folder.name}"
+            action=f"Delete secret {secret.name.value} in folder {secret.folder.name}"
         )
 
-        logger.info(f"[SECRET][{str(workspace.pk)}][{workspace.name}] {user.in_db.email} delete key {key.name.value}")
+        logger.info(f"[SECRET][{str(workspace.pk)}][{workspace.name}] {user.in_db.email} delete secret {secret.name.value}")
     
-    except Key.DoesNotExist:
+    except Secret.DoesNotExist:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Secret not found"

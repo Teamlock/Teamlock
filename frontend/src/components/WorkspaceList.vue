@@ -136,7 +136,7 @@ export default defineComponent({
     dialogWorkspaceDelete: false,
     tooltip_copy: false,
     showMenu: false,
-    tooltipWorkspaceId: vm.$t('help.tooltip_workspace_id'),
+    tooltipWorkspaceId: vm.$t('tooltip.copy_id'),
     workspace_to_edit: null,
     x: 0,
     y: 0
@@ -232,7 +232,7 @@ export default defineComponent({
           this.tooltip_copy = false
 
           setTimeout(() => {
-            this.tooltipWorkspaceId = this.$t("help.tooltip_workspace_id")
+            this.tooltipWorkspaceId = this.$t("tooltip.copy_id")
           }, 500);
         }, 1000);
       }, 50);

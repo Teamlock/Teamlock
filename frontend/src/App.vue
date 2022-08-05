@@ -3,7 +3,6 @@
     <router-view />
 
     <portal-target name="contextMenuFolder" />
-    <portal-target name="contextMenuKey" />
   </div>
 </template>
 
@@ -29,6 +28,7 @@ export default defineComponent({
     }
 
     this.$store.dispatch("set_pro")
+    this.$store.dispatch("set_twilio")
     if (sessionStorage.getItem("token")) {
       this.$store.dispatch("set_user")
     }

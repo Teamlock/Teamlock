@@ -22,6 +22,16 @@
         "workspace": "Espace de travail",
         "workspaces": "Espaces de travail",
         "action": "Action",
+        "os_type": "OS",
+        "owner": "Propriétaire",
+        "bank_name": "Banque",
+        "number": "Numéro",
+        "iban": "IBAN",
+        "bic": "BIC",
+        "pin_code": "Code PIN",
+        "puk_code": "Code PUK",
+        "show_pin": "Afficher le PIN",
+        "show_puk": "Afficher le PUK",
         "dates": "Dates",
         "history": "Historique",
         "expire": "Expire",
@@ -80,8 +90,8 @@
         "ip": "Adresse IP",
         "name": "Nom",
         "login": "Username",
-        "generate_secret": "Générer un secret avec la politique",
-        "show_secret": "Afficher le secret",
+        "generate_password": "Générer un mot de passe avec la politique",
+        "show_password": "Afficher le mot de passe",
         "url": "URL",
         "date": "Date",
         "os": "Système d'exploitation",
@@ -144,14 +154,21 @@
         "twilio_auth_token": "Twilio Auth Token"
     },
     "tooltip": {
-        "dblclick_copy": "Double cliquez pour copier"
+        "dblclick_copy": "Double cliquez pour copier",
+        "copy_id": "Copier l'ID"
     },
     "title": {
         "send_sms": "Envoyer un SMS",
         "key": "Clé",
         "user": "Utilisateur",
-        "add_secret": "Créer un secret",
-        "edit_secret": "Edit un secret",
+        "add_login": "Créer un identifiant",
+        "edit_login": "Editer un identifiant",
+        "add_server": "Créer un server",
+        "add_phone": "Créer un téléphone",
+        "add_bank": "Créer une banque",
+        "edit_server": "Editer un server",
+        "edit_phone": "Editer un téléphone",
+        "edit_bank": "Editer une banque",
         "installation": "Installation",
         "import_users": "Importer des utilisateurs",
         "2fa_setup": "Authentification Multi Facteur",
@@ -163,6 +180,12 @@
         "required": "Obligatoire",
         "email": "L'adresse email est obligatoire",
         "password": "Le mot de passe est obligatoire"
+    },
+    "tabs": {
+        "login": "Identifiant",
+        "bank": "Banque",
+        "server": "Serveur",
+        "phone": "Téléphone"
     },
     "button": {
         "download_certificates": "Télécharger les certificats",
@@ -179,7 +202,6 @@
         "save": "Sauvegarder",
         "load": "Charger",
         "add_user": "Ajouter un utilisateur",
-        "add_secret": "Ajouter un secret",
         "register": "S'enregistrer",
         "back": "Précédent",
         "next": "Suivant",
@@ -277,6 +299,7 @@
     "help": {
         "enable_twilio": "Activer Twilio. Sera utilisé pour envoyer des secrets par SMS",
         "twilio_recipient": "Numéro de téléphone avec l'indicatif téléphonique international (ex: +33 pour la France)",
+        "external_share": "Envoyer le secret par Mail/SMS",
         "send_by_sms": "Envoyer le secret par SMS",
         "send_by_mail": "Un lien sera envoyé au destinataire qui lui permettra de récupérer le secret.",
         "send_by_mail_expiration": "en heure(s)",
@@ -314,9 +337,6 @@
         "edit_key": "Editer un utilisateur",
         "empty_trash": "Vider la corbeille",
         "context_menu_workspace": "Clic droit pour plus d'options",
-        "tooltip_workspace_id": "Copier l'ID de l'espace de travail",
-        "tooltip_folder_id": "Copier l'ID du dossier",
-        "tooltip_secret_id": "Copier l'ID du secret",
         "copied": "Copié"
     },
     "folder": {

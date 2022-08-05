@@ -57,7 +57,7 @@ import http from "@/utils/http"
 
 export default defineComponent({
     props: {
-        key_id: {
+        secret_id: {
             type: String,
             required: false
         },
@@ -74,7 +74,7 @@ export default defineComponent({
     methods: {
         send_by_sms() {
             this.is_loading = true
-            http.post(`/pro/api/v1/key/${this.key_id}/send/sms`, this.form)
+            http.post(`/pro/api/v1/secret/${this.secret_id}/send/sms`, this.form)
                 .then(() => {
                     this.$toast.success(this.$t('success.secret_shared'), {
                         closeOnClick: true,
