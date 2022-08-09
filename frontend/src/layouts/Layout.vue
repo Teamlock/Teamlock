@@ -8,15 +8,7 @@
                     v{{ version }}
                 </small>
                 <v-img 
-                    v-if="$vuetify.theme.dark"
-                    class="mx-auto px-10 logoDark border-bottom-primary"
-                    :src="logoWhite"
-                    width="100%"
-                    height="100"
-                    contain
-                />
-                <v-img v-else
-                    class="mx-auto px-10 logo border-bottom-primary"
+                    :class="logoClass"
                     :src="logo"
                     width="100%"
                     height="100"
@@ -56,6 +48,7 @@ import AddBank from "../components/Forms/AddBank.vue"
 import KeepAliveMixin from "@/mixins/keepalive"
 import Treeview from "../components/Treeview.vue"
 import AppBar from '../components/AppBar.vue'
+import designMixin from "@/mixins/design"
 import renderMixin from "@/mixins/render"
 import http from "@/utils/http"
 
@@ -73,11 +66,9 @@ export default defineComponent({
         AddBank
     },
 
-    mixins: [KeepAliveMixin, renderMixin],
+    mixins: [KeepAliveMixin, renderMixin, designMixin],
 
     data: () => ({
-        logo: require("@/assets/img/TLAppLogo_Baseline.svg"),
-        logoWhite: require("@/assets/img/TLAppLogo_White.svg"),
         rightPanelComponent: null,
         rightPanelOpen: false,
         search: "",

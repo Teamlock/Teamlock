@@ -2,224 +2,232 @@
     <v-container>
         <v-row class="yellow_line"></v-row>
 
-        <v-row class="container_main_profile">
-            <v-card>
-                <v-list class="pb-0">
-                    <v-list-item class="card_pict_profile">
-                        <v-list-item-avatar class="pict_profile">
-                            <v-img :src="image" height="80" width="300"/>
-                        </v-list-item-avatar>
-                    </v-list-item>
+        <v-row>
+            <v-col :md="8" class="mx-auto">
+                <v-card>
+                    <v-list class="pb-0">
+                        <v-list-item class="card_pict_profile">
+                            <v-list-item-avatar class="pict_profile">
+                                <v-img :src="image" height="80" width="300"/>
+                            </v-list-item-avatar>
+                        </v-list-item>
 
-                    <v-list-item link class="content_card_profile">
-                        <v-list-item-content v-if="user">
-                            <v-list-item-subtitle class="mail_profile">{{ user.email }}</v-list-item-subtitle>
-                            <v-list-item-subtitle class="">{{ $t("label.last_change_password") }}: {{ renderDate(user.last_change_pass, "DD/MM/YYYY") }}</v-list-item-subtitle>
-                            <v-list-item-subtitle class="mt-5">
-                                <v-btn small color="primary" text @click="downloadCertificates" :loading="downloadCertificatesLoading">
-                                    <v-icon>mdi-download</v-icon>
-                                    {{ $t('button.download_certificates') }}
-                                </v-btn>
-                            </v-list-item-subtitle>
-                        </v-list-item-content>
-                    </v-list-item>
-                </v-list>
-            </v-card>
+                        <v-list-item link class="content_card_profile">
+                            <v-list-item-content v-if="user">
+                                <v-list-item-subtitle class="mail_profile">{{ user.email }}</v-list-item-subtitle>
+                                <v-list-item-subtitle class="">{{ $t("label.last_change_password") }}: {{ renderDate(user.last_change_pass, "DD/MM/YYYY") }}</v-list-item-subtitle>
+                                <v-list-item-subtitle class="mt-5">
+                                    <v-btn small color="primary" text @click="downloadCertificates" :loading="downloadCertificatesLoading">
+                                        <v-icon>mdi-download</v-icon>
+                                        {{ $t('button.download_certificates') }}
+                                    </v-btn>
+                                </v-list-item-subtitle>
+                            </v-list-item-content>
+                        </v-list-item>
+                    </v-list>
+                </v-card>
+            </v-col>
         </v-row>
 
-        <v-row class="container_main_profile">
-            <v-form ref="form" @submit.prevent="changePassword" class>
-                <v-card :loading="loading" class="pt-0">
-                    <v-app-bar flat dense class="app_bar_change_password_profile">
-                        <v-toolbar-title class="pl-0 title_change_pass">
-                            {{ $t('label.change_password') }}
+        <v-row>
+            <v-col :md="8" class="mx-auto">
+                <v-form ref="form" @submit.prevent="changePassword" class>
+                    <v-card :loading="loading" class="pt-0">
+                        <v-app-bar flat dense class="app_bar_change_password_profile">
+                            <v-toolbar-title class="pl-0 title_change_pass">
+                                {{ $t('label.change_password') }}
+                            </v-toolbar-title>
+                        </v-app-bar>
+                        <!-- CHANGE PASSWORD -->
+                        <v-card-text class="pt-0">
+                            <v-alert 
+                                v-if="user.need_change_password"
+                                type="warning"
+                                border="top"
+                                class="mt-4"
+                            >
+                                {{ $t("warning.need_change_password") }}
+                            </v-alert>
+                            <v-alert 
+                                v-if="warning_change_password"
+                                type="warning"
+                                border="top"
+                                class="mt-4"
+                            >
+                                {{ warning_change_password }}
+                            </v-alert>
+                            <v-text-field
+                                type="password"
+                                v-model="form.current_password"
+                                :label="$t('label.current_password')"
+                                class="input-field pl-1 pr-1 mb-2"
+                                hide-details
+                                color="#DAAB39"
+                                required
+                            />
+                            <v-text-field
+                                type="password"
+                                v-model="form.new_password"
+                                :label="$t('label.new_password')"
+                                class="input-field pl-1 pr-1 mb-2"
+                                :error-messages="errorPassword"
+                                :error-count="errorPassword.length"
+                                :hide-details="errorPassword.length === 0"
+                                color="#DAAB39"
+                                required
+                            />
+                            <v-text-field
+                                type="password"
+                                v-model="form.confirm_password"
+                                :label="$t('label.confirm_password')"
+                                class="input-field pl-1 pr-1 mb-2"
+                                color="#DAAB39"
+                                :error-messages="errorsFormChangePassword"
+                                :hide-details="errorsFormChangePassword"
+                                required
+                            />
+
+                        </v-card-text>
+                        <v-card-actions>
+                            <v-alert
+                                type="warning"
+                                dense
+                                :icon="false"
+                                class="mb-0"
+                            >
+                                <small>{{ $t('warning.remember_recovery2') }}</small>
+                            </v-alert>
+                            <v-spacer />
+                            <v-btn
+                                :loading="loading"
+                                small
+                                color="primary"
+                                text
+                                type="submit"
+                            >
+                                {{ $t('button.confirm') }}
+                            </v-btn>
+                        </v-card-actions>
+                    </v-card>
+                </v-form>
+            </v-col>
+        </v-row>
+        <v-row v-if="is_pro">
+            <!-- ENABLE 2FA -->
+            <v-col :md="8" class="mx-auto">
+                <v-card>
+                    <v-app-bar flat dense>
+                        <v-toolbar-title class="factor_title_profile">
+                            {{ $t('label.two_factor') }}
                         </v-toolbar-title>
                     </v-app-bar>
-                    <!-- CHANGE PASSWORD -->
-                    <v-card-text class="pt-0">
-                        <v-alert 
-                            v-if="user.need_change_password"
-                            type="warning"
-                            border="top"
-                            class="mt-4"
-                        >
-                            {{ $t("warning.need_change_password") }}
-                        </v-alert>
-                        <v-alert 
-                            v-if="warning_change_password"
-                            type="warning"
-                            border="top"
-                            class="mt-4"
-                        >
-                            {{ warning_change_password }}
-                        </v-alert>
-                        <v-text-field
-                            type="password"
-                            v-model="form.current_password"
-                            :label="$t('label.current_password')"
-                            class="input-field pl-1 pr-1 mb-2"
-                            hide-details
-                            color="#DAAB39"
-                            required
-                        />
-                        <v-text-field
-                            type="password"
-                            v-model="form.new_password"
-                            :label="$t('label.new_password')"
-                            class="input-field pl-1 pr-1 mb-2"
-                            :error-messages="errorPassword"
-                            :error-count="errorPassword.length"
-                            :hide-details="errorPassword.length === 0"
-                            color="#DAAB39"
-                            required
-                        />
-                        <v-text-field
-                            type="password"
-                            v-model="form.confirm_password"
-                            :label="$t('label.confirm_password')"
-                            class="input-field pl-1 pr-1 mb-2"
-                            color="#DAAB39"
-                            :error-messages="errorsFormChangePassword"
-                            :hide-details="errorsFormChangePassword"
-                            required
-                        />
-
-                    </v-card-text>
-                    <v-card-actions>
-                        <v-alert
-                            type="warning"
-                            dense
-                            :icon="false"
-                            class="mb-0"
-                        >
-                            <small>{{ $t('warning.remember_recovery2') }}</small>
-                        </v-alert>
-                        <v-spacer />
-                        <v-btn
-                            :loading="loading"
-                            small
-                            color="primary"
-                            text
-                            type="submit"
-                        >
-                            {{ $t('button.confirm') }}
-                        </v-btn>
-                    </v-card-actions>
-                </v-card>
-            </v-form>
-        </v-row>
-        <v-row class="container_main_profile" v-if="is_pro">
-            <!-- ENABLE 2FA -->
-            <v-card>
-                <v-app-bar flat dense>
-                    <v-toolbar-title class="factor_title_profile">
-                        {{ $t('label.two_factor') }}
-                    </v-toolbar-title>
-                </v-app-bar>
-                <v-card-text class="text-left">
-                    <span v-if="!user.otp.enabled" >
-                        <p class="p_status_profile">
-                            {{ $t('label.status') }}:
-                            <v-chip
-                                class="ma-2 text_disable"
-                                color="white"
-                                label
-                                small
-                                text-color="#B71C1C"
-                            >
-                                {{ $t("label.disabled") }}
-                            </v-chip>
-                        </p>
-                        <v-btn
-                            color="primary"
-                            @click="enable2FA"
-                            :loading="loadingEnable2FA"
-                            class="btn_mfa_profile"
-                            small
-                        >
-                            {{ $t('label.enable_otp') }}
-                        </v-btn>
-                    </span>
-                    <span v-if="user.otp.enabled">
-                        <p class="p_status_profile">
-                            {{ $t('label.status') }}:
-                            <v-chip
-                                class="ma-2 text_disable"
-                                color="white"
-                                label
-                                small
-                                text-color="success"
-                            >
-                                {{ $t("label.enabled") }}
-                            </v-chip>
-                        </p>
-                        <v-dialog width="500" v-model="dialogDisable2FA" v-if="!enforce_totp">
-                            <template v-slot:activator="{ on, attrs }">
-                                <v-btn
-                                    v-bind="attrs"
-                                    v-on="on"
-                                    color="#B71C1C"
-                                    dark
+                    <v-card-text class="text-left">
+                        <span v-if="!user.otp.enabled" >
+                            <p class="p_status_profile">
+                                {{ $t('label.status') }}:
+                                <v-chip
+                                    class="ma-2 text_disable"
+                                    color="white"
+                                    label
                                     small
-                                    class="btn_mfa_profile"
+                                    text-color="#B71C1C"
                                 >
-                                    {{ $t('label.disable_otp') }}
-                                </v-btn>
-                            </template>
-                            <v-card>
-                                <v-card-title>
-                                    {{ $t("title.2fa_disable") }}
-                                </v-card-title>
-                                <v-card-text>
-                                    <v-otp-input
-                                        v-model="otp_disable_value"
-                                        length="6"
-                                        type="number"
-                                        class="mt-5"
-                                    />
-                                </v-card-text>
-                                <v-card-actions>
-                                    <v-spacer />
+                                    {{ $t("label.disabled") }}
+                                </v-chip>
+                            </p>
+                            <v-btn
+                                color="primary"
+                                @click="enable2FA"
+                                :loading="loadingEnable2FA"
+                                class="btn_mfa_profile"
+                                small
+                            >
+                                {{ $t('label.enable_otp') }}
+                            </v-btn>
+                        </span>
+                        <span v-if="user.otp.enabled">
+                            <p class="p_status_profile">
+                                {{ $t('label.status') }}:
+                                <v-chip
+                                    class="ma-2 text_disable"
+                                    color="white"
+                                    label
+                                    small
+                                    text-color="success"
+                                >
+                                    {{ $t("label.enabled") }}
+                                </v-chip>
+                            </p>
+                            <v-dialog width="500" v-model="dialogDisable2FA" v-if="!enforce_totp">
+                                <template v-slot:activator="{ on, attrs }">
                                     <v-btn
-                                        text
+                                        v-bind="attrs"
+                                        v-on="on"
+                                        color="#B71C1C"
+                                        dark
                                         small
-                                        color="primary"
-                                        :loading="loadingDisable2FA"
-                                        @click="disable2FA"
+                                        class="btn_mfa_profile"
                                     >
-                                        {{ $t("button.validate") }}
+                                        {{ $t('label.disable_otp') }}
                                     </v-btn>
-                                </v-card-actions>
-                            </v-card>
-                        </v-dialog>
-                    </span>
-                </v-card-text>
-            </v-card>
+                                </template>
+                                <v-card>
+                                    <v-card-title>
+                                        {{ $t("title.2fa_disable") }}
+                                    </v-card-title>
+                                    <v-card-text>
+                                        <v-otp-input
+                                            v-model="otp_disable_value"
+                                            length="6"
+                                            type="number"
+                                            class="mt-5"
+                                        />
+                                    </v-card-text>
+                                    <v-card-actions>
+                                        <v-spacer />
+                                        <v-btn
+                                            text
+                                            small
+                                            color="primary"
+                                            :loading="loadingDisable2FA"
+                                            @click="disable2FA"
+                                        >
+                                            {{ $t("button.validate") }}
+                                        </v-btn>
+                                    </v-card-actions>
+                                </v-card>
+                            </v-dialog>
+                        </span>
+                    </v-card-text>
+                </v-card>
+            </v-col>
         </v-row>
 
-        <v-row class="container_main_profile">
-            <v-card :loading="recoveryLoading">
-                <v-app-bar flat dense>
-                    <v-toolbar-title class="factor_title_profile">
-                        {{ $t('label.download_recovery') }}
-                    </v-toolbar-title>
-                </v-app-bar>
+        <v-row>
+            <v-col :md="8" class="mx-auto">
+                <v-card :loading="recoveryLoading">
+                    <v-app-bar flat dense>
+                        <v-toolbar-title class="factor_title_profile">
+                            {{ $t('label.download_recovery') }}
+                        </v-toolbar-title>
+                    </v-app-bar>
 
-                <v-card-text>
-                    <v-alert 
-                        v-if="!user.recovery_key_downloaded"
-                        type="warning"
-                        border="top"
-                        class="mt-0"
-                    >
-                        {{ $t("warning.reminder_download_recovery") }}
-                    </v-alert>
-                    <p><b>{{ $t("help.recovery") }}<br/>{{ $t("help.recovery2") }}</b></p>
-                    <v-btn :loading="recoveryLoading" @click="downloadRecovery" color="primary" small>
-                        <v-icon>mdi-download</v-icon> {{ $t("label.download") }}
-                    </v-btn>
-                </v-card-text>
-            </v-card>
+                    <v-card-text>
+                        <v-alert 
+                            v-if="!user.recovery_key_downloaded"
+                            type="warning"
+                            border="top"
+                            class="mt-0"
+                        >
+                            {{ $t("warning.reminder_download_recovery") }}
+                        </v-alert>
+                        <p><b>{{ $t("help.recovery") }}<br/>{{ $t("help.recovery2") }}</b></p>
+                        <v-btn :loading="recoveryLoading" @click="downloadRecovery" color="primary" small>
+                            <v-icon>mdi-download</v-icon> {{ $t("label.download") }}
+                        </v-btn>
+                    </v-card-text>
+                </v-card>
+            </v-col>
         </v-row>
 
         <v-dialog v-model="dialog2FA" width="500">
