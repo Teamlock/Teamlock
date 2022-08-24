@@ -36,7 +36,26 @@
           <v-toolbar-title class="pl-0">
             {{ workspace_to_edit.name }}
           </v-toolbar-title>
+
           <v-spacer />
+          <v-tooltip
+            v-model="tooltip_copy"
+            bottom
+          >
+            <template v-slot:activator="{ on, attrs }">
+              <v-btn
+                v-bind="attrs"
+                v-on="on"
+                @click.stop="copyWorkspaceID(workspace_to_edit._id)"
+                small
+                icon
+                tile
+              >
+                <v-icon small>mdi-content-copy</v-icon>
+              </v-btn>
+            </template>
+            <span v-html="tooltipWorkspaceId" />
+          </v-tooltip>
           <span v-if="workspace_to_edit.owner === $store.state.user._id">
             <v-tooltip bottom>
               <template v-slot:activator="{ on, attrs }">
@@ -110,12 +129,14 @@ export default defineComponent({
     ShareButton,
   },
 
-  data: () => ({
+  data: (vm) => ({
     workspaces: [],
     workspace_edit: null,
     workspaceEditOpen: false,
     dialogWorkspaceDelete: false,
+    tooltip_copy: false,
     showMenu: false,
+    tooltipWorkspaceId: vm.$t('help.tooltip_workspace_id'),
     workspace_to_edit: null,
     x: 0,
     y: 0
@@ -198,6 +219,23 @@ export default defineComponent({
             this.selectWorkspace(current_workspace)
           }
         })
+    },
+
+    copyWorkspaceID(workspace_id) {
+      this.$copyText(workspace_id)
+
+      setTimeout(() => {
+        this.tooltipWorkspaceId = this.$t("help.copied")
+        this.tooltip_copy = true
+
+        setTimeout(() => {
+          this.tooltip_copy = false
+
+          setTimeout(() => {
+            this.tooltipWorkspaceId = this.$t("help.tooltip_workspace_id")
+          }, 500);
+        }, 1000);
+      }, 50);
     },
   }
 })

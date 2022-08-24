@@ -23,6 +23,7 @@
                             :label="$t('label.users')"
                             :items="users"
                             hide-details
+                            clearable
                             multiple
                             attach
                         >
@@ -46,6 +47,7 @@
                             :label="$t('label.workspaces')"
                             :items="workspaces"
                             hide-details
+                            clearable
                             multiple
                             attach
                         >
@@ -93,6 +95,30 @@
         </template>
         <template v-slot:[`item.date`]="{ item }">
             <span v-html="renderDate(item.date)" />
+        </template>
+        <template v-slot:[`item.user`]="{ item }">
+            <v-btn
+                @click="addFilter('user', item.user)"
+                color="primary"
+                tile
+                icon
+                small
+            >
+                <v-icon>mdi-magnify-plus-outline</v-icon>
+            </v-btn>
+            <span v-html="item.user" />
+        </template>
+        <template v-slot:[`item.workspace`]="{ item }">
+            <v-btn
+                @click="addFilter('workspace', item.workspace)"
+                color="primary"
+                tile
+                icon
+                small
+            >
+                <v-icon>mdi-magnify-plus-outline</v-icon>
+            </v-btn>
+            <span v-html="item.workspace" />
         </template>
     </v-data-table>
 </template>
@@ -193,6 +219,17 @@ export default defineComponent({
                 }).then(() => {
                     this.loading = false
                 })
+        },
+
+        addFilter(filterType, filter) {
+            switch(filterType) {
+                case "user":
+                    this.selectedUsers.push(filter)
+                    break
+                case "workspace":
+                    this.selectedWorkspaces.push(filter)
+                    break
+            }
         }
     }
 })

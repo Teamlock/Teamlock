@@ -1,5 +1,7 @@
 {
     "label": {
+        "import_type": "Format de la base de données",
+        "file": "Fichier",
         "secrets": "Secrets",
         "mfa": "Authentification multi facteur",
         "city": "Ville",
@@ -256,6 +258,7 @@
         "trash_emptied": "Corbeille vidée"
     },
     "error": {
+        "trash_cant_be_moved": "La corbeille ne peut être déplacée",
         "invalid_password": "Mot de passe incorrect",
         "occurred": "Une erreur est survenue",
         "otp_need_config": "Configuration de l'authentification multi facteur",
@@ -310,7 +313,11 @@
         "add_user": "Ajouter un utilisateur",
         "edit_key": "Editer un utilisateur",
         "empty_trash": "Vider la corbeille",
-        "context_menu_workspace": "Clic droit pour plus d'options"
+        "context_menu_workspace": "Clic droit pour plus d'options",
+        "tooltip_workspace_id": "Copier l'ID de l'espace de travail",
+        "tooltip_folder_id": "Copier l'ID du dossier",
+        "tooltip_secret_id": "Copier l'ID du secret",
+        "copied": "Copié"
     },
     "folder": {
         "edit": "Editer un dossier",

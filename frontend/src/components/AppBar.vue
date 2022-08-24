@@ -27,6 +27,25 @@
         <span v-else-if="selectedFolder" class="text_label_app_bar">
             <v-icon>{{selectedFolder.icon}}</v-icon>
             {{ selectedFolder.name }}
+
+            <v-tooltip
+                v-model="tooltip_copy"
+                bottom
+            >
+                <template v-slot:activator="{ on, attrs }">
+                <v-btn
+                    v-bind="attrs"
+                    v-on="on"
+                    @click.stop="copyFolderID(selectedFolder._id)"
+                    small
+                    icon
+                    tile
+                >
+                    <v-icon small>mdi-content-copy</v-icon>
+                </v-btn>
+                </template>
+                <span v-html="tooltipFolderId" />
+            </v-tooltip>
         </span>
         <v-spacer></v-spacer>
 
@@ -144,8 +163,10 @@ export default defineComponent({
         }
     },
 
-    data: () => ({
+    data: (vm) => ({
         search: "",
+        tooltip_copy: false,
+        tooltipFolderId: vm.$t('help.tooltip_folder_id'),
         mapping_flags: {
             "en": "gb",
             "fr": "fr"
@@ -198,7 +219,24 @@ export default defineComponent({
         setTheme() {
             const theme = this.$vuetify.theme.dark ? "dark": "light"
             localStorage.setItem("teamlock_theme", theme)
-        }
+        },
+
+        copyFolderID(folder_id) {
+            this.$copyText(folder_id)
+
+            setTimeout(() => {
+                this.tooltipFolderId = this.$t("help.copied")
+                this.tooltip_copy = true
+
+                setTimeout(() => {
+                    this.tooltip_copy = false
+
+                    setTimeout(() => {
+                        this.tooltipFolderId = this.$t("help.tooltip_folder_id")
+                    }, 500);
+                }, 1000);
+            }, 50);
+        },
     }
 })
 </script>

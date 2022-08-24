@@ -169,6 +169,23 @@
                 </v-card-text>
               </v-card>
             </v-menu>
+            <v-tooltip
+                v-model="tooltip_copy_secret[item._id]"
+                bottom
+            >
+                <template v-slot:activator="{ on, attrs }">
+                  <v-icon
+                      @click.stop="copySecretID(item._id)"
+                      v-bind="attrs"
+                      v-on="on"
+                      class="mr-2"
+                      small
+                  >
+                      mdi-content-copy
+                  </v-icon>
+                </template>
+                <span v-html="tooltipSecretId" />
+            </v-tooltip>
             <span v-if="(selected_workspace.owner === user._id || selected_workspace.can_write)">
               <v-tooltip bottom v-if="!in_trash">
                 <template v-slot:activator="{ on, attrs }">
@@ -252,6 +269,8 @@ export default defineComponent({
       trash:{},
       in_trash:false,
       is_trash:false,
+      tooltip_copy_secret: {},
+      tooltipSecretId: vm.$t("help.tooltip_secret_id"),
       loading: false,
       loader_keys: {},
       is_pro: false,
@@ -473,6 +492,23 @@ export default defineComponent({
 
     editKey(item) {
       EventBus.$emit("editKey", item._id)
+    },
+
+    copySecretID(secret_id) {
+      this.$copyText(secret_id)
+
+      setTimeout(() => {
+          this.tooltipSecretId = this.$t("help.copied")
+          this.tooltip_copy_secret[secret_id] = true
+
+          setTimeout(() => {
+            this.tooltip_copy_secret[secret_id] = false
+
+            setTimeout(() => {
+                this.tooltipSecretId = this.$t("help.tooltip_secret_id")
+            }, 500);
+          }, 1000);
+      }, 50);
     },
 
     deleteItem(item) {

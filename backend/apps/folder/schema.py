@@ -34,6 +34,7 @@ class EditFolderSchema(BaseModel):
     parent: str | None
     workspace: PyObjectId = Field(default_factory=PyObjectId)
     password_policy: PasswordPolicySchema | None
+    moved: bool = False
 
 
 class FolderSchema(BaseModel):

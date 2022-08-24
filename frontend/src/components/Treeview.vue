@@ -79,8 +79,6 @@ export default defineComponent({
             let open = false
 
             for (const folder of folders) {
-                if (!folder.parent) continue
-
                 if (folder.parent === parent_id) {
                     const { is_open, children } = this.findChildren(folders, folder._id, selected_folder)
                     if (is_open || folder._id === selected_folder) {
@@ -137,6 +135,7 @@ export default defineComponent({
                     tree[0].isSelected = true
                     this.$store.dispatch("set_current_folder", tree[0].data._id)
                     EventBus.$emit("selectedFolder", {
+                        _id: tree[0].data._id,
                         name: tree[0].data.name,
                         icon: tree[0].data.icon,
                     })
@@ -170,6 +169,7 @@ export default defineComponent({
         selectFolder(selected) {
             const folder_id = selected[0].data._id
             EventBus.$emit("selectedFolder", {
+                _id: selected[0].data._id,
                 name: selected[0].data.name,
                 icon: selected[0].data.icon,
             })
@@ -201,12 +201,25 @@ export default defineComponent({
         },
 
         dropEnd(node_dragged, node_dest) {
-            this.loading = true
             const folder_to_move = node_dragged[0].data
+            if (folder_to_move.is_trash) {
+                this.$toast.error(this.$t('error.trash_cant_be_moved'), {
+                    closeOnClick: true,
+                    timeout: 3000,
+                    icon: true
+                })
+                return
+            }
+
+            this.loading = true
             let folder_dest = node_dest.node.data
 
             if (node_dest.placement !== "inside") {
                 folder_dest = node_dest.node.data
+                if (!folder_dest.parent) {
+                    folder_dest._id = null
+                    folder_to_move.moved = true
+                }
             }
 
             folder_to_move.parent = folder_dest._id

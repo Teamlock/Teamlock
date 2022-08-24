@@ -1,5 +1,7 @@
 {
     "label": {
+        "import_type": "Database format",
+        "file": "File",
         "secrets": "Secrets",
         "mfa": "Multi Factor Authentication",
         "city": "City",
@@ -257,6 +259,7 @@
         "restore": "To restore that folder or those secrets, move them at the wanted place"
     },
     "error": {
+        "trash_cant_be_moved": "Trash can't be moved",
         "invalid_password": "Invalid password",
         "occurred": "An error has occurred",
         "otp_need_config": "Please configure MFA with your Authenticator application",
@@ -312,7 +315,11 @@
         "add_user": "Add an user",
         "edit_key": "Edit user",
         "empty_trash": "Empty trash",
-        "context_menu_workspace": "Right click for more options"
+        "context_menu_workspace": "Right click for more options",
+        "tooltip_workspace_id": "Copy Workspace ID",
+        "tooltip_folder_id": "Copy Folder ID",
+        "tooltip_secret_id": "Copy Secret ID",
+        "copied": "Copied"
     },
     "folder": {
         "edit": "Edit folder",

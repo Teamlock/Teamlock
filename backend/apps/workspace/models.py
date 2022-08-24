@@ -41,7 +41,7 @@ class Workspace(mongoengine.Document):
         reverse_delete_rule=mongoengine.CASCADE
     )
 
-    migrated = mongoengine.BooleanField(default=False)
+    migrated = mongoengine.BooleanField(default=True)
 
 
 class Share(mongoengine.Document):
