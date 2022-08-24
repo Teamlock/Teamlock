@@ -166,6 +166,7 @@ export default defineComponent({
         show_pin_code: false,
         show_puk_code: false,
         loading: false,
+        show: ["pin_code", "puk_code"],
         errors: [],
         form: {
             secret_type: "phone",
@@ -204,6 +205,10 @@ export default defineComponent({
 
     mounted() {
         EventBus.$on("edit_phone", (secret_id, folder_id) => {
+            for (const input of this.show) {
+                this[`show_${input}`] = secret_id === null
+            }
+
             this.secret_id = secret_id
             this.folder_id = folder_id
             this.open = true

@@ -141,6 +141,75 @@
                         </v-text-field>
                     </v-row>
                     <v-row dense class="relative-row">
+                        <v-text-field
+                            class="input-field pl-1 pr-1 mb-2"
+                            v-model="form.card_number.value"
+                            :type="show_card_number ? 'text' : 'password'"
+                            :label="$t('label.card_number')"
+                        >
+                            <span slot="append">
+                                <v-tooltip bottom>
+                                    <template v-slot:activator="{ on, attrs }">
+                                        <v-icon
+                                            v-on="on"
+                                            v-bind="attrs"
+                                            v-html="show_card_number ? 'mdi-eye' : 'mdi-eye-off'"
+                                            @click="show_card_number = !show_card_number"
+                                            tabindex="-1"
+                                        />                                    
+                                    </template>
+                                    <span v-html="$t('label.show_pin')" />
+                                </v-tooltip>
+                            </span>
+                        </v-text-field>
+                    </v-row>
+                    <v-row dense class="relative-row">
+                        <v-text-field
+                            class="input-field pl-1 pr-1 mb-2"
+                            v-model="form.expiration_date.value"
+                            :type="show_expiration_date ? 'text' : 'password'"
+                            :label="$t('label.expiration_date')"
+                        >
+                            <span slot="append">
+                                <v-tooltip bottom>
+                                    <template v-slot:activator="{ on, attrs }">
+                                        <v-icon
+                                            v-on="on"
+                                            v-bind="attrs"
+                                            v-html="show_expiration_date ? 'mdi-eye' : 'mdi-eye-off'"
+                                            @click="show_expiration_date = !show_expiration_date"
+                                            tabindex="-1"
+                                        />                                    
+                                    </template>
+                                    <span v-html="$t('label.show_pin')" />
+                                </v-tooltip>
+                            </span>
+                        </v-text-field>
+                    </v-row>
+                    <v-row dense class="relative-row">
+                        <v-text-field
+                            class="input-field pl-1 pr-1 mb-2"
+                            v-model="form.cvc.value"
+                            :type="show_cvc ? 'text' : 'password'"
+                            :label="$t('label.cvc')"
+                        >
+                            <span slot="append">
+                                <v-tooltip bottom>
+                                    <template v-slot:activator="{ on, attrs }">
+                                        <v-icon
+                                            v-on="on"
+                                            v-bind="attrs"
+                                            v-html="show_cvc ? 'mdi-eye' : 'mdi-eye-off'"
+                                            @click="show_cvc = !show_cvc"
+                                            tabindex="-1"
+                                        />                                    
+                                    </template>
+                                    <span v-html="$t('label.show_pin')" />
+                                </v-tooltip>
+                            </span>
+                        </v-text-field>
+                    </v-row>
+                    <v-row dense class="relative-row">
                         <v-textarea
                             filled
                             color="#daab39"
@@ -189,7 +258,11 @@ export default defineComponent({
         secret_id: null,
         show_iban: false,
         show_bic: false,
+        show_card_number: false,
+        show_expiration_date: false,
+        show_cvc: false,
         loading: false,
+        show: ["iban", "bic", "card_number", "expiration_date", "cvc"],
         errors: [],
         form: {
             secret_type: "bank",
@@ -198,6 +271,9 @@ export default defineComponent({
             bank_name: {encrypted: false, value: ""},
             iban: {encrypted: true, value: ""},
             bic: {encrypted: true, value: ""},
+            card_number: {encrypted: true, value: ""},
+            expiration_date: {encrypted: true, value: ""},
+            cvc: {encrypted: true, value: ""},
             informations: {encrypted: false, value: ""}
         }
     }),
@@ -218,8 +294,12 @@ export default defineComponent({
                     bank_name: {encrypted: false, value: ""},
                     iban: {encrypted: true, value: ""},
                     bic: {encrypted: true, value: ""},
+                    card_number: {encrypted: true, value: ""},
+                    expiration_date: {encrypted: true, value: ""},
+                    cvc: {encrypted: true, value: ""},
                     informations: {encrypted: false, value: ""}
                 }
+
             } else {
                 setTimeout(() => {
                     this.$refs.name_input.focus()
@@ -230,6 +310,10 @@ export default defineComponent({
 
     mounted() {
         EventBus.$on("edit_bank", (secret_id, folder_id) => {
+            for (const input of this.show) {
+                this[`show_${input}`] = secret_id === null
+            }
+
             this.secret_id = secret_id
             this.folder_id = folder_id
             this.open = true
@@ -256,6 +340,9 @@ export default defineComponent({
                     bank_name: secret.bank_name,
                     iban: secret.iban,
                     bic: secret.bic,
+                    card_number: secret.card_number,
+                    expiration_date: secret.expiration_date,
+                    cvc: secret.cvc,
                     informations: secret.informations
                 }
             }).then(() => {
@@ -271,6 +358,9 @@ export default defineComponent({
                 bank_name: "",
                 iban: "",
                 bic: "",
+                card_number: "",
+                expiration_date: "",
+                cvc: "",
                 informations: ""
             }
             this.show_iban = false

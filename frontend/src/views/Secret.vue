@@ -115,11 +115,6 @@
         </draggable>
       </template>
     </v-data-table>
-    <!-- <portal to="contextMenuKey">
-      <vue-context ref="menuKey" v-slot="{ data }" class="p-0">
-        <context-key :data="data" :sms="twilioEnabled"/>
-      </vue-context>
-    </portal> -->
   </span>
 </template>
 

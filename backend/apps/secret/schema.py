@@ -79,9 +79,12 @@ class BaseBankSchema(BaseModel):
     bank_name: SecretValueSchema = SecretValueSchema()
     iban: SecretValueSchema = SecretValueSchema()
     bic: SecretValueSchema = SecretValueSchema()
+    card_number: SecretValueSchema = SecretValueSchema()
+    expiration_date: SecretValueSchema = SecretValueSchema()
+    cvc: SecretValueSchema = SecretValueSchema()
 
     class Base:
-        protected_fields: tuple = ("iban", "bic")
+        protected_fields: tuple = ("iban", "bic", "card_number", "expiration_date", "cvc")
         policy_field: tuple = ()
 
 

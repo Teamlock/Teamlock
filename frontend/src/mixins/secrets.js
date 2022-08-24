@@ -99,6 +99,27 @@ const secretMixin = {
           value: 'bic',
           sortable: false,
           component: "SecretCell"
+        },
+        {
+          text: vm.$t('label.card_number'),
+          align: 'start',
+          value: 'card_number',
+          sortable: false,
+          component: "SecretCell"
+        },
+        {
+          text: vm.$t('label.expiration_date'),
+          align: 'start',
+          value: 'expiration_date',
+          sortable: false,
+          component: "SecretCell"
+        },
+        {
+          text: vm.$t('label.cvc'),
+          align: 'start',
+          value: 'cvc',
+          sortable: false,
+          component: "SecretCell"
         }
       ]
     },

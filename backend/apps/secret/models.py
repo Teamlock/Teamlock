@@ -66,6 +66,9 @@ class Bank(Secret):
     bank_name = mongoengine.EmbeddedDocumentField(SecretValue)
     iban = mongoengine.EmbeddedDocumentField(SecretValue)
     bic = mongoengine.EmbeddedDocumentField(SecretValue)
+    card_number = mongoengine.EmbeddedDocumentField(SecretValue)
+    expiration_date = mongoengine.EmbeddedDocumentField(SecretValue)
+    cvc = mongoengine.EmbeddedDocumentField(SecretValue)
 
     def schema(self):
         data = self.to_mongo()
