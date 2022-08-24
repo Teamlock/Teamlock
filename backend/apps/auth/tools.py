@@ -214,6 +214,6 @@ def invalid_authentication(email: str):
             detail="Too many authentication failures",
         )
     else:
-        RedisTools.store(redis_key, nb_invalid_auth)
+        RedisTools.store(redis_key, nb_invalid_auth, 60)
 
     
