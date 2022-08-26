@@ -56,6 +56,10 @@ from apps.config.models import Config
 logging.config.dictConfig(settings.LOGGING)
 logger = logging.getLogger("api")
 
+log_config = uvicorn.config.LOGGING_CONFIG
+log_config["formatters"]["access"]["fmt"] = '{"date": "%(asctime)s", "level": "%(levelname)s", "message": "%(message)s"}'
+log_config["formatters"]["default"]["fmt"] = '{"date": "%(asctime)s", "level": "%(levelname)s", "message": "%(message)s"}'
+
 templates = Jinja2Templates(directory="templates")
 
 docs_url: str | None = "/docs" if settings.DEBUG else None
@@ -195,5 +199,8 @@ if __name__ == "__main__":
         "main:app",
         host=settings.HOST,
         port=settings.PORT,
-        reload=settings.DEV_MODE
+        reload=settings.DEV_MODE,
+        log_config=log_config,
+        proxy_headers=True,
+        forwarded_allow_ips="*"
     )
