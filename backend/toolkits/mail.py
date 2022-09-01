@@ -73,7 +73,7 @@ If these connections are not coming from you, please alert your IT Administrator
             "context": {
                 "link": False,
                 "text": """
-Hello,<br/><br/>You're Teamlock password has been changed.<br/>
+Hello,<br/><br/>Your Teamlock password has been changed.<br/>
 If you did not make this change, please alert your IT Administrator to lock up your account"""
             }
         },
