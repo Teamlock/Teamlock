@@ -581,3 +581,26 @@ class WorkspaceUtils:
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Folder not found"
             )
+    
+    @classmethod
+    def search(cls, workspace, search, user):
+        workspace, sym_key = cls.get_workspace(workspace, user)
+        cls.have_rights(workspace, user)
+        folders: list[Folder] = Folder.objects(workspace=workspace)
+
+        in_folder_query: Q =Q(folder__in=folders)
+        name_query: Q = Q(name__value__icontains=search)
+        url_query: Q = Q(url__value__icontains=search)
+
+        decrypted_sym_key = CryptoUtils.rsa_decrypt(
+            sym_key,
+            user.in_db.private_key,
+            CryptoUtils.decrypt_password(user)
+        )
+
+        keys: list = []
+        for tmp in Key.objects(in_folder_query & (name_query | url_query)):
+            tmp: TMPKeySchema = TMPKeySchema(**tmp.to_mongo())
+            keys.append(cls.decrypt_key(decrypted_sym_key, tmp))
+
+        return keys
