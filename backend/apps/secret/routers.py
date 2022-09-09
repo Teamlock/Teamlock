@@ -262,8 +262,6 @@ async def update_secret(
 ) -> None:
     try:
         secret: Secret = Secret.objects(pk=secret_id).get()
-        print(secret.folder.in_trash)
-        print(secret.folder.is_trash)
         if secret.folder.in_trash or secret.folder.is_trash:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
