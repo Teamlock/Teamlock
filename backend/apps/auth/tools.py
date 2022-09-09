@@ -79,6 +79,9 @@ async def authenticate_user(form_data: OAuth2PasswordRequestForm) -> User:
 
 def validate_otp(tmp_token: str, otp: int):
     try:
+        if tmp_token is None:
+            return False
+
         if not (access_token := RedisTools.retreive(tmp_token)):
             return False
         

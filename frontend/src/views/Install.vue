@@ -391,8 +391,7 @@ export default defineComponent({
             this.is_loading = true
             if (this.is_pro) {
                 const pro_url = `${process.env.VUE_APP_BASE_URL}/pro/api/v1/config/install`
-                const response = await axios.post(pro_url, this.form_pro)
-                console.log(response)
+                await axios.post(pro_url, this.form_pro)
             }
 
             const url = `${process.env.VUE_APP_BASE_URL}/install`

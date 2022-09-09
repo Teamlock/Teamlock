@@ -73,7 +73,7 @@ If these connections are not coming from you, please alert your IT Administrator
             "context": {
                 "link": False,
                 "text": """
-Hello,<br/><br/>You're Teamlock password has been changed.<br/>
+Hello,<br/><br/>Your Teamlock password has been changed.<br/>
 If you did not make this change, please alert your IT Administrator to lock up your account"""
             }
         },
@@ -112,7 +112,7 @@ Hello,<br/><br/>The workspace <b>{{ workspace_name }}</b> has been shared with y
         mail_content = deepcopy(cls.MAIL_CONTENT)
 
         msg = MIMEMultipart("alternative")
-        msg["From"] = formataddr((str(Header("Teamlock", "utf-8")), "contact@teamlock.io"))
+        msg["From"] = formataddr((str(Header("Teamlock", "utf-8")), settings.SMTP_EMAIL))
         msg["To"] = ",".join(to)
         msg["Subject"] = mail_content[content_type]["subject"]
 

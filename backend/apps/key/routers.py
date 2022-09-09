@@ -22,19 +22,20 @@ __email__ = "contact@teamlock.io"
 __doc__ = ''
 
 from apps.key.schema import CreateKeySchema, KeySchema, TMPKeySchema
-from apps.config.schema import PasswordPolicySchema
 from toolkits.utils import check_password_complexity
 from fastapi import APIRouter, Depends, status, Body
+from apps.workspace.models import Workspace, Share
+from apps.config.schema import PasswordPolicySchema
 from toolkits.workspace import WorkspaceUtils
-from apps.workspace.models import Workspace
 from fastapi.exceptions import HTTPException
 from apps.auth.tools import get_current_user
+from toolkits.history import create_history
 from mongoengine.queryset.visitor import Q
 from apps.auth.schema import LoggedUser
-from toolkits.history import create_history
 from toolkits.crypto import CryptoUtils
 from fastapi.responses import Response
 from apps.folder.models import Folder
+from datetime import datetime
 from settings import settings
 from .models import Key
 import logging.config
@@ -85,32 +86,33 @@ async def search_keys(
     user: LoggedUser = Depends(get_current_user)
 ):
     try:
-        workspace, sym_key = WorkspaceUtils.get_workspace(workspace, user)
-        WorkspaceUtils.have_rights(workspace, user)
-        folders: list[Folder] = Folder.objects(workspace=workspace)
-
-        in_folder_query: Q =Q(folder__in=folders)
-        name_query: Q = Q(name__value__icontains=search)
-        url_query: Q = Q(url__value__icontains=search)
-
-        decrypted_sym_key = CryptoUtils.rsa_decrypt(
-            sym_key,
-            user.in_db.private_key,
-            CryptoUtils.decrypt_password(user)
-        )
-
-        keys: list = []
-        for tmp in Key.objects(in_folder_query & (name_query | url_query)):
-            tmp: TMPKeySchema = TMPKeySchema(**tmp.to_mongo())
-            keys.append(WorkspaceUtils.decrypt_key(decrypted_sym_key, tmp))
-
-        return keys
+        return WorkspaceUtils.search(workspace, search, user)
     
     except Workspace.DoesNotExist:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Workspace not found"
         )
+
+
+@router.get(
+    path="/global/search",
+    summary="Search on all workspaces",
+    response_model=list[KeySchema]
+)
+async def global_search_keys(
+    search: str,
+    user: LoggedUser = Depends(get_current_user)
+):
+    workspaces = list(Workspace.objects(owner=user.id))
+    shared_query: Q = Q(user=user.id) & (Q(expire_at=None) | Q(expire_at__lte=datetime.utcnow()))
+    workspaces.extend(list(Share.objects(shared_query)))
+
+    keys: list = []
+    for workspace in workspaces:
+        keys.extend(WorkspaceUtils.search(workspace.pk, search, user))
+    
+    return keys
 
 
 @router.get(
