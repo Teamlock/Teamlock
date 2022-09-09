@@ -35,6 +35,7 @@
                                         />
                                         <v-text-field
                                             v-model="form.username"
+                                            type="email"
                                             :label="$t('label.email')"
                                             :rules="[v => !!v || $t('required.email')]"
                                             ref="email"

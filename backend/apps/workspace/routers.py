@@ -40,9 +40,9 @@ from apps.auth.schema import LoggedUser
 from fastapi.responses import Response
 from .models import Workspace, Share
 from apps.folder.models import Folder
-from apps.key.models import Key
 from datetime import datetime
 from settings import settings
+from toolkits import const
 import logging.config
 import logging
 
@@ -85,19 +85,15 @@ async def get_workspaces(user: LoggedUser = Depends(get_current_user)) -> list[W
 )
 async def get_workspace(workspace_id: str, user: LoggedUser = Depends(get_current_user)) -> WorkspaceSchema:
     workspace = Workspace.objects(pk=workspace_id).get()
-    if not workspace.migrated:
-        WorkspaceUtils.migrate_workspace(
-            user,
-            CryptoUtils.decrypt_password(user),
-            workspace
-        )
-
     workspace, _ = WorkspaceUtils.get_workspace(workspace_id, user)
 
     folders = Folder.objects(workspace=workspace).only("pk")
-    nb_keys = Key.objects(folder__in=folders).count()
-    schema = SharedWorkspaceSchema(**workspace.to_mongo())
 
+    nb_secrets: int = 0
+    for model_ in const.MAPPING_SECRET.values():
+        nb_secrets += model_.objects(folder__in=folders).count()
+
+    schema = SharedWorkspaceSchema(**workspace.to_mongo())
 
     if workspace.owner != user.in_db:
         try:
@@ -114,7 +110,7 @@ async def get_workspace(workspace_id: str, user: LoggedUser = Depends(get_curren
             )
 
     schema.nb_folders = len(folders)
-    schema.nb_keys = nb_keys
+    schema.nb_secrets = nb_secrets
     return schema
 
 
@@ -449,8 +445,9 @@ async def delete_trash_content(
     for child in children:
         child.delete()
     #delete keys in th trash
-    keys : list = Key.objects(folder=trash)
-    for key in keys:
-        key.delete()
+
+    for model_ in const.MAPPING_SECRET.values():
+        model_.objects(folder=trash).delete()
+
     return Response(status_code=status.HTTP_204_NO_CONTENT)
     

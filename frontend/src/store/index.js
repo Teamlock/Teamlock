@@ -10,6 +10,7 @@ export default new Vuex.Store({
     state: {
         pro: false,
         user: null,
+        twilio: false,
         current_folder: null,
         selected_workspace: null,
     },
@@ -17,13 +18,18 @@ export default new Vuex.Store({
     getters: {
         getWorkspace: state => state.selected_workspace,
         getFolder: state => state.current_folder,
+        getTwilio: state => state.twilio,
         getUser: state => state.user,
-        getPro: state => state.pro
+        getPro: state => state.pro,
     },
 
     mutations: {
         SET_PRO(state, value) {
             state.pro = value
+        },
+
+        SET_TWILIO(state, value) {
+            state.twilio = value
         },
 
         SET_USER(state, user) {
@@ -32,6 +38,7 @@ export default new Vuex.Store({
 
         SET_CURRENT_FOLDER(state, folder) {
             state.current_folder = folder
+            EventBus.$emit("refreshSecrets")
         },
 
         async REFRESH_USER(state) {
@@ -79,6 +86,11 @@ export default new Vuex.Store({
         change_workspace({ commit }, workspace_id) {
             commit("SET_WORKSPACE", workspace_id)
             commit("SET_CURRENT_FOLDER", null)
+        },
+
+        async set_twilio({ commit }) {
+            const response = await http.get("/api/v1/config/twilio")
+            commit("SET_TWILIO", response.data)
         },
 
         async set_pro({ commit }) {

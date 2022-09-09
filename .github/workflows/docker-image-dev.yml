@@ -19,8 +19,10 @@ jobs:
   deploy:
     runs-on: self-hosted
     needs: build
+
     env:
       PERSONNAL_TOKEN: ${{ secrets.PERSONNAL_TOKEN }}
+
     steps:
       - name: Login on Container registry
         run: echo $PERSONNAL_TOKEN | sudo docker login ghcr.io -u raznak --password-stdin

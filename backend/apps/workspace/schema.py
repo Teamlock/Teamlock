@@ -39,7 +39,7 @@ class WorkspaceSchema(BaseModel):
     password_policy: PasswordPolicySchema | None = Field(
         alias="password_policy")
     nb_folders: int | None
-    nb_keys: int | None
+    nb_secrets: int | None
     import_in_progress: bool = False
 
     class Config:
