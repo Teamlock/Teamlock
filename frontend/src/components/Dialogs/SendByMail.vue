@@ -32,6 +32,7 @@
                             :label="$t('label.expire_in')"
                             :hint="$t('help.send_by_mail_expiration')"
                             persistent-hint
+                            min="1"
                             type="number"
                         />
                     </v-row>

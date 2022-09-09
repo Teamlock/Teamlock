@@ -269,6 +269,7 @@ export default defineComponent({
             http.get(uri).then((response) => {
                 const secret = response.data
                 this.folder_id = secret.folder
+                console.log(secret)
 
                 this.form = {
                     secret_type: 'server',
