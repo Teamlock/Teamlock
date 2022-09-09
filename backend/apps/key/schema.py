@@ -46,6 +46,8 @@ class TMPKeySchema(CreateKeySchema):
     id: PyObjectId = Field(default_factory=PyObjectId, alias="_id")
     created_at: datetime
     updated_at: datetime
+    folder_name: str = ""
+    workspace_name: str = ""
 
 
 class KeySchema(BaseModel):
@@ -58,6 +60,8 @@ class KeySchema(BaseModel):
     informations: KeyValueSchema | None
     created_at: datetime
     updated_at: datetime
+    folder_name: str = ""
+    workspace_name: str = ""
 
     folder: PyObjectId = Field(default_factory=PyObjectId)
     

@@ -291,7 +291,9 @@ class WorkspaceUtils:
         decrypted_key: KeySchema = KeySchema(
             id=key_def.id,
             created_at=key_def.created_at,
-            updated_at=key_def.updated_at
+            updated_at=key_def.updated_at,
+            folder_name=key_def.folder_name,
+            workspace_name=key_def.workspace_name,
         )
 
         for attr in KEY_ATTRS:
@@ -601,6 +603,8 @@ class WorkspaceUtils:
         keys: list = []
         for tmp in Key.objects(in_folder_query & (name_query | url_query)):
             tmp: TMPKeySchema = TMPKeySchema(**tmp.to_mongo())
+            tmp.folder_name = Folder.objects(pk=tmp.folder).get().name
+            tmp.workspace_name = workspace.name
             keys.append(cls.decrypt_key(decrypted_sym_key, tmp))
 
         return keys
