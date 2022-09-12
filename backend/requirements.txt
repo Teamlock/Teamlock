@@ -21,3 +21,5 @@ pykeepass==4.0.2
 twilio==7.9.2
 geocoder==1.38.1
 pymongo[srv]==3.12.3
+boto3==1.24.70
+paramiko==2.11.0
