@@ -461,7 +461,16 @@ async def configure_user(
     # Check password complexity
     config: ConfigSchema = fetch_config(as_schema=True)
     # Raise an error if password is not complex enough
-    check_password_complexity(config.password_policy, configure_schema.password)
+
+    error = config.password_policy.verify(configure_schema.password)
+    if len(error) > 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={
+                "error": f"Password not allowed by policy",
+                "details": error
+            }
+        )
 
     # Generate User Private and Public RSA Keys
     rsa_pubpriv: RSASchema = CryptoUtils.generate_rsa_keys(configure_schema.password)

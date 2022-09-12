@@ -228,7 +228,16 @@ async def recover_user(
             )
 
         config: ConfigSchema = fetch_config(as_schema=True)
-        check_password_complexity(config.password_policy, new_password)
+
+        error = config.password_policy.verify(new_password)
+        if len(error) > 0:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail={
+                    "error": f"Password not allowed by policy",
+                    "details": error
+                }
+            )
 
         user = User.objects(email=email).get()
         if not user.recovery_enabled:
