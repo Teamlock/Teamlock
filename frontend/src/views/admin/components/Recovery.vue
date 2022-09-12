@@ -107,7 +107,7 @@ export default defineComponent({
   },
   data: () => ({
     form: {
-      enabled: true,
+      enabled: false,
       config: {}
     },
     form_valid: false,

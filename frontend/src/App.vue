@@ -28,9 +28,9 @@ export default defineComponent({
     }
 
     this.$store.dispatch("set_pro")
-    this.$store.dispatch("set_twilio")
     if (sessionStorage.getItem("token")) {
       this.$store.dispatch("set_user")
+      this.$store.dispatch("set_twilio")
     }
 
     if (localStorage.getItem("teamlock_theme") === "light") {
