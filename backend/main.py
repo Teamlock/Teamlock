@@ -45,7 +45,7 @@ from apps.config.routers import router as config_router
 from apps.folder.routers import router as folder_router
 from apps.auth.routers import router as auth_router
 from apps.user.routers import router as user_router
-from apps.key.routers import router as key_router
+from apps.secret.routers import router as secret_router
 
 from apps.user.schema import AdminUserSchema, EditUserSchema
 from apps.config.schema import ConfigSchema
@@ -181,7 +181,7 @@ app.include_router(user_router, tags=["User"], prefix="/api/v1/user")
 app.include_router(config_router, tags=["Configuration"], prefix="/api/v1/config")
 app.include_router(workspace_router, tags=["Workspace"], prefix="/api/v1/workspace")
 app.include_router(folder_router, tags=["Folder"], prefix="/api/v1/folder")
-app.include_router(key_router, tags=["Key"], prefix="/api/v1/key")
+app.include_router(secret_router, tags=["Secret"], prefix="/api/v1/secret")
 
 
 try:

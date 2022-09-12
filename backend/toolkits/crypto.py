@@ -112,8 +112,9 @@ class CryptoUtils:
         return ''.join(random.choice(letters) for i in range(length))
     
     @classmethod
-    def generate_recovery_symkey(cls, user: LoggedUser) -> RecoverySchema:
-        pwd: str = cls.decrypt_password(user)
+    def generate_recovery_symkey(cls, user: LoggedUser, pwd: str | None) -> RecoverySchema:
+        if pwd is None:
+            pwd: str = cls.decrypt_password(user)
 
         sym_key: str = cls.generate_sim()
         encoded_sym_key: str = base64.b64encode(bytes(sym_key, 'utf-8')).decode('utf-8')
@@ -125,7 +126,7 @@ class CryptoUtils:
         )
 
     @classmethod
-    def sym_encrypt(cls, message: str, key: str | bytes, mode: str = "GCM") -> str:
+    def sym_encrypt(cls, message: str, key: str | bytes) -> str:
         """Encrypt message with symmetric key
 
         Args:
@@ -144,30 +145,14 @@ class CryptoUtils:
         if not isinstance(message, bytes):
             message: bytes = message.encode("utf-8")
 
-        if mode == "GCM":
-            cipher = AES.new(key, AES.MODE_GCM)
-            header: bytes = get_random_bytes(16)
-            cipher.update(header)
-            ciphertext, tag = cipher.encrypt_and_digest(message)
-            json_k = [ 'nonce', 'header', 'ciphertext', 'tag' ]
-            json_v = [ base64.b64encode(x).decode('utf-8') for x in [cipher.nonce, header, ciphertext, tag ]]
-            message = json.dumps(dict(zip(json_k, json_v)))
-            return message
-        else:
-            message = pad(bytes(message, "utf-8"), 16)
-            iv = Random.new().read(AES.block_size)
-
-            cipher = AES.new(key, AES.MODE_CBC, iv)
-            try:
-                message = base64.b64encode(iv + cipher.encrypt(message))
-            except Exception as err:
-                logger.critical(err, exc_info=1)
-                raise
-
-            if isinstance(message, bytes):
-                message: str = message.decode('utf-8')
-
-            return message
+        cipher = AES.new(key, AES.MODE_GCM)
+        header: bytes = get_random_bytes(16)
+        cipher.update(header)
+        ciphertext, tag = cipher.encrypt_and_digest(message)
+        json_k = [ 'nonce', 'header', 'ciphertext', 'tag' ]
+        json_v = [ base64.b64encode(x).decode('utf-8') for x in [cipher.nonce, header, ciphertext, tag ]]
+        message = json.dumps(dict(zip(json_k, json_v)))
+        return message
     
     @classmethod
     def sym_decrypt(cls, message: str, key: str | bytes, mode: str = "GCM") -> str:

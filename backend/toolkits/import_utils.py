@@ -1,11 +1,11 @@
-from apps.key.schema import CreateKeySchema, KeyValueSchema
+from apps.secret.schema import CreateLoginSchema, SecretValueSchema
 from apps.workspace.schema import ImportXMLFileSchema
 from toolkits.workspace import WorkspaceUtils
 from apps.workspace.models import Workspace
 from apps.folder.models import Folder
+from apps.secret.models import Login
 import xml.etree.ElementTree as ET
 from apps.user.models import User
-from apps.key.models import Key
 from settings import settings
 import logging.config
 import logging
@@ -17,7 +17,7 @@ logger = logging.getLogger("api")
 
 class ImportUtils(WorkspaceUtils):
   @classmethod
-  def create_key_import(
+  def create_secret_import(
       cls,
       import_schema: ImportXMLFileSchema,
       name: str,
@@ -28,35 +28,36 @@ class ImportUtils(WorkspaceUtils):
       sym_key: str,
       folder: Folder | None,
       user: User
-  ) -> Key:
-      key_def: CreateKeySchema = CreateKeySchema(
-          name=KeyValueSchema(
+  ) -> Login:
+      secret_def: CreateLoginSchema = CreateLoginSchema(
+          name=SecretValueSchema(
               encrypted=import_schema.encrypt_name,
               value=name
           ),
-          url=KeyValueSchema(
+          url=SecretValueSchema(
               encrypted=import_schema.encrypt_url,
               value=url
           ),
-          login=KeyValueSchema(
+          login=SecretValueSchema(
               encrypted=import_schema.encrypt_login,
               value=login
           ),
-          password=KeyValueSchema(
+          password=SecretValueSchema(
               encrypted=True,
               value=password
           ),
-          informations=KeyValueSchema(
+          informations=SecretValueSchema(
               encrypted=import_schema.encrypt_informations,
               value=informations
-          )
+          ),
+          secret_type="login"
       )
 
-      key = WorkspaceUtils.encrypt_key(user, sym_key, key_def)
-      key.folder = folder
-      key.created_by = user.in_db
-      key.updated_by = user.in_db
-      return key
+      secret = WorkspaceUtils.encrypt_secret(user, sym_key, secret_def)
+      secret.folder = folder
+      secret.created_by = user.in_db
+      secret.updated_by = user.in_db
+      return secret
 
   @classmethod
   def import_teamlock_backup(
@@ -85,7 +86,7 @@ class ImportUtils(WorkspaceUtils):
                   if url is None:
                       url = ""
 
-                  keys.append(cls.create_key_import(
+                  keys.append(cls.create_secret_import(
                       import_schema,
                       tmp_key["name"] or "",
                       url,
@@ -98,7 +99,7 @@ class ImportUtils(WorkspaceUtils):
                   ))
 
               if len(keys) > 0:
-                  Key.objects.insert(keys)
+                  Login.objects.insert(keys)
 
               save_folders(user, tmp_folder["childs"], folder)
 
@@ -124,7 +125,7 @@ class ImportUtils(WorkspaceUtils):
       import_schema: ImportXMLFileSchema,
       file: str
   ):
-      key_mapping = {
+      secret_mapping = {
           'Password': 'password',
           'Title': 'name',
           'URL': 'url',
@@ -144,20 +145,20 @@ class ImportUtils(WorkspaceUtils):
                   parent=parent
               )
 
-              keys: list = []
+              secrets: list = []
               for entry in subgroup.findall("Entry"):
                   tmp: dict = {}
                   for entry_value in entry.findall("String"):
                       key: str = entry_value.find("Key").text
                       value: str = entry_value.find("Value").text
 
-                      if key in key_mapping.keys():
+                      if key in secret_mapping.keys():
                           if value:
-                              tmp[key_mapping[key]] = value
+                              tmp[secret_mapping[key]] = value
                           else:
-                              tmp[key_mapping[key]] = ""
+                              tmp[secret_mapping[key]] = ""
 
-                  keys.append(cls.create_key_import(
+                  secrets.append(cls.create_secret_import(
                       import_schema,
                       tmp["name"],
                       tmp["url"],
@@ -169,8 +170,8 @@ class ImportUtils(WorkspaceUtils):
                       user
                   ))
 
-              if len(keys) > 0:
-                  Key.objects.insert(keys)
+              if len(secrets) > 0:
+                  Login.objects.insert(secrets)
 
               save_xml_folder(user, subgroup, folder)
 
@@ -245,7 +246,7 @@ class ImportUtils(WorkspaceUtils):
               informations = item["notes"] or ""
               url = item["login"].get("uris", [{}])[0].get("uri", "")
 
-              keys.append(cls.create_key_import(
+              keys.append(cls.create_secret_import(
                   import_schema,
                   name,
                   url,
@@ -258,7 +259,7 @@ class ImportUtils(WorkspaceUtils):
               ))
           
           if len(keys) > 0:
-              Key.objects.insert(keys)
+              Login.objects.insert(keys)
 
           workspace.import_in_progress = False
           workspace.save()

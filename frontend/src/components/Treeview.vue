@@ -89,7 +89,7 @@ export default defineComponent({
                         id: folder._id,
                         icon: folder.icon,
                         title: folder.name,
-                        isLeaf: children.length === 0,
+                        isLeaf: false,
                         isSelected: folder._id === selected_folder,
                         isExpanded: is_open,
                         data: folder,
@@ -113,14 +113,14 @@ export default defineComponent({
                     }
 
                     if (is_open) {
-                        found = true
+                        found = folder
                     }
 
                     tree.push({
                         id: folder._id,
                         icon: folder.icon,
                         title: folder.name,
-                        isLeaf: children.length === 0,
+                        isLeaf: false,
                         isExpanded: is_open,
                         isSelected: folder._id === selected_folder,
                         data: folder,
@@ -142,6 +142,11 @@ export default defineComponent({
                 }
             } else {
                 this.$store.dispatch("set_current_folder", selected_folder)
+                EventBus.$emit("selectedFolder", {
+                    _id: found._id,
+                    name: found.name,
+                    icon: found.icon
+                })
             }
 
             return tree
@@ -239,12 +244,12 @@ export default defineComponent({
 
         externalDrop(cursor) {
             // Check if a key is being dropped
-            const key_id = sessionStorage.getItem("draggedKey")
-            if (key_id) {
+            const secret_id = sessionStorage.getItem("draggedKey")
+            if (secret_id) {
                 const to_node = cursor.node
                 const folder_id = to_node.data._id
 
-                const uri = `/api/v1/key/${key_id}/move`
+                const uri = `/api/v1/secret/${secret_id}/move`
                 http.post(uri, folder_id).then(() => {
                     this.$toast.success(this.$t("success.key_moved"), {
                         closeOnClick: true,

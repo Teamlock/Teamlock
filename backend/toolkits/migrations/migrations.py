@@ -22,6 +22,7 @@ __email__ = "contact@teamlock.io"
 __doc__ = ''
 
 from toolkits.mongo import connect_to_database
+from apps.secret.models import Login
 from datetime import datetime
 from settings import settings
 
@@ -35,10 +36,25 @@ def migrate_1_0(db):
 
     db.config.update({}, {"$unset": {"enforce_totp": 1}})
 
+def migrate_1_1(db):
+    db.workspace.update({}, {"$unset": {"migrated": 1}}, multi=True)
+    
+    keys = db.key.find()
+    connect_to_database()
+
+    new_keys: list = []
+    for key in keys:
+        del(key['_id'])
+        new_keys.append(Login(**key))
+    
+    Login.objects.insert(new_keys)
+    db.key.drop()
+
 
 class Migrations:
     MIGRATIONS_DICT: dict = {
-        1.0: migrate_1_0
+        1.0: migrate_1_0,
+        1.1: migrate_1_1
     }
 
     def __init__(self):

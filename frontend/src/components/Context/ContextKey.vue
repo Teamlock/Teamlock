@@ -1,14 +1,14 @@
 <template>
     <div>
-        <v-list dense v-if="data" style="text-align: left" color="primary">
+        <v-list dense v-if="data" style="text-align: left" light>
             <v-subheader>
                 <v-icon style="margin-right: 5px">mdi-key</v-icon>
                 <strong style="font-size: 15px">{{ data.name.value }}</strong>
             </v-subheader>
             <v-divider />
-            <v-list-item-group color="primary" v-model="selectedMenu">
+            <v-list-item-group v-model="selectedMenu">
                 <v-list-item>
-                    <v-list-item-icon class="mr-2">
+                    <v-list-item-icon class="mr-0">
                         <v-icon :size="17">mdi-email-fast</v-icon>
                     </v-list-item-icon>
                     <v-list-item-content>
@@ -16,7 +16,7 @@
                     </v-list-item-content>
                 </v-list-item>
                 <v-list-item v-if="sms">
-                    <v-list-item-icon class="mr-2">
+                    <v-list-item-icon class="mr-0">
                         <v-icon :size="17">mdi-message-processing</v-icon>
                     </v-list-item-icon>
                     <v-list-item-content>
@@ -26,26 +26,26 @@
             </v-list-item-group>
         </v-list>
 
-        <send-by-mail-vue
+        <send-by-mail
             ref="dialogSendByMail"
-            :key_id="key_to_copy"
+            :secret_id="secret_to_copy"
         />
-        <send-by-sms-vue
+        <send-by-sms
             ref="dialogSendBySMS"
-            :key_id="key_to_copy"
+            :secret_id="secret_to_copy"
         />
     </div>
 </template>
 
 <script>
 import { defineComponent } from '@vue/composition-api'
-import SendByMailVue from '../Dialogs/SendByMail.vue'
-import SendBySmsVue from '../Dialogs/SendBySMS.vue'
+import SendByMail from '../Dialogs/SendByMail.vue'
+import SendBySms from '../Dialogs/SendBySMS.vue'
 
 export default defineComponent({
     components: { 
-        SendByMailVue,
-        SendBySmsVue
+        SendByMail,
+        SendBySms
     },
 
     props: {
@@ -61,7 +61,7 @@ export default defineComponent({
 
     data: () => ({
         selectedMenu: null,
-        key_to_copy: null
+        secret_to_copy: null
     }),
 
     watch: {
@@ -72,19 +72,21 @@ export default defineComponent({
 
             switch(val) {
                 case 0:
-                    this.$refs.dialogSendByMail.open = true
-                    this.key_to_copy = this.data._id
+                    setTimeout(() => {
+                        this.$refs.dialogSendByMail.open = true
+                        this.secret_to_copy = this.data._id
+                    }, 100);
                     break;
                 case 1:
-                    this.$refs.dialogSendBySMS.open = true
-                    this.key_to_copy = this.data._id
+                    setTimeout(() => {
+                        this.$refs.dialogSendBySMS.open = true
+                        this.secret_to_copy = this.data._id
+                    }, 100);
                     break;
             }
+
             this.selectedMenu = null
         }
-    },
-
-    methods: {
     }
 })
 </script>

@@ -166,7 +166,7 @@ export default defineComponent({
     data: (vm) => ({
         search: "",
         tooltip_copy: false,
-        tooltipFolderId: vm.$t('help.tooltip_folder_id'),
+        tooltipFolderId: vm.$t('tooltip.copy_id'),
         mapping_flags: {
             "en": "gb",
             "fr": "fr"
@@ -200,14 +200,14 @@ export default defineComponent({
         
         searchKeys() {
             if (this.search === "") {
-                this.getKeys()
+                this.getSecrets()
             } else {
-                EventBus.$emit("searchKeys", this.search)
+                EventBus.$emit("searchSecrets", this.search)
             }
         },
 
-        getKeys() {
-            EventBus.$emit("refreshKeys")
+        getSecrets() {
+            EventBus.$emit("refreshSecrets")
         },
 
         logout() {
@@ -232,7 +232,7 @@ export default defineComponent({
                     this.tooltip_copy = false
 
                     setTimeout(() => {
-                        this.tooltipFolderId = this.$t("help.tooltip_folder_id")
+                        this.tooltipFolderId = this.$t("tooltip.copy_id")
                     }, 500);
                 }, 1000);
             }, 50);

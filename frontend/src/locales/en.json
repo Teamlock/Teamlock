@@ -1,5 +1,17 @@
 {
     "label": {
+        "recovery_configuration": "Recovery External Storage",
+        "send_recovery_enabled": "Send user's recovery key to an external storage",
+        "product_type": "Storage Type",
+        "s3_endpoint": "S3 Endpoint URL",
+        "s3_access_key": "S3 Access Key",
+        "s3_secret_key": "S3 Secret Key",
+        "s3_region_name": "S3 Region Name",
+        "s3_bucket_name": "S3 Bucket Name",
+        "sftp_host": "SFTP Host",
+        "sftp_username": "SFTP Username",
+        "sftp_password": "SFTP Password",
+        "sftp_path": "SFTP Path",
         "import_type": "Database format",
         "file": "File",
         "secrets": "Secrets",
@@ -21,6 +33,19 @@
         "selected": "Selected",
         "others": "others",
         "workspace": "Workspace",
+        "os_type": "OS",
+        "owner": "Owner",
+        "bank_name": "Bank name",
+        "number": "Number",
+        "iban": "IBAN",
+        "bic": "BIC",
+        "card_number": "Card Number",
+        "expiration_date": "Expiration Date",
+        "cvc": "CVC",
+        "pin_code": "PIN Code",
+        "puk_code": "PUK Code",
+        "show_pin": "Show PIN",
+        "show_puk": "Show PUK",
         "workspaces": "Workspaces",
         "action": "Action",
         "dates": "Dates",
@@ -81,8 +106,8 @@
         "ip": "IP Address",
         "name": "Name",
         "login": "Login",
-        "generate_secret": "Generate secret accordingly to the secret policy",
-        "show_secret": "Show secret",
+        "generate_password": "Generate password accordingly to the password policy",
+        "show_password": "Show password",
         "url": "URL",
         "date": "Date",
         "os": "OS",
@@ -145,14 +170,22 @@
         "twilio_auth_token": "Twilio Auth Token"
     },
     "tooltip": {
-        "dblclick_copy": "Double click to copy"
+        "dblclick_copy": "Double click to copy",
+        "copy_id": "Copy ID"
     },
     "title": {
+        "test_configuration": "Test connection",
         "send_sms": "Send SMS",
         "key": "Key",
         "user": "User",
-        "add_secret": "Create a secret",
-        "edit_secret": "Edit a secret",
+        "add_login": "Create a login",
+        "add_server": "Create a server",
+        "add_phone": "Create a phone",
+        "add_bank": "Create a bank",
+        "edit_login": "Edit a login",
+        "edit_server": "Edit a server",
+        "edit_phone": "Edit a phone",
+        "edit_bank": "Edit a bank",
         "installation": "Installation",
         "import_users": "Import users",
         "2fa_setup": "Two Factor Authentication Setup",
@@ -165,6 +198,12 @@
         "email": "Email is required",
         "password": "Password is required",
         "teamlock_url": "Teamlock URL is required"
+    },
+    "tabs": {
+        "login": "Login",
+        "bank": "Bank",
+        "server": "Server",
+        "phone": "Phone"
     },
     "button": {
         "download_certificates": "Download Certificates",
@@ -181,7 +220,6 @@
         "save": "Save",
         "load": "Load",
         "add_user": "Add user",
-        "add_secret": "Add secret",
         "register": "Register",
         "back": "Back",
         "next": "Next",
@@ -191,6 +229,8 @@
         "send": "Send"
     },
     "success": {
+        "recovery_save": "Recovery Configuration saved",
+        "recovery_ok": "Connection OK",
         "secret_created": "Secret created",
         "secret_updated": "Secret updated",
         "sms_sent": "SMS successfully sent",
@@ -259,6 +299,7 @@
         "restore": "To restore that folder or those secrets, move them at the wanted place"
     },
     "error": {
+        "invalid_form": "Invalid form",
         "trash_cant_be_moved": "Trash can't be moved",
         "invalid_password": "Invalid password",
         "occurred": "An error has occurred",
@@ -276,8 +317,10 @@
         "too_many_auth_failures": "Too many authentication failures. Account locked up for 10 minutes"
     },
     "help": {
+        "send_recovery_enabled": "You can define an external storage to store User's recovery key. If an user lost his recovery key, you'll be able to restore his account.",
         "enable_twilio": "Enable Twilio. Will be used to send secrets by SMS",
         "twilio_recipient": "Phone Number with international country code (ex: +33 for France)",
+        "external_share": "Send this secrets by Mail/SMS",
         "send_by_sms": "Send this secret over SMS",
         "send_by_mail": "A link will be send to the recipient which will allow him to retreive the secret.",
         "send_by_mail_expiration": "in hour(s)",
@@ -316,9 +359,6 @@
         "edit_key": "Edit user",
         "empty_trash": "Empty trash",
         "context_menu_workspace": "Right click for more options",
-        "tooltip_workspace_id": "Copy Workspace ID",
-        "tooltip_folder_id": "Copy Folder ID",
-        "tooltip_secret_id": "Copy Secret ID",
         "copied": "Copied"
     },
     "folder": {

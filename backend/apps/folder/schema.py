@@ -55,3 +55,10 @@ class FolderSchema(BaseModel):
         json_encoders: dict = {
             ObjectId: str
         }
+
+
+class FolderStats(BaseModel):
+    login: int = 0
+    server: int = 0
+    phone: int = 0
+    bank: int = 0

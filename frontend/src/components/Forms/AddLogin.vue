@@ -1,7 +1,7 @@
 <template>
-    <v-navigation-drawer app hide-overlay right v-model="open" width="500px">
-        <v-form ref="form" @submit.prevent="saveKey">
-            <v-card :loading="loading" class="mx-auto" :min-width="400" flat>
+    <v-navigation-drawer app temporary hide-overlay right v-model="open" width="500px">
+        <v-form ref="form" @submit.prevent="saveLogin" style="height: 100%">
+            <v-card :loading="loading" class="mx-auto" :min-width="400" flat style="height: 100%">
                 <v-app-bar flat dense class="edit_workspace_bar">
                     <v-app-bar-nav-icon>
                         <v-icon>mdi-key-plus</v-icon>
@@ -102,7 +102,7 @@
                             :error-messages="errorPassword"
                             :error-count="errorPasswordCount"
                             :hide-details="errorPasswordCount === 0"
-                            :label="$t('label.secret')"
+                            :label="$t('label.password')"
                         >
                             <span slot="prepend">
                                 <v-tooltip bottom>
@@ -117,7 +117,7 @@
                                             mdi-auto-fix
                                         </v-icon>
                                     </template>
-                                    <span v-html="$t('label.generate_secret')" />
+                                    <span v-html="$t('label.generate_password')" />
                                 </v-tooltip>
                             </span>
                             <span slot="append">
@@ -131,7 +131,7 @@
                                             tabindex="-1"
                                         />                                    
                                     </template>
-                                    <span v-html="$t('label.show_secret')" />
+                                    <span v-html="$t('label.show_password')" />
                                 </v-tooltip>
                             </span>
                         </v-text-field>
@@ -187,7 +187,7 @@
                     </v-row>
                 </v-card-text>
 
-                <v-card-actions>
+                <v-card-actions class="card-actions">
                     <v-spacer></v-spacer>
                     <v-btn small text @click="closePanel">{{ $t("button.cancel") }}</v-btn>
                     <v-btn small color="primary" text type="submit">{{ $t("button.submit") }}</v-btn>
@@ -203,16 +203,17 @@ import EventBus from "@/event"
 import http from "@/utils/http"
 
 export default defineComponent({
-    name: "AddSecret",
+    name: "AddLogin",
     data: () => ({
         open: false ,
-        key_id: null,
+        secret_id: null,
         show_password: false,
         loading: false,
         errorPassword: [],
         errorPasswordCount: 0,
         errors: [],
         form: {
+            secret_type: "login",
             name: {encrypted: false, value: ""},
             url: {encrypted: false, value: ""},
             login: {encrypted: false, value: ""},
@@ -224,7 +225,7 @@ export default defineComponent({
 
     computed: {
         title() {
-            return this.key_id ? this.$t('title.edit_secret') : this.$t("title.add_secret")
+            return this.secret_id ? this.$t('title.edit_login') : this.$t("title.add_login")
         }
     },
 
@@ -232,6 +233,7 @@ export default defineComponent({
         open(val) {
             if (!val) {
                 this.form = {
+                    secret_type: "login",
                     name: {encrypted: false, value: ""},
                     url: {encrypted: false, value: ""},
                     login: {encrypted: false, value: ""},
@@ -248,33 +250,34 @@ export default defineComponent({
     },
 
     mounted() {
-        EventBus.$on("editKey", (key_id, folder_id) => {
-            this.key_id = key_id
+        EventBus.$on("edit_login", (secret_id, folder_id) => {
+            this.secret_id = secret_id
             this.folder_id = folder_id
             this.open = true
 
-            if (this.key_id) {
-                this.getKey()
+            if (this.secret_id) {
+                this.getSecret()
             }
         })
     },
 
     methods: {
-        getKey() {
+        getSecret() {
             this.loading = true
-            const uri =  `/api/v1/key/${this.key_id}`
+            const uri =  `/api/v1/secret/${this.secret_id}`
 
             http.get(uri).then((response) => {
-                const key = response.data
-                this.folder_id = key.folder
+                const secret = response.data
+                this.folder_id = secret.folder
 
                 this.form = {
-                    name: key.name,
-                    login: key.login,
-                    password: key.password,
-                    url: key.url,
-                    ip: key.ip,
-                    informations: key.informations
+                    secret_type: 'login',
+                    name: secret.name,
+                    login: secret.login,
+                    password: secret.password,
+                    url: secret.url,
+                    ip: secret.ip,
+                    informations: secret.informations
                 }
             }).then(() => {
                 this.loading = false
@@ -283,6 +286,7 @@ export default defineComponent({
 
         closePanel() {
             this.form = {
+                secret_type: 'login',
                 name: "",
                 url: "",
                 login: "",
@@ -303,7 +307,7 @@ export default defineComponent({
                 folder_id: this.folder_id
             }
 
-            http.get("/api/v1/key/generate", { params: params })
+            http.get("/api/v1/secret/generate", { params: params })
                 .then((response) => {
                     this.form.password.value = response.data
                 })
@@ -332,23 +336,31 @@ export default defineComponent({
 
                 this.errorPassword = detail
                 this.errorPasswordCount = detail.length + 1
+            } else {
+                this.$toast.error(this.$t("error.occurred"), {
+                    closeOnClick: true,
+                    timeout: 3000,
+                    icon: true
+                })
+                this.loading = false
+                throw error
             }
 
             return this.errorPasswordCount > 0
         },
 
-        async saveKey() {
+        async saveLogin() {
             this.errorPassword = []
             this.loading = true;
-            let uri = "/api/v1/key/"
+            let uri = "/api/v1/secret/"
             let message = "success.secret_created"
-            const key_id = this.key_id
+            const secret_id = this.secret_id
             this.form.folder = this.folder_id
 
-            if (key_id) {
-                uri += key_id
+            if (secret_id) {
+                uri += secret_id
                 try {
-                    await http.put(uri, this.form)
+                    await http.put(uri, {secret: this.form})
                     message = "success.secret_updated"
                 } catch (error){
                     if (this.hasErrors(error)) {
@@ -358,7 +370,7 @@ export default defineComponent({
                 }
             } else {
                 try {
-                    await http.post(uri, this.form)
+                    await http.post(uri, {secret: this.form})
                 } catch(error) {
                     if (this.hasErrors(error)) {
                         this.loading = false;
@@ -367,7 +379,8 @@ export default defineComponent({
                 }
             }
 
-            EventBus.$emit("refreshKeys")
+            EventBus.$emit("refreshSecrets")
+            EventBus.$emit("refreshStats")
             this.loading = false;
             this.$toast.success(this.$t(message), {
                 closeOnClick: true,

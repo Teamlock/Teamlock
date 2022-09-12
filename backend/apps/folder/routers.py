@@ -21,22 +21,23 @@ __maintainer__ = "Teamlock Project"
 __email__ = "contact@teamlock.io"
 __doc__ = ''
 
-from apps.key.schema import TMPKeySchema, KeySchema
-from apps.config.schema import PasswordPolicySchema
-from .schema import EditFolderSchema, FolderSchema
+from apps.secret.schema import BankSchema, LoginSchema, PhoneSchema, ServerSchema
+from .schema import EditFolderSchema, FolderSchema, FolderStats
+from apps.secret.models import Login, Server, Bank, Phone
 from fastapi import APIRouter, Depends, status, Body
-from apps.config.models import PasswordPolicy
-from apps.workspace.models import Workspace
+from apps.config.schema import PasswordPolicySchema
 from toolkits.workspace import WorkspaceUtils
+from apps.config.models import PasswordPolicy
 from fastapi.exceptions import HTTPException
 from apps.auth.tools import get_current_user
-from apps.auth.schema import LoggedUser
+from apps.workspace.models import Workspace
 from toolkits.history import create_history
+from apps.auth.schema import LoggedUser
 from fastapi.responses import Response
 from toolkits.crypto import CryptoUtils
 from toolkits.folder import FolderUtils
-from apps.key.models import Key
 from settings import settings
+from toolkits import const
 from .models import Folder
 import logging.config
 import logging
@@ -196,6 +197,9 @@ async def update_folder(
             )
     elif folder_def.moved:
         folder.parent = None
+
+    if folder.in_trash and (not folder_def.parent or not folder.parent.in_trash):
+        folder.in_trash = False
     
     folder.save()
     logger.info(f"[FOLDER][{str(folder.workspace.pk)}][{folder.workspace.name}] {user.in_db.email} update folder {folder_def.name}")
@@ -347,15 +351,42 @@ async def move_trash_folder(
         )
 
 @router.get(
-    path="/{folder_id}/keys",
-    summary="Get all keys in folder",
-    response_model=list[KeySchema]
+    path="/{folder_id}/stats",
+    summary="Get stats of a folder",
+    response_model=FolderStats,
+    dependencies=[Depends(get_current_user)]
 )
-async def get_keys(
+async def get_folder_stats(
+    folder_id: str
+) -> FolderStats:
+    try:
+        folder: Folder = Folder.objects(pk=folder_id).get()
+    except Folder.DoesNotExist:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Folder not found"
+        )
+    
+    stats: FolderStats = FolderStats(
+        login=Login.objects(folder=folder).count(),
+        server=Server.objects(folder=folder).count(),
+        bank=Bank.objects(folder=folder).count(),
+        phone=Phone.objects(folder=folder).count()
+    )
+
+    return stats
+
+
+@router.get(
+    path="/{folder_id}/secrets",
+    summary="Get all secrets in folder",
+    response_model=list[LoginSchema] | list[ServerSchema] | list[BankSchema] | list[PhoneSchema]
+)
+async def get_secrets(
     folder_id: str,
+    category: str,
     user: LoggedUser = Depends(get_current_user)
 ):
-
     try:
         folder: Folder = Folder.objects(pk=folder_id).get()
     except Folder.DoesNotExist:
@@ -365,8 +396,10 @@ async def get_keys(
         )
 
     _, sym_key = WorkspaceUtils.get_workspace(folder.workspace.pk, user)
-    tmp_keys: list = Key.objects(folder=folder)
-    keys: list = []
+
+    model_ = const.MAPPING_SECRET[category]
+    tmp_secrets: list = model_.objects(folder=folder)
+    secrets: list = []
 
     decrypted_sym_key = CryptoUtils.rsa_decrypt(
         sym_key,
@@ -374,9 +407,10 @@ async def get_keys(
         CryptoUtils.decrypt_password(user)
     )
 
-    for tmp in tmp_keys:
-        tmp: TMPKeySchema = TMPKeySchema(**tmp.to_mongo())
-        keys.append(WorkspaceUtils.decrypt_key(decrypted_sym_key, tmp))
+    for tmp in tmp_secrets:
+        schema = tmp.schema()
 
-    logger.info(f"[FOLDER][{str(folder.workspace.pk)}][{folder.workspace.name}] {user.in_db.email} retreive keys in folder {folder.name}")
-    return keys
+        secrets.append(WorkspaceUtils.decrypt_secret(decrypted_sym_key, schema))
+
+    logger.info(f"[FOLDER][{str(folder.workspace.pk)}][{folder.workspace.name}] {user.in_db.email} retreive secrets in folder {folder.name}")
+    return secrets

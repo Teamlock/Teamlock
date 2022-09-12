@@ -13,15 +13,15 @@ You should have received a copy of the GNU General Public License
 along with Teamlock.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from apps.key.schema import CreateKeySchema, KeySchema, KeyValueSchema, TMPKeySchema
 from apps.config.schema import PasswordPolicySchema
 from apps.workspace.schema import EditShareSchema
+from apps.secret.models import Login, SecretValue
+from apps.secret.schema import SecretValueSchema
 from apps.config.models import PasswordPolicy
 from apps.workspace.models import Workspace
 from apps.folder.schema import FolderSchema
 from fastapi.exceptions import HTTPException
 from mongoengine.queryset.visitor import Q
-from apps.key.models import Key, KeyValue
 from apps.auth.tools import hash_password
 from apps.auth.schema import LoggedUser
 from apps.workspace.models import Share
@@ -34,8 +34,9 @@ from apps.user.models import User
 from .crypto import CryptoUtils
 from datetime import datetime
 from settings import settings
-from bson import ObjectId
 from fastapi import status
+from toolkits import const
+from bson import ObjectId
 import logging.config
 import logging
 import base64
@@ -225,13 +226,12 @@ class WorkspaceUtils:
                 )
 
     @classmethod
-    def encrypt_key(
+    def encrypt_secret(
         cls,
         user: LoggedUser,
         encrypted_sym_key: str,
-        key_def: CreateKeySchema,
-        mode: str = "GCM"
-    ) -> Key:
+        secret_def
+    ) -> Login:
         """Encrypt Key information using Workspace Symetric key
         Decrypt Workspace symetric key with user's Private RSA key
         Encrypt all key informations using the symetric key
@@ -239,10 +239,10 @@ class WorkspaceUtils:
         Args:
             user (LoggedUser): Current logged user
             encrypted_sym_key (str): Encrypted symetric key
-            key_def (CreateKeySchema): Key information
+            secret_def: Secret information
 
         Returns:
-            Key: Encrypted key schema
+            Secret: Encrypted secret schema
         """
 
         sym_key: str = CryptoUtils.rsa_decrypt(
@@ -251,73 +251,67 @@ class WorkspaceUtils:
             CryptoUtils.decrypt_password(user)
         )
 
-        encrypted_key: Key = Key()
+        encrypted_secret = const.MAPPING_SECRET[secret_def.secret_type]()
+        ignored_fields = ["_id", "folder", "created_at", "updated_at", "secret_type"]
 
-        for attr in FULL_KEY_ATTRS:
-            value: str = getattr(key_def, attr).value
-            if getattr(key_def, attr).encrypted:
-                setattr(encrypted_key, attr, KeyValue(
-                    encrypted=True,
-                    value=CryptoUtils.sym_encrypt(value, sym_key, mode)
-                ))
-            else:
-                setattr(encrypted_key, attr, KeyValue(
-                    encrypted=False,
-                    value=value
-                ))
+        for property in secret_def.schema()["properties"].keys():
+            if property not in ignored_fields:
+                value: str = getattr(secret_def, property).value
+                if getattr(secret_def, property).encrypted:
+                    setattr(encrypted_secret, property, SecretValue(
+                        encrypted=True,
+                        value=CryptoUtils.sym_encrypt(value, sym_key)
+                    ))
+                else:
+                    setattr(encrypted_secret, property, SecretValue(
+                        encrypted=False,
+                        value=value
+                    ))
 
-        return encrypted_key
+        return encrypted_secret
 
     @classmethod
-    def decrypt_key(
+    def decrypt_secret(
         cls,
         sym_key: str,
-        key_def: KeySchema,
-        get_password: bool = False,
-        mode: str = "GCM"
-    ) -> KeySchema:
+        secret_def,
+        get_protected_fields: bool = False
+    ):
         """Decrypt Key information using the workspace symetric key
 
         Args:
             sym_key (str): Decrypted workspace symetric key
-            key_def (KeySchema): Key schema
-            get_password (bool, optional): Decrypt also the password. Defaults to False.
+            secret_def: Schema
+            get_protected_fields (bool, optional): Decrypt also protected fields. Defaults to False.
             mode: temporary parameter, to migrate over GCM encryption
 
         Returns:
-            KeySchema: Key Schema
+            SecretSchema: Key Schema
         """
 
-        decrypted_key: KeySchema = KeySchema(
-            id=key_def.id,
-            created_at=key_def.created_at,
-            updated_at=key_def.updated_at,
-            folder_name=key_def.folder_name,
-            workspace_name=key_def.workspace_name,
-        )
+        decrypted_secret = secret_def.copy()
+        ignored_fields = [secret_def.Base().protected_fields]
+        ignored_fields.extend(["_id", "folder", "created_at", "updated_at", "secret_type"])
 
-        for attr in KEY_ATTRS:
-            value: str = getattr(key_def, attr).value
-            if getattr(key_def, attr).encrypted:
-                tmp = KeyValueSchema(
-                    encrypted=True,
-                    value=CryptoUtils.sym_decrypt(value, sym_key, mode)
-                )
-                setattr(decrypted_key, attr, tmp)
-            else:
-                tmp = KeyValueSchema(
-                    encrypted=False,
-                    value=value
-                )
-                setattr(decrypted_key, attr, tmp)
+        for property in secret_def.schema()["properties"].keys():
+            if property not in ignored_fields:
+                value: str = getattr(secret_def, property).value
+                if getattr(secret_def, property).encrypted:
+                    tmp = SecretValueSchema(
+                        encrypted=True,
+                        value=CryptoUtils.sym_decrypt(value, sym_key)
+                    )
+                    setattr(decrypted_secret, property, tmp)
 
-        if get_password:
-            decrypted_key.password = KeyValueSchema(
-                value=CryptoUtils.sym_decrypt(key_def.password.value, sym_key, mode)
-            )
+        if get_protected_fields:
+            for field in secret_def.Base().protected_fields:
+                value: str = getattr(secret_def, field).value
+                setattr(decrypted_secret, field, SecretValueSchema(
+                    value=CryptoUtils.sym_decrypt(value, sym_key)
+                ))
 
-        decrypted_key.folder = key_def.folder
-        return decrypted_key
+        decrypted_secret.folder = secret_def.folder
+        return decrypted_secret
 
     @classmethod
     def copy_folder_to_other_workspace(
@@ -337,21 +331,24 @@ class WorkspaceUtils:
             to_workspace (Workspace): New workspace
             sym_key (str): Symetric key to decrypt data
         """
-        def copy_keys(from_folder, to_folder):
-            for key in Key.objects(folder=from_folder):
-                decrypted_key = cls.decrypt_key(
-                    sym_key,
-                    KeySchema(**key.to_mongo()),
-                    get_password=True
-                )
+        def copy_secrets(from_folder, to_folder):
+            for model_ in const.MAPPING_SECRET.values():
+                for secret in model_.objects(folder=from_folder):
+                    secret_schema = secret.schema()
+                    decrypted_secret = cls.decrypt_secret(
+                        sym_key,
+                        secret_schema,
+                        get_protected_fields=True
+                    )
 
-                encrypted_key = cls.encrypt_key(
-                    user, to_workspace.sym_key, decrypted_key)
+                    encrypted_secret = cls.encrypt_secret(
+                        user, to_workspace.sym_key, decrypted_secret
+                    )
 
-                encrypted_key.pk = None
-                encrypted_key.folder = to_folder
-                encrypted_key.created_by = user.id
-                encrypted_key.save()
+                    encrypted_secret.pk = None
+                    encrypted_secret.folder = to_folder
+                    encrypted_secret.created_by = user.id
+                    encrypted_secret.save()
 
         def copy_child_folders(old_parent, new_parent):
             childs = Folder.objects(parent=old_parent)
@@ -362,7 +359,7 @@ class WorkspaceUtils:
                 child.workspace = to_workspace
                 child.save()
 
-                copy_keys(old_id, child.pk)
+                copy_secrets(old_id, child.pk)
                 copy_child_folders(old_id, child.pk)
 
         old_folder_id = to_folder.pk
@@ -372,7 +369,7 @@ class WorkspaceUtils:
         to_folder.save()
 
         # Copy folder content
-        copy_keys(old_folder_id, to_folder.pk)
+        copy_secrets(old_folder_id, to_folder.pk)
 
         # Copy child folders
         copy_child_folders(old_folder_id, to_folder.pk)
@@ -454,28 +451,6 @@ class WorkspaceUtils:
         MailUtils.send_mail([user.email], None, "password_change")
 
     @classmethod
-    def migrate_workspace(cls, user: LoggedUser, password: str, workspace: Workspace):
-        """Migrate Workspace encryption from CBC to GCM"""
-        folders = Folder.objects(workspace=workspace)
-
-        sym_key = CryptoUtils.rsa_decrypt(
-            workspace.sym_key,
-            user.in_db.private_key,
-            password
-        )
-
-        for key in Key.objects(folder__in=folders):
-            key_schema = KeySchema(**key.to_mongo())
-            decrypted_key_schema = cls.decrypt_key(sym_key, key_schema, get_password=True, mode="CBC")
-            encrypted_key = cls.encrypt_key(user, workspace.sym_key, decrypted_key_schema)
-            encrypted_key.pk = key.pk
-            encrypted_key.save()
-        
-        logger.info(f"[WORKSPACE][{workspace.name}] migrated to GCM encryption")
-        workspace.migrated = True
-        workspace.save()
-
-    @classmethod
     def recover_account(cls, user: User, sym_key: str, new_password: str):
         try:
             decrypted_password: str = CryptoUtils.sym_decrypt(
@@ -543,21 +518,21 @@ class WorkspaceUtils:
             if folder != None:
                 group = kp.add_group(current_group, folder.name)
                 # encrypted keys
-                keys = Key.objects(folder=folder.id)
+                keys = Login.objects(folder=folder.id)
                 for key in keys:
                     if key.name.value != "":  # error because there were various entries with name== ""
-                        key_schema = TMPKeySchema(**key.to_mongo())
-                        decrypted_key: KeySchema = WorkspaceUtils.decrypt_key(
+                        key_schema = key.schema()
+                        decrypted_secret = WorkspaceUtils.decrypt_secret(
                             decrypted_sym_key,
                             key_schema,
                             get_password=True
                         )
                         kp.add_entry(
-                            group, title=decrypted_key.name.value,
-                            username=decrypted_key.login.value,
-                            password=decrypted_key.password.value,
-                            url=decrypted_key.url.value,
-                            notes=decrypted_key.informations.value
+                            group, title=decrypted_secret.name.value,
+                            username=decrypted_secret.login.value,
+                            password=decrypted_secret.password.value,
+                            url=decrypted_secret.url.value,
+                            notes=decrypted_secret.informations.value
                         )
 
                 if children != None:

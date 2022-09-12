@@ -4,19 +4,12 @@
 
         <v-navigation-drawer ref="drawer" app permanent :width="300">
             <router-link to="/">
-                <v-img v-if="$vuetify.theme.dark"
-                    class="mx-auto px-10 logoDark border-bottom-primary"
-                    :src="logoWhite"
-                    contain
-                    width="100%"
-                    height="100"
-                />
-                <v-img v-else
-                    class="mx-auto px-10 logo border-bottom-primary"
+                <v-img 
+                    :class="logoClass"
                     :src="logo"
-                    contain
                     width="100%"
                     height="100"
+                    contain
                 />
             </router-link>
 
@@ -52,15 +45,11 @@
 import { defineComponent } from '@vue/composition-api'
 import KeepAliveMixin from "@/mixins/keepalive"
 import AppBar from '../components/AppBar.vue'
+import designMixin from "@/mixins/design"
 
 export default defineComponent({
     components: { AppBar },
-    mixins: [KeepAliveMixin],
-
-    data: () => ({
-        logo: require("@/assets/img/TLAppLogo_Baseline.svg"),
-        logoWhite: require("@/assets/img/TLAppLogo_White.svg"),
-    }),
+    mixins: [KeepAliveMixin, designMixin],
 
     computed: {
         key() {

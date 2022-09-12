@@ -67,7 +67,7 @@ import http from "@/utils/http"
 
 export default defineComponent({
     props: {
-        key_id: {
+        secret_id: {
             type: String,
             required: false
         },
@@ -77,7 +77,7 @@ export default defineComponent({
         is_loading: false,
         open: false,
         form: {
-            mail_to: "",
+            mail_to: "oderegis@gmail.com",
             expire_in: 6
         }
     }),
@@ -85,19 +85,25 @@ export default defineComponent({
     methods: {
         send_by_mail() {
             this.is_loading = true
-            http.post(`/pro/api/v1/key/${this.key_id}/send/mail`, this.form)
+            http.post(`/pro/api/v1/secret/${this.secret_id}/send/mail`, this.form)
                 .then(() => {
                     this.$toast.success(this.$t('success.secret_shared'), {
                         closeOnClick: true,
                         timeout: 3000,
                         icon: true
                     })
-                })
-                .then(() => {
                     this.is_loading = false
                     this.form.mail_to = ""
                     this.form.expire_in = 6
                     this.open = false
+                })
+                .catch(() => {
+                    this.$toast.error(this.$t("error.occurred"), {
+                        closeOnClick: true,
+                        timeout: 3000,
+                        icon: true
+                    })
+                    this.is_loading = false
                 })
         }
     }
