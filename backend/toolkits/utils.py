@@ -56,8 +56,6 @@ def fetch_config(as_schema: bool = False) -> Config | ConfigSchema:
     return config
 
 def check_password_complexity(policy: PasswordPolicySchema, secret_def):
-    print(secret_def)
-    # Check field
     policy_fields = secret_def.Base.policy_field
 
     errors: list = []

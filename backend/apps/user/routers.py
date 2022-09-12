@@ -34,17 +34,15 @@ from fastapi.exceptions import HTTPException
 from apps.config.schema import ConfigSchema
 from .models import OTP, User, UserSession
 from apps.config.routers import fetch_config
+from toolkits.crypto import CryptoUtils
 from apps.auth.schema import LoggedUser
 from toolkits.schema import RSASchema
 from apps.config.models import Config
-from toolkits.crypto import CryptoUtils
 from datetime import datetime
 from settings import settings
 import logging.config
 from . import schema
-import tempfile
 import logging
-import pyotp
 import math
 import os
 
@@ -295,7 +293,14 @@ async def update_user(
     config: ConfigSchema = fetch_config(as_schema=True)    
 
     # Raise an error if password is not complex enough
-    check_password_complexity(config.password_policy, password_update_schema.new_password)
+    if (error := config.password_policy.verify(password_update_schema.new_password)):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={
+                "error": f"Password not allowed by policy",
+                "details": error
+            }
+        )
 
     old_passphrase = CryptoUtils.prepare_password(password_update_schema.current_password)
     WorkspaceUtils.update_password(
@@ -303,6 +308,12 @@ async def update_user(
         old_passphrase,
         password_update_schema.new_password
     )
+
+    try:
+        from teamlock_pro.toolkits.proRecovery import send_recovery_key
+        send_recovery_key(user)
+    except ImportError:
+        pass
 
     logger.info(f"User {user.in_db.email} has change his password")
     return Response(status_code=status.HTTP_202_ACCEPTED)
@@ -467,8 +478,14 @@ async def configure_user(
     client_ip = request.headers.get(settings.IP_HEADER, request.client.host)
     user.known_ip_addresses = [client_ip]
 
+    try:
+        from teamlock_pro.toolkits.proRecovery import send_recovery_key
+        send_recovery_key(user)
+    except ImportError:
+        pass
+
     # Create Personal Workspace
-    workspace_id: str = WorkspaceUtils.create_workspace(
+    WorkspaceUtils.create_workspace(
         user,
         "Personal",
         "mdi-account",
