@@ -112,8 +112,9 @@ class CryptoUtils:
         return ''.join(random.choice(letters) for i in range(length))
     
     @classmethod
-    def generate_recovery_symkey(cls, user: LoggedUser) -> RecoverySchema:
-        pwd: str = cls.decrypt_password(user)
+    def generate_recovery_symkey(cls, user: LoggedUser, pwd: str | None) -> RecoverySchema:
+        if pwd is None:
+            pwd: str = cls.decrypt_password(user)
 
         sym_key: str = cls.generate_sim()
         encoded_sym_key: str = base64.b64encode(bytes(sym_key, 'utf-8')).decode('utf-8')
