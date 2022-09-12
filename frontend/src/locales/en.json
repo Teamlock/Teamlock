@@ -1,5 +1,17 @@
 {
     "label": {
+        "recovery_configuration": "Recovery External Storage",
+        "send_recovery_enabled": "Send user's recovery key to an external storage",
+        "product_type": "Storage Type",
+        "s3_endpoint": "S3 Endpoint URL",
+        "s3_access_key": "S3 Access Key",
+        "s3_secret_key": "S3 Secret Key",
+        "s3_region_name": "S3 Region Name",
+        "s3_bucket_name": "S3 Bucket Name",
+        "sftp_host": "SFTP Host",
+        "sftp_username": "SFTP Username",
+        "sftp_password": "SFTP Password",
+        "sftp_path": "SFTP Path",
         "import_type": "Database format",
         "file": "File",
         "secrets": "Secrets",
@@ -162,6 +174,7 @@
         "copy_id": "Copy ID"
     },
     "title": {
+        "test_configuration": "Test connection",
         "send_sms": "Send SMS",
         "key": "Key",
         "user": "User",
@@ -216,6 +229,8 @@
         "send": "Send"
     },
     "success": {
+        "recovery_save": "Recovery Configuration saved",
+        "recovery_ok": "Connection OK",
         "secret_created": "Secret created",
         "secret_updated": "Secret updated",
         "sms_sent": "SMS successfully sent",
@@ -284,6 +299,7 @@
         "restore": "To restore that folder or those secrets, move them at the wanted place"
     },
     "error": {
+        "invalid_form": "Invalid form",
         "trash_cant_be_moved": "Trash can't be moved",
         "invalid_password": "Invalid password",
         "occurred": "An error has occurred",
@@ -301,6 +317,7 @@
         "too_many_auth_failures": "Too many authentication failures. Account locked up for 10 minutes"
     },
     "help": {
+        "send_recovery_enabled": "You can define an external storage to store User's recovery key. If an user lost his recovery key, you'll be able to restore his account.",
         "enable_twilio": "Enable Twilio. Will be used to send secrets by SMS",
         "twilio_recipient": "Phone Number with international country code (ex: +33 for France)",
         "external_share": "Send this secrets by Mail/SMS",

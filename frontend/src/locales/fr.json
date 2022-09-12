@@ -1,5 +1,17 @@
 {
     "label": {
+        "recovery_configuration": "Storage Externe pour la récupération",
+        "send_recovery_enabled": "Envoyer les clés de récupération des utilisateurs sur un stockage externe",
+        "product_type": "Stockage",
+        "s3_endpoint": "S3 URL",
+        "s3_access_key": "S3 Access Key",
+        "s3_secret_key": "S3 Secret Key",
+        "s3_region_name": "S3 Region Name",
+        "s3_bucket_name": "S3 Bucket Name",
+        "sftp_host": "SFTP Host",
+        "sftp_username": "SFTP Username",
+        "sftp_password": "SFTP Password",
+        "sftp_path": "SFTP Path",
         "import_type": "Format de la base de données",
         "file": "Fichier",
         "secrets": "Secrets",
@@ -161,6 +173,7 @@
         "copy_id": "Copier l'ID"
     },
     "title": {
+        "test_configuration": "Test connexion",
         "send_sms": "Envoyer un SMS",
         "key": "Clé",
         "user": "Utilisateur",
@@ -214,6 +227,8 @@
         "send": "Envoyer"
     },
     "success": {
+        "recovery_save": "Configuration sauvegrdée",
+        "recovery_ok": "Connexion OK",
         "secret_created": "Secret créé",
         "secret_updated": "Secret mis à jour",
         "sms_sent": "SMS envoyé",
@@ -283,6 +298,7 @@
         "trash_emptied": "Corbeille vidée"
     },
     "error": {
+        "invalid_form": "Formulaire invalide",
         "trash_cant_be_moved": "La corbeille ne peut être déplacée",
         "invalid_password": "Mot de passe incorrect",
         "occurred": "Une erreur est survenue",
@@ -300,6 +316,7 @@
         "too_many_auth_failures": "Trop d'erreur d'authentification. Votre compte est bloqué pendant 10 minutes"
     },
     "help": {
+        "send_recovery_enabled": "Vous pouvez définir un stockage externe pour les clés de récupération utilisateur. Si un utilisateur perd sa clé de récupération, vous pourrez être en mesure de récupérer son compte.",
         "enable_twilio": "Activer Twilio. Sera utilisé pour envoyer des secrets par SMS",
         "twilio_recipient": "Numéro de téléphone avec l'indicatif téléphonique international (ex: +33 pour la France)",
         "external_share": "Envoyer le secret par Mail/SMS",
