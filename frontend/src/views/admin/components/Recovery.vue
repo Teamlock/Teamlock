@@ -26,7 +26,7 @@
             </span>
           </v-col>
 
-          <v-col :md="4">
+          <v-col :md="4" v-if="form.enabled">
             <v-card
               :loading="is_loading_test"
               class="mt-5"
@@ -83,7 +83,7 @@
           </v-col>
         </v-row>
       </v-card-text>
-      <v-card-actions v-if="form_valid">
+      <v-card-actions v-if="form_valid || !form.enabled">
         <v-spacer></v-spacer>
         <v-btn color="primary" :loading="is_loading" type="submit">{{ $t('button.save') }}</v-btn>
         <v-spacer></v-spacer>
@@ -135,6 +135,10 @@ export default defineComponent({
 
     saveRecoveryConfig() {
       this.is_loading = true
+      if (!this.form.enabled) {
+        this.form.config.product_type = "None"
+      }
+
       http.post("/pro/api/v1/config/recovery", this.form)
       .then(() => {
         this.$toast.success(this.$t("success.recovery_save"), {
