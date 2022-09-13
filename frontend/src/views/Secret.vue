@@ -250,6 +250,7 @@ export default defineComponent({
       const uri = "/api/v1/secret/search"
       const params = {
         search: search,
+        category: this.category,
         workspace: this.selected_workspace._id
       }
 

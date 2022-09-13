@@ -43,6 +43,8 @@ class GlobalSecretSchema(BaseSecretSchema):
     id: PyObjectId = Field(default_factory=PyObjectId, alias="_id")
     created_at: datetime
     updated_at: datetime
+    folder_name: str = ""
+    workspace_name: str = ""
 
     class Config:
         allow_population_by_field_name: bool = True

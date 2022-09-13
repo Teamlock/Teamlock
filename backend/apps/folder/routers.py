@@ -23,7 +23,7 @@ __doc__ = ''
 
 from apps.secret.schema import BankSchema, LoginSchema, PhoneSchema, ServerSchema
 from .schema import EditFolderSchema, FolderSchema, FolderStats
-from apps.secret.models import Login, Server, Bank, Phone
+from apps.secret.models import Login, Secret, Server, Bank, Phone
 from fastapi import APIRouter, Depends, status, Body
 from apps.config.schema import PasswordPolicySchema
 from toolkits.workspace import WorkspaceUtils
@@ -398,7 +398,8 @@ async def get_secrets(
     _, sym_key = WorkspaceUtils.get_workspace(folder.workspace.pk, user)
 
     model_ = const.MAPPING_SECRET[category]
-    tmp_secrets: list = model_.objects(folder=folder)
+    tmp_secrets: list = list(model_.objects(folder=folder))
+    print(Secret.objects.all())
     secrets: list = []
 
     decrypted_sym_key = CryptoUtils.rsa_decrypt(
@@ -409,7 +410,6 @@ async def get_secrets(
 
     for tmp in tmp_secrets:
         schema = tmp.schema()
-
         secrets.append(WorkspaceUtils.decrypt_secret(decrypted_sym_key, schema))
 
     logger.info(f"[FOLDER][{str(folder.workspace.pk)}][{folder.workspace.name}] {user.in_db.email} retreive secrets in folder {folder.name}")

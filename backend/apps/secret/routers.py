@@ -37,7 +37,6 @@ from apps.folder.models import Folder
 from .models import Login, Secret
 from datetime import datetime
 from settings import settings
-from toolkits import const
 from typing import Union
 from . import schema
 import logging.config
@@ -87,7 +86,7 @@ async def search_secrets(
     user: LoggedUser = Depends(get_current_user)
 ):
     try:
-        return WorkspaceUtils.search(workspace, search, user)
+        return WorkspaceUtils.search(workspace, search, user, category)
     except Workspace.DoesNotExist:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -102,6 +101,7 @@ async def search_secrets(
 )
 async def global_search_keys(
     search: str,
+    category: str,
     user: LoggedUser = Depends(get_current_user)
 ):
     workspaces = list(Workspace.objects(owner=user.id))
@@ -110,7 +110,7 @@ async def global_search_keys(
 
     keys: list = []
     for workspace in workspaces:
-        keys.extend(WorkspaceUtils.search(workspace.pk, search, user))
+        keys.extend(WorkspaceUtils.search(workspace.pk, search, user, category))
     
     return keys
 

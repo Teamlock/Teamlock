@@ -13,9 +13,9 @@ You should have received a copy of the GNU General Public License
 along with Teamlock.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+from apps.secret.models import Login, SecretValue
 from apps.config.schema import PasswordPolicySchema
 from apps.workspace.schema import EditShareSchema
-from apps.secret.models import Login, SecretValue
 from apps.secret.schema import SecretValueSchema
 from apps.config.models import PasswordPolicy
 from apps.workspace.models import Workspace
@@ -25,10 +25,10 @@ from mongoengine.queryset.visitor import Q
 from apps.auth.tools import hash_password
 from apps.auth.schema import LoggedUser
 from apps.workspace.models import Share
-from .const import WHITELIST_RIGHTS
 from toolkits.schema import RSASchema
 from pykeepass import create_database
 from apps.folder.models import Folder
+from .const import WHITELIST_RIGHTS
 from toolkits.mail import MailUtils
 from apps.user.models import User
 from .crypto import CryptoUtils
@@ -291,7 +291,7 @@ class WorkspaceUtils:
 
         decrypted_secret = secret_def.copy()
         ignored_fields = [secret_def.Base().protected_fields]
-        ignored_fields.extend(["_id", "folder", "created_at", "updated_at", "secret_type"])
+        ignored_fields.extend(["_id", "folder", "created_at", "updated_at", "secret_type", "folder_name", "workspace_name"])
 
         for property in secret_def.schema()["properties"].keys():
             if property not in ignored_fields:
@@ -560,7 +560,7 @@ class WorkspaceUtils:
             )
     
     @classmethod
-    def search(cls, workspace, search, user):
+    def search(cls, workspace, search, user, category):
         workspace, sym_key = cls.get_workspace(workspace, user)
         cls.have_rights(workspace, user)
         folders: list[Folder] = Folder.objects(workspace=workspace)
@@ -569,6 +569,8 @@ class WorkspaceUtils:
         name_query: Q = Q(name__value__icontains=search)
         url_query: Q = Q(url__value__icontains=search)
 
+        model_ = const.MAPPING_SECRET[category]
+
         decrypted_sym_key = CryptoUtils.rsa_decrypt(
             sym_key,
             user.in_db.private_key,
@@ -576,10 +578,12 @@ class WorkspaceUtils:
         )
 
         keys: list = []
-        for tmp in Key.objects(in_folder_query & (name_query | url_query)):
-            tmp: TMPKeySchema = TMPKeySchema(**tmp.to_mongo())
+        for tmp in model_.objects(in_folder_query & (name_query | url_query)):
+            schema = tmp.schema()
+            print(schema)
+            tmp = WorkspaceUtils.decrypt_secret(decrypted_sym_key, schema)
             tmp.folder_name = Folder.objects(pk=tmp.folder).get().name
             tmp.workspace_name = workspace.name
-            keys.append(cls.decrypt_key(decrypted_sym_key, tmp))
+            keys.append(tmp)
 
         return keys

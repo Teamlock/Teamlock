@@ -51,10 +51,19 @@ def migrate_1_1(db):
     db.key.drop()
 
 
+def migrate_1_12(db):
+    db.workspace.update({}, {"$unset": {"migrated": 1}}, multi=True)
+    # Rename key collection
+    db.key.rename("secret")
+
+    # Apply cls on Secret
+    db.secret.update({}, {'$set': {'_cls': 'Secret.Login'}}, multi=True)
+
 class Migrations:
     MIGRATIONS_DICT: dict = {
         1.0: migrate_1_0,
-        1.1: migrate_1_1
+        1.1: migrate_1_1,
+        1.12: migrate_1_12
     }
 
     def __init__(self):
