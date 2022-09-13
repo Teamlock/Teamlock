@@ -59,6 +59,7 @@ def migrate_1_12(db):
     # Apply cls on Secret
     db.secret.update({}, {'$set': {'_cls': 'Secret.Login'}}, multi=True)
 
+
 class Migrations:
     MIGRATIONS_DICT: dict = {
         1.0: migrate_1_0,
