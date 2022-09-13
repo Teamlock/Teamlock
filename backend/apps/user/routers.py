@@ -311,7 +311,7 @@ async def update_user(
 
     try:
         from teamlock_pro.toolkits.proRecovery import send_recovery_key
-        send_recovery_key(user)
+        send_recovery_key(user, password_update_schema.new_password)
     except ImportError:
         pass
 

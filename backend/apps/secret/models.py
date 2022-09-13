@@ -54,7 +54,7 @@ class Login(Secret):
     ip = mongoengine.EmbeddedDocumentField(SecretValue)
     login = mongoengine.EmbeddedDocumentField(SecretValue)
     password = mongoengine.EmbeddedDocumentField(SecretValue)
-
+    
     def schema(self):
         data = self.to_mongo()
         data["secret_type"] = "login"
