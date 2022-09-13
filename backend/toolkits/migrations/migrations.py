@@ -54,7 +54,7 @@ def migrate_1_1(db):
 def migrate_1_12(db):
     db.workspace.update({}, {"$unset": {"migrated": 1}}, multi=True)
     # Rename key collection
-    db.key.rename("secret")
+    db.key.renameCollection("secret", True)
 
     # Apply cls on Secret
     db.secret.update({}, {'$set': {'_cls': 'Secret.Login'}}, multi=True)
