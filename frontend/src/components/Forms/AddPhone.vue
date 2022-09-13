@@ -72,10 +72,11 @@
                     </v-row>
                     <v-row dense class="relative-row">
                         <v-text-field
-                            class="input-field pl-1 pr-1 mb-2"
+                            class="input-field pl-1 pr-1 mb-0"
                             v-model="form.pin_code.value"
                             :type="show_pin_code ? 'text' : 'password'"
                             :label="$t('label.pin_code')"
+                            hide-details
                         >
                             <span slot="append">
                                 <v-tooltip bottom>
@@ -99,6 +100,7 @@
                             v-model="form.puk_code.value"
                             :type="show_puk_code ? 'text' : 'password'"
                             :label="$t('label.puk_code')"
+                            hide-details
                         >
                             <span slot="append">
                                 <v-tooltip bottom>

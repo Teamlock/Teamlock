@@ -100,6 +100,7 @@
                             v-model="form.iban.value"
                             :type="show_iban ? 'text' : 'password'"
                             :label="$t('label.iban')"
+                            hide-details
                         >
                             <span slot="append">
                                 <v-tooltip bottom>
@@ -123,6 +124,7 @@
                             v-model="form.bic.value"
                             :type="show_bic ? 'text' : 'password'"
                             :label="$t('label.bic')"
+                            hide-details
                         >
                             <span slot="append">
                                 <v-tooltip bottom>
@@ -146,6 +148,7 @@
                             v-model="form.card_number.value"
                             :type="show_card_number ? 'text' : 'password'"
                             :label="$t('label.card_number')"
+                            hide-details
                         >
                             <span slot="append">
                                 <v-tooltip bottom>
@@ -169,6 +172,7 @@
                             v-model="form.expiration_date.value"
                             :type="show_expiration_date ? 'text' : 'password'"
                             :label="$t('label.expiration_date')"
+                            hide-details
                         >
                             <span slot="append">
                                 <v-tooltip bottom>
@@ -192,6 +196,7 @@
                             v-model="form.cvc.value"
                             :type="show_cvc ? 'text' : 'password'"
                             :label="$t('label.cvc')"
+                            hide-details
                         >
                             <span slot="append">
                                 <v-tooltip bottom>
