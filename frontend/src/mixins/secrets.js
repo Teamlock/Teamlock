@@ -34,9 +34,10 @@ const secretMixin = {
           component: "SecretCell"
         },
         {
-          text: vm.$t('label.url'),
+          text: vm.$t('label.urls'),
           align: 'start',
-          value: 'url',
+          value: 'urls',
+          width: 300,
           component: "UrlCell"
         },
         {

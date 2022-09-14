@@ -1,31 +1,31 @@
 <template>
-  <span v-if="item[field].value !== ''">
-    <v-btn
-      :href="item[field].value" 
-      color="primary"
-      target="_blank"
-      x-small
-      right
-      icon
-      link 
+  <v-chip-group v-if="item[field].value.length > 0" column>
+    <v-chip
+      v-for="(val, index) of item[field].value"
+      @click="openUrl(val)"
+      :key="index"
+      class="mb-0"
+      outlined
+      label
+      small
     >
-      <v-icon>mdi-open-in-new</v-icon>
-    </v-btn>
-    <v-tooltip bottom v-model="tooltip_copy">
-      <template v-slot:activator="{ on, attrs }">
-        <span
-          class="cursor"
-          v-on:click.stop
-          v-on:dblclick.stop="copyData(item[field].value)"
-          v-bind="attrs"
-          v-on="on"
-        >
-          {{ item[field].value }}
-        </span>
-      </template>
-      <span v-html="tooltipHTML" />
-    </v-tooltip>
-  </span>
+      <v-icon small left>mdi-open-in-new</v-icon>
+      <v-tooltip bottom v-model="tooltip_copy[index]">
+        <template v-slot:activator="{ on, attrs }">
+          <span
+            class="cursor"
+            v-on:click.stop
+            v-on:dblclick.stop="copyData(val, index)"
+            v-bind="attrs"
+            v-on="on"
+          >
+            {{ val }}
+          </span>
+        </template>
+        <span v-html="tooltipHTML" />
+      </v-tooltip>
+    </v-chip>
+  </v-chip-group>
 </template>
 
 <script>
@@ -54,18 +54,27 @@ export default defineComponent({
   },
 
   data: (vm) => ({
-    tooltip_copy: false,
+    tooltip_copy: [],
     tooltipHTML: vm.$t('tooltip.dblclick_copy')
   }),
 
   methods: {
-    copySuccess() {
+    openUrl(val) {
+      const regex = new RegExp("[a-z]*://.*")
+      if (!regex.test(val)) {
+        val = `http://${val}`
+      }
+
+      window.open(val, "_blank")
+    },
+
+    copySuccess(index) {
       setTimeout(() => {
         this.tooltipHTML = this.$t("help.copied")
-        this.tooltip_copy = true
+        this.tooltip_copy[index] = true
 
         setTimeout(() => {
-          this.tooltip_copy = false
+          this.tooltip_copy[index] = false
 
           setTimeout(() => {
             this.tooltipHTML = this.$t("tooltip.dblclick_copy")
@@ -74,16 +83,16 @@ export default defineComponent({
       }, 50);
     },
 
-    copyData(value_to_copy) {
+    copyData(value_to_copy, index) {
       if (!this.electron) {
         this.$copyText(value_to_copy)
-        this.copySuccess()
+        this.copySuccess(index)
         
       } else {
         window.ipc.send("COPY", value_to_copy)
         window.ipc.on("COPY", () => {
           this.tooltipHTML = this.$t("help.copied")
-          this.copySuccess()
+          this.copySuccess(index)
         })
       }
     },

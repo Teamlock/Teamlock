@@ -32,6 +32,11 @@ class SecretValue(mongoengine.EmbeddedDocument):
     value = mongoengine.StringField()
 
 
+class SecretListValue(mongoengine.EmbeddedDocument):
+    encrypted = mongoengine.BooleanField(default=True)
+    value = mongoengine.ListField(mongoengine.StringField())
+
+
 class Secret(mongoengine.Document):
     name = mongoengine.EmbeddedDocumentField(SecretValue)
     informations = mongoengine.EmbeddedDocumentField(SecretValue)
@@ -50,7 +55,7 @@ class Secret(mongoengine.Document):
 
 
 class Login(Secret):
-    url = mongoengine.EmbeddedDocumentField(SecretValue)
+    urls = mongoengine.EmbeddedDocumentField(SecretListValue)
     ip = mongoengine.EmbeddedDocumentField(SecretValue)
     login = mongoengine.EmbeddedDocumentField(SecretValue)
     password = mongoengine.EmbeddedDocumentField(SecretValue)

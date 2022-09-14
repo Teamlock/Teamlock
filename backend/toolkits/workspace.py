@@ -13,10 +13,10 @@ You should have received a copy of the GNU General Public License
 along with Teamlock.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from apps.secret.models import Login, SecretValue
+from apps.secret.models import Login, SecretListValue, SecretValue
 from apps.config.schema import PasswordPolicySchema
 from apps.workspace.schema import EditShareSchema
-from apps.secret.schema import SecretValueSchema
+from apps.secret.schema import SecretListValueSchema, SecretValueSchema
 from apps.config.models import PasswordPolicy
 from apps.workspace.models import Workspace
 from apps.folder.schema import FolderSchema
@@ -46,12 +46,6 @@ import os
 logging.config.dictConfig(settings.LOGGING)
 logger = logging.getLogger("api")
 logger_security = logging.getLogger("security")
-
-FULL_KEY_ATTRS: tuple = (
-    "name", "url", "ip", "login",
-    "informations", "password"
-)
-KEY_ATTRS: tuple = ("name", "url", "ip", "login", "informations")
 
 
 class WorkspaceUtils:
@@ -256,17 +250,37 @@ class WorkspaceUtils:
 
         for property in secret_def.schema()["properties"].keys():
             if property not in ignored_fields:
-                value: str = getattr(secret_def, property).value
-                if getattr(secret_def, property).encrypted:
-                    setattr(encrypted_secret, property, SecretValue(
-                        encrypted=True,
-                        value=CryptoUtils.sym_encrypt(value, sym_key)
-                    ))
-                else:
-                    setattr(encrypted_secret, property, SecretValue(
-                        encrypted=False,
-                        value=value
-                    ))
+
+                property_class = getattr(secret_def, property)
+                
+                if isinstance(property_class, SecretValueSchema):
+                    value: str = property_class.value
+                    if property_class.encrypted:
+                        setattr(encrypted_secret, property, SecretValue(
+                            encrypted=True,
+                            value=CryptoUtils.sym_encrypt(value, sym_key)
+                        ))
+                    else:
+                        setattr(encrypted_secret, property, SecretValue(
+                            encrypted=False,
+                            value=value
+                        ))
+                elif isinstance(property_class, SecretListValueSchema):
+                    value: list[str] = property_class.value
+                    if property_class.encrypted:
+                        tmp = []
+                        for val in value:
+                            tmp.append(CryptoUtils.sym_encrypt(val, sym_key))
+
+                        setattr(encrypted_secret, property, SecretListValue(
+                            encrypted=True,
+                            value=tmp
+                        ))
+                    else:
+                        setattr(encrypted_secret, property, SecretListValue(
+                            encrypted=False,
+                            value=value
+                        ))
 
         return encrypted_secret
 
@@ -295,13 +309,23 @@ class WorkspaceUtils:
 
         for property in secret_def.schema()["properties"].keys():
             if property not in ignored_fields:
-                value: str = getattr(secret_def, property).value
-                if getattr(secret_def, property).encrypted:
-                    tmp = SecretValueSchema(
-                        encrypted=True,
-                        value=CryptoUtils.sym_decrypt(value, sym_key)
-                    )
-                    setattr(decrypted_secret, property, tmp)
+                
+                property_class = getattr(secret_def, property)
+                if isinstance(property_class, SecretValueSchema):                
+                    value: str = property_class.value
+                    if property_class.encrypted:
+                        tmp = SecretValueSchema(
+                            encrypted=True,
+                            value=CryptoUtils.sym_decrypt(value, sym_key)
+                        )
+                        setattr(decrypted_secret, property, tmp)
+                elif isinstance(property_class, SecretListValueSchema):
+                    value: list[str] = property_class.value
+                    if property_class.encrypted:
+                        tmp = []
+                        for val in value:
+                            tmp.append(CryptoUtils.sym_decrypt(val, sym_key))
+                        setattr(decrypted_secret, property, tmp)                        
 
         if get_protected_fields:
             for field in secret_def.Base().protected_fields:
@@ -527,11 +551,12 @@ class WorkspaceUtils:
                             key_schema,
                             get_password=True
                         )
+
                         kp.add_entry(
                             group, title=decrypted_secret.name.value,
                             username=decrypted_secret.login.value,
                             password=decrypted_secret.password.value,
-                            url=decrypted_secret.url.value,
+                            url=decrypted_secret.urls.value[0],
                             notes=decrypted_secret.informations.value
                         )
 
@@ -567,7 +592,7 @@ class WorkspaceUtils:
 
         in_folder_query: Q =Q(folder__in=folders)
         name_query: Q = Q(name__value__icontains=search)
-        url_query: Q = Q(url__value__icontains=search)
+        urls_query: Q = Q(urls__value__icontains=search)
 
         model_ = const.MAPPING_SECRET[category]
 
@@ -578,7 +603,7 @@ class WorkspaceUtils:
         )
 
         keys: list = []
-        for tmp in model_.objects(in_folder_query & (name_query | url_query)):
+        for tmp in model_.objects(in_folder_query & (name_query | urls_query)):
             schema = tmp.schema()
             tmp = WorkspaceUtils.decrypt_secret(decrypted_sym_key, schema)
             tmp.folder_name = Folder.objects(pk=tmp.folder).get().name

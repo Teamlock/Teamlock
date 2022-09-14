@@ -21,6 +21,7 @@ __maintainer__ = "Teamlock Project"
 __email__ = "contact@teamlock.io"
 __doc__ = ''
 
+from copyreg import constructor
 from toolkits.mongo import connect_to_database
 from apps.secret.models import Login
 from datetime import datetime
@@ -59,11 +60,34 @@ def migrate_1_12(db):
     # Apply cls on Secret
     db.secret.update({}, {'$set': {'_cls': 'Secret.Login'}}, multi=True)
 
+
+def migrate_1_13(db):
+    secrets = db.secret.find({'_cls': 'Secret.Login'})
+    for secret in secrets:
+        url = secret["url"]
+        value = []
+        if url["value"]:
+            value.append(url['value'])
+
+        db.secret.update({
+            "_id": secret["_id"]
+        }, {
+            "$set": {
+                "urls": {
+                    "encrypted": url["encrypted"],
+                    "value": value
+                }
+            }
+        })
+    
+    db.secret.update({'_cls': 'Secret.Login'}, {"$unset": {'url': 1}}, multi=True)
+
 class Migrations:
     MIGRATIONS_DICT: dict = {
         1.0: migrate_1_0,
         1.1: migrate_1_1,
-        1.12: migrate_1_12
+        1.12: migrate_1_12,
+        1.13: migrate_1_13
     }
 
     def __init__(self):

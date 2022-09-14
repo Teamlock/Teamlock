@@ -70,28 +70,64 @@
                             </v-tooltip>
                         </v-text-field>
                     </v-row>
-                    <v-row dense class="relative-row">
+                    <v-row
+                        v-for="(value, index) of form.urls.value"
+                        :key="index"
+                        dense
+                        class="relative-row"
+                    >
                         <v-text-field
                             color="#DAAB39"
-                            v-model="form.url.value"
+                            v-model="form.urls.value[index]"
                             class="input-field pl-1 pr-1 mb-2"
                             :label="$t('label.url')"
                             hide-details
                             required
                         >
-                            <v-tooltip bottom slot="append">
-                                <template v-slot:activator="{ on, attrs }">
-                                    <v-icon
-                                        v-on="on"
-                                        v-bind="attrs"
-                                        :color="form.url.encrypted ? '#daab39' : ''"
-                                        v-html="form.url.encrypted ? 'mdi-lock' : 'mdi-lock-open'"
-                                        @click="form.url.encrypted = !form.url.encrypted"
-                                        tabindex="-1"
-                                    />
-                                </template>
-                                <span v-html="$t('label.encrypt')" />
-                            </v-tooltip>
+                            <span slot="prepend">
+                                <v-tooltip v-if="index === form.urls.value.length -1" bottom>
+                                    <template v-slot:activator="{ on, attrs }">
+                                        <v-icon
+                                            v-on="on"
+                                            v-bind="attrs"
+                                            @click="form.urls.value.push('')"
+                                            tabindex="-1"
+                                        >
+                                            mdi-plus
+                                        </v-icon>
+                                    </template>
+                                    <span v-html="$t('label.add')" />
+                                </v-tooltip>
+                            </span>
+                            <span slot="append">
+                                <v-tooltip v-if="index > 0" bottom>
+                                    <template v-slot:activator="{ on, attrs }">
+                                        <v-icon
+                                            v-on="on"
+                                            v-bind="attrs"
+                                            @click="form.urls.value.splice(index, 1)"
+                                            tabindex="-1"
+                                            style="float: left"
+                                        >
+                                            mdi-close
+                                        </v-icon>
+                                    </template>
+                                    <span v-html="$t('label.remove')" />
+                                </v-tooltip>
+                                <v-tooltip v-if="index === 0" bottom>
+                                    <template v-slot:activator="{ on, attrs }">
+                                        <v-icon
+                                            v-on="on"
+                                            v-bind="attrs"
+                                            :color="form.urls.encrypted ? '#daab39' : ''"
+                                            v-html="form.urls.encrypted ? 'mdi-lock' : 'mdi-lock-open'"
+                                            @click="form.urls.encrypted = !form.urls.encrypted"
+                                            tabindex="-1"
+                                        />
+                                    </template>
+                                    <span v-html="$t('label.encrypt')" />
+                                </v-tooltip>
+                            </span>
                         </v-text-field>
                     </v-row>
                     <v-row dense class="relative-row">
@@ -199,11 +235,13 @@
 
 <script>
 import { defineComponent } from '@vue/composition-api'
-import EventBus from "@/event"
+import VueTagsInput from '@johmun/vue-tags-input';
 import http from "@/utils/http"
+import EventBus from "@/event"
 
 export default defineComponent({
     name: "AddLogin",
+    components: { VueTagsInput },
     data: () => ({
         open: false ,
         secret_id: null,
@@ -215,7 +253,7 @@ export default defineComponent({
         form: {
             secret_type: "login",
             name: {encrypted: false, value: ""},
-            url: {encrypted: false, value: ""},
+            urls: {encrypted: false, value: [""]},
             login: {encrypted: false, value: ""},
             password: {encrypted: true, value: ""},
             ip: {encrypted: false, value: ""},
@@ -235,7 +273,7 @@ export default defineComponent({
                 this.form = {
                     secret_type: "login",
                     name: {encrypted: false, value: ""},
-                    url: {encrypted: false, value: ""},
+                    urls: {encrypted: false, value: [""]},
                     login: {encrypted: false, value: ""},
                     password: {encrypted: true, value: ""},
                     ip: {encrypted: false, value: ""},
@@ -270,12 +308,16 @@ export default defineComponent({
                 const secret = response.data
                 this.folder_id = secret.folder
 
+                if (secret.urls.value.length === 0) {
+                    secret.urls.value = [""]
+                }
+
                 this.form = {
                     secret_type: 'login',
                     name: secret.name,
                     login: secret.login,
                     password: secret.password,
-                    url: secret.url,
+                    urls: secret.urls,
                     ip: secret.ip,
                     informations: secret.informations
                 }
@@ -288,7 +330,7 @@ export default defineComponent({
             this.form = {
                 secret_type: 'login',
                 name: "",
-                url: "",
+                urls: {value: [""]},
                 login: "",
                 password: "",
                 ip: "",

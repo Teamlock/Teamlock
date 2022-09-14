@@ -1,5 +1,7 @@
 {
     "label": {
+        "urls": "URLs",
+        "remove": "Remove",
         "recovery_configuration": "Recovery External Storage",
         "send_recovery_enabled": "Send user's recovery key to an external storage",
         "product_type": "Storage Type",

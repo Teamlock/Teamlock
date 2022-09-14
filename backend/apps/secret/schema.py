@@ -33,6 +33,11 @@ class SecretValueSchema(BaseModel):
     value: str = ""
 
 
+class SecretListValueSchema(BaseModel):
+    encrypted: bool = True
+    value: list[str] = []
+
+
 class BaseSecretSchema(BaseModel):
     name: SecretValueSchema = SecretValueSchema()
     informations: SecretValueSchema = SecretValueSchema()
@@ -55,7 +60,7 @@ class GlobalSecretSchema(BaseSecretSchema):
 
 
 class BaseLoginSchema(BaseModel):
-    url: SecretValueSchema = SecretValueSchema()
+    urls: SecretListValueSchema = SecretListValueSchema()
     ip: SecretValueSchema = SecretValueSchema()
     login: SecretValueSchema = SecretValueSchema()
     password: SecretValueSchema = SecretValueSchema()
