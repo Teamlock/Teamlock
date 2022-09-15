@@ -305,7 +305,18 @@ class WorkspaceUtils:
 
         decrypted_secret = secret_def.copy()
         ignored_fields = [secret_def.Base().protected_fields]
-        ignored_fields.extend(["_id", "folder", "created_at", "updated_at", "secret_type", "folder_name", "workspace_name"])
+        ignored_fields.extend([
+            "_id",
+            "folder",
+            "created_at",
+            "updated_at",
+            "created_by",
+            "updated_by",
+            "secret_type",
+            "folder_name",
+            "workspace_name",
+            "password_last_change"
+        ])
 
         for property in secret_def.schema()["properties"].keys():
             if property not in ignored_fields:

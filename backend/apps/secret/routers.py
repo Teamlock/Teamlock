@@ -35,7 +35,7 @@ from toolkits.crypto import CryptoUtils
 from fastapi.responses import Response
 from apps.folder.models import Folder
 from .models import Login, Secret
-from datetime import datetime
+from datetime import date, datetime
 from settings import settings
 from typing import Union
 from . import schema
@@ -280,10 +280,26 @@ async def update_secret(
         if policy:
             check_password_complexity(policy, schema.secret)
 
+        decrypted_sym_key = CryptoUtils.rsa_decrypt(
+            sym_key,
+            user.in_db.private_key,
+            CryptoUtils.decrypt_password(user)
+        )
+        decrypted_secret = WorkspaceUtils.decrypt_secret(
+            decrypted_sym_key,
+            secret.schema(),
+            get_protected_fields=True
+        )
+
         encrypted_secret: Secret = WorkspaceUtils.encrypt_secret(user, sym_key, schema.secret)
+
+        encrypted_secret.check_changes(decrypted_secret, schema.secret)
 
         encrypted_secret.folder = secret.folder
         encrypted_secret.pk = secret.pk
+
+        if not encrypted_secret.created_by:
+            encrypted_secret.created_by = user.in_db
 
         encrypted_secret.updated_by = user.in_db
         encrypted_secret.save()

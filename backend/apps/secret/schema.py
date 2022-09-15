@@ -48,6 +48,9 @@ class GlobalSecretSchema(BaseSecretSchema):
     id: PyObjectId = Field(default_factory=PyObjectId, alias="_id")
     created_at: datetime
     updated_at: datetime
+    created_by: str|None
+    updated_by: str|None
+    password_last_change: datetime
     folder_name: str = ""
     workspace_name: str = ""
 

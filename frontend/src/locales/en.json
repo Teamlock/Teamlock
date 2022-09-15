@@ -1,5 +1,7 @@
 {
     "label": {
+        "updated_by": "Updated by",
+        "created_by": "Created by",
         "no_notifications": "No notifications",
         "urls": "URLs",
         "remove": "Remove",
@@ -66,7 +68,7 @@
         "mail_template": "Mail template",
         "registration": "Registration",
         "import_workspace": "Import",
-        "last_change_password": "Last password change",
+        "last_change_password": "Last change password",
         "workspace_owner": "You're the owner of this workspace",
         "allow_self_registration": "Allow self registration",
         "allowed_email_addresses": "Allowed Email Addresses",

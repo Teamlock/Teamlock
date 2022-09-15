@@ -11,7 +11,16 @@
           <v-toolbar-title>{{ $t('label.last_update')}}: <strong>{{ renderDate(item.updated_at) }}</strong></v-toolbar-title>
         </v-app-bar>
         <v-card-text>
-          <pre>{{ item.informations.value }}</pre>
+            <p v-if="item.created_by" class="mb-0">
+                <strong>{{ $t('label.created_by') }}:</strong> {{ item.created_by }}
+            </p>
+            <p v-if="item.updated_by" class="mb-0">
+                <strong>{{ $t('label.updated_by') }}:</strong> {{ item.updated_by }}
+            </p>
+            <p v-if="item.password_last_change" class="mb-0">
+                <strong>{{ $t('label.last_change_password') }}:</strong> {{ renderDate(item.password_last_change) }}
+            </p>
+            <pre>{{ item.informations.value }}</pre>
         </v-card-text>
       </v-card>
     </v-menu>
