@@ -1,5 +1,6 @@
 {
     "label": {
+        "no_notifications": "No notifications",
         "urls": "URLs",
         "remove": "Remove",
         "recovery_configuration": "Recovery External Storage",
@@ -176,6 +177,7 @@
         "copy_id": "Copy ID"
     },
     "title": {
+        "notifications": "Notifications",
         "test_configuration": "Test connection",
         "send_sms": "Send SMS",
         "key": "Key",
@@ -208,6 +210,7 @@
         "phone": "Phone"
     },
     "button": {
+        "notification_read": "Read",
         "download_certificates": "Download Certificates",
         "test": "Test",
         "recover": "Recover account",
@@ -361,7 +364,8 @@
         "edit_key": "Edit user",
         "empty_trash": "Empty trash",
         "context_menu_workspace": "Right click for more options",
-        "copied": "Copied"
+        "copied": "Copied",
+        "show_read_notifications": "Show read notifications"
     },
     "folder": {
         "edit": "Edit folder",
@@ -375,5 +379,11 @@
             "text": "Hello,<br/><br/>You have been added into a Teamlock application.<br/>Please click on the following link to configure your account:",
             "link_text": "Configure your account"
         }
+    },
+    "notifications": {
+        "details": {
+            "User recovery attempt": "User attempt to use the recovery, but his not allowed to"
+        },
+        "User recovery attempt": "User recovery attempt"
     }
 }

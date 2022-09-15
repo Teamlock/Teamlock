@@ -235,13 +235,11 @@
 
 <script>
 import { defineComponent } from '@vue/composition-api'
-import VueTagsInput from '@johmun/vue-tags-input';
 import http from "@/utils/http"
 import EventBus from "@/event"
 
 export default defineComponent({
     name: "AddLogin",
-    components: { VueTagsInput },
     data: () => ({
         open: false ,
         secret_id: null,

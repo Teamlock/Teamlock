@@ -23,6 +23,7 @@
     "electron-builder": "^23.0.3",
     "electron-settings": "^4.0.2",
     "electron-squirrel-startup": "^1.0.0",
+    "humanize-duration": "^3.27.3",
     "moment": "^2.29.4",
     "portal-vue": "^2.1.7",
     "sl-vue-tree": "^1.8.5",

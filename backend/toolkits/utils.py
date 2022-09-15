@@ -106,11 +106,7 @@ def create_user_toolkits(user_def: EditUserSchema) -> str:
         raise
 
 
-def create_user_session(user, request) -> None | dict:
-    # Return true if a security alert email need to be sent
-    send_security_alert_email: bool = False
-
-    # Create user session
+def get_client_information(request):
     os = request.headers.get("sec-ch-ua-platform", "").replace('"', '')
     user_agent = request.headers.get("user-agent", "")
 
@@ -120,6 +116,17 @@ def create_user_session(user, request) -> None | dict:
         geo = geocoder.ip(client_ip)
     except Exception:
         geo = None
+
+    return os, user_agent, client_ip, geo
+
+
+
+def create_user_session(user, request) -> None | dict:
+    # Return true if a security alert email need to be sent
+    send_security_alert_email: bool = False
+
+    # Create user session
+    os, user_agent, client_ip, geo = get_client_information(request)
 
     UserSession.objects.create(
         user=user,

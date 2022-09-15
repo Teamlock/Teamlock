@@ -79,7 +79,7 @@
                     text
                     v-bind="attrs"
                     v-on="on"
-                    class="mr-2 ml-2"
+                    class="ml-2"
                 >
                     <v-img :src="flags[$vuetify.lang.current]" width="20" />
                 </v-btn>
@@ -96,6 +96,8 @@
             </v-list>
         </v-menu>
 
+        <notification v-if="isPro" />
+
         <v-menu
             v-if="user"
             left
@@ -110,7 +112,8 @@
                     v-on="on"
                     class="mr-0 ml-2"
                 >
-                    <v-img :src="image" max-width="45" ></v-img>
+                    <!-- <v-img :src="image" max-width="45" ></v-img> -->
+                    <v-icon color="primary" large>mdi-account-box</v-icon>
                 </v-btn>
             </template>
 
@@ -136,9 +139,10 @@
 import { defineComponent } from '@vue/composition-api'
 import { mapGetters } from 'vuex'
 import EventBus from "@/event"
+import Notification from './Notification.vue';
 
 export default defineComponent({
-    components: {},
+    components: {Notification},
 
     props: {
         searchBar: {
@@ -150,6 +154,7 @@ export default defineComponent({
     computed: {
         ...mapGetters({
             user: 'getUser',
+            isPro: 'getPro'
         }),
         currentRouteName() {
             return this.$route.name;

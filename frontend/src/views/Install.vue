@@ -338,7 +338,7 @@ export default defineComponent({
           case 2: return this.$t('label.password_configuration')
           default: return this.$t('label.admin_configuration')
         }
-      },
+      }
     },
 
     beforeMount() {

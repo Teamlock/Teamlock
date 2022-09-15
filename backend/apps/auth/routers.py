@@ -25,8 +25,7 @@ from .tools import (authenticate_user, create_access_token, get_current_user,
     create_temp_otp_key, invalid_authentication)
 from fastapi import (APIRouter, Depends, status, Header, Request, 
     UploadFile, File, Form, Header, BackgroundTasks)
-from toolkits.utils import (check_password_complexity, create_user_toolkits, 
-    fetch_config, create_user_session)
+from toolkits.utils import (create_user_toolkits, fetch_config, create_user_session)
 from apps.user.schema import EditUserSchema, UserSchema, UserProfileSchema
 from .schema import LoggedUser, Login, RegistrationSchema
 from fastapi.security import OAuth2PasswordRequestForm
@@ -214,6 +213,7 @@ async def register_user(registration_schema: RegistrationSchema) -> bool:
     status_code=status.HTTP_200_OK
 )
 async def recover_user(
+    request: Request,
     email: str = Form(...),
     new_password: str = Form(...),
     confirm_password: str = Form(...),
@@ -244,6 +244,21 @@ async def recover_user(
             log_message: str = f"[RECOVER] User {email} attempts to recover, but recovery mode not enabled"
             logger.info(log_message)
             logger_security.info(log_message)
+
+            try:
+                from teamlock_pro.toolkits.proNotif import create_notification
+
+                admins = User.objects(is_admin=True)
+                create_notification(
+                    request=request,
+                    secret_id=None,
+                    message="User recovery attempt",
+                    user=user,
+                    users=admins
+                )
+
+            except ImportError:
+                pass
 
             create_history(
                 user=email,

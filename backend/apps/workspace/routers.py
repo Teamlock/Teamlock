@@ -35,7 +35,6 @@ from apps.folder.schema import FolderSchema
 from apps.auth.tools import get_current_user
 from mongoengine.queryset.visitor import Q
 from toolkits.folder import FolderUtils
-from toolkits.crypto import CryptoUtils
 from apps.auth.schema import LoggedUser
 from fastapi.responses import Response
 from .models import Workspace, Share

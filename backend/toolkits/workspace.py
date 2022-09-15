@@ -16,7 +16,7 @@ along with Teamlock.  If not, see <http://www.gnu.org/licenses/>.
 from apps.secret.models import Login, SecretListValue, SecretValue
 from apps.config.schema import PasswordPolicySchema
 from apps.workspace.schema import EditShareSchema
-from apps.secret.schema import SecretListValueSchema, SecretValueSchema
+from apps.secret.schema import LoginSchema, SecretListValueSchema, SecretValueSchema, ServerSchema
 from apps.config.models import PasswordPolicy
 from apps.workspace.models import Workspace
 from apps.folder.schema import FolderSchema
