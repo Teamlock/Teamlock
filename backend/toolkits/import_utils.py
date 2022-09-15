@@ -10,6 +10,7 @@ from settings import settings
 import logging.config
 import logging
 import json
+import csv
 
 logging.config.dictConfig(settings.LOGGING)
 logger = logging.getLogger("api")
@@ -73,7 +74,7 @@ class ImportUtils(WorkspaceUtils):
         def save_folders(user, folders, parent=None):
             for tmp_folder in folders:
                 try:
-                    folder = Folder.objects(name=tmp_folder['name'], parent=parent)[0]
+                    folder = Folder.objects(name=group_name, parent=parent, workspace=workspace)[0]
                 except IndexError:
                     folder = Folder.objects.create(
                         workspace=workspace,
@@ -142,7 +143,7 @@ class ImportUtils(WorkspaceUtils):
                 group_name = subgroup.find("Name").text
                 
                 try:
-                    folder = Folder.objects(name=group_name, parent=parent)[0]
+                    folder = Folder.objects(name=group_name, parent=parent, workspace=workspace)[0]
                 except IndexError:
                     folder = Folder.objects.create(
                         workspace=workspace,
@@ -199,6 +200,60 @@ class ImportUtils(WorkspaceUtils):
                 f"[IMPORT][{str(workspace.pk)}][{workspace.name}] Import finished"
             )
 
+        except Exception as error:
+            logger.critical(error, exc_info=1)
+            workspace.import_in_progress = False
+            workspace.save()
+    
+    @classmethod
+    def import_csv_googlechrome(
+        cls,
+        user: User,
+        workspace: Workspace,
+        sym_key: str,
+        import_schema: ImportXMLFileSchema,
+        file: str
+    ):
+        try:
+            # Create Google Folder
+            try:
+                folder = Folder.objects(name="Google", parent=None, workspace=workspace)[0]
+            except IndexError:
+                folder = Folder.objects.create(
+                    name="Google",
+                    parent=None,
+                    workspace=workspace,
+                    icon="mdi-google",
+                    created_by=user.in_db.pk
+                )
+
+            secrets: list = []
+            file = file.splitlines()
+            csv_reader = csv.reader(file[1:], delimiter=",")
+            for row in csv_reader:
+                name, url, username, password = row
+
+                secrets.append(cls.create_secret_import(
+                    import_schema,
+                    name,
+                    [url],
+                    username,
+                    password,
+                    "",
+                    sym_key,
+                    folder,
+                    user
+                ))
+            
+            if len(secrets) > 0:
+                Login.objects.insert(secrets)
+            
+            workspace.import_in_progress = False
+            workspace.save()
+
+            logger.info(
+                f"[IMPORT][{str(workspace.pk)}] Import finished"
+            )
         except Exception as error:
             logger.critical(error, exc_info=1)
             workspace.import_in_progress = False

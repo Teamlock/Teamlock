@@ -358,17 +358,27 @@ async def import_keepass_file(
     func_mapping: dict = {
         "keepass": ImportUtils.import_xml_keepass,
         "teamlock_v1": ImportUtils.import_teamlock_backup,
-        "bitwarden": ImportUtils.import_json_bitwarden
+        "bitwarden": ImportUtils.import_json_bitwarden,
+        "googlechrome": ImportUtils.import_csv_googlechrome
     }
 
-    background_task.add_task(
-        func_mapping[import_type],
-        user,
-        workspace,
-        sym_key,
-        import_schema,
-        content_file.decode("utf-8")
-    )
+    if not settings.DEV_MODE:
+        background_task.add_task(
+            func_mapping[import_type],
+            user,
+            workspace,
+            sym_key,
+            import_schema,
+            content_file.decode("utf-8")
+        )
+    else:
+        func_mapping[import_type](
+            user,
+            workspace,
+            sym_key,
+            import_schema,
+            content_file.decode("utf-8")
+        )
 
     return Response(status_code=status.HTTP_200_OK)
 

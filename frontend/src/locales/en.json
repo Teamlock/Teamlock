@@ -324,6 +324,7 @@
         "too_many_auth_failures": "Too many authentication failures. Account locked up for 10 minutes"
     },
     "help": {
+        "googlechrome_import": "All passwords will be put in a Google folder",
         "send_recovery_enabled": "You can define an external storage to store User's recovery key. If an user lost his recovery key, you'll be able to restore his account.",
         "enable_twilio": "Enable Twilio. Will be used to send secrets by SMS",
         "twilio_recipient": "Phone Number with international country code (ex: +33 for France)",
