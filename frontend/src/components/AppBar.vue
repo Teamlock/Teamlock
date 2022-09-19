@@ -13,7 +13,7 @@
             {{ $t('label.users') }}
         </span>
         <span v-else-if="currentRouteName === 'Profile'" class="text_label_app_bar">
-            <v-icon>mdi-account-circle</v-icon>&nbsp;
+            <v-icon>mdi-account-box</v-icon>&nbsp;
             {{ $t('label.profile') }}
         </span>
         <span v-else-if="currentRouteName === 'Sessions'" class="text_label_app_bar">

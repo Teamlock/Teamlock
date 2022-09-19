@@ -124,9 +124,9 @@ export default defineComponent({
         otpValid: true,
         rememberOTP: false,
         form: {
-            teamlock_url: "",
-            username: "",
-            password: "",
+            teamlock_url: "http://127.0.0.1:8000",
+            username: "oderegis@gmail.com",
+            password: "admin",
             otp: ""
         },
         error: "",
@@ -149,6 +149,7 @@ export default defineComponent({
         const email = localStorage.getItem("teamlock_email")
 
         if (this.electron) {
+            window.ipc.send("TEST")
             window.ipc.send("GET_SETTINGS")
             window.ipc.on("GET_SETTINGS", (settings) => {
                 if (settings) {

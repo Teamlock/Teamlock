@@ -1,8 +1,8 @@
 'use strict'
 
+import installExtension, { VUEJS_DEVTOOLS } from 'electron-devtools-installer'
 import { app, protocol, BrowserWindow, ipcMain } from 'electron'
 import { createProtocol } from 'vue-cli-plugin-electron-builder/lib'
-import installExtension, { VUEJS_DEVTOOLS } from 'electron-devtools-installer'
 import touchBar from './electron/touchBar.js'
 import ipc from "./electron/ipc.js"
 import path from "path"
@@ -19,13 +19,10 @@ let win;
 
 async function createWindow() {
   // Create the browser window.
-  const { screen } = require('electron')
-  const primaryDisplay = screen.getPrimaryDisplay()
-  const { width, height } = primaryDisplay.workAreaSize
 
   win = new BrowserWindow({
-    width: width - 1500,
-    height: height - 800,
+    width: 1400,
+    height: 700,
     title: "TeamLock",
     icon: __dirname + "/assets/logo-final_without_name.ico",
     frame: true,

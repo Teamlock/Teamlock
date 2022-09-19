@@ -1,5 +1,8 @@
 {
     "label": {
+        "general": "Général",
+        "updated_by": "Mise à jour par",
+        "created_by": "Créé par",
         "recovery_configuration": "Storage Externe pour la récupération",
         "send_recovery_enabled": "Envoyer les clés de récupération des utilisateurs sur un stockage externe",
         "product_type": "Stockage",
@@ -51,6 +54,7 @@
         "history": "Historique",
         "expire": "Expire",
         "expire_at": "Expire le",
+        "no_notifications": "Aucune notification",
         "created_at": "Créé le",
         "user_agent": "User agent",
         "download": "Télécharger",
@@ -173,9 +177,12 @@
         "copy_id": "Copier l'ID"
     },
     "title": {
+        "notifications": "Notifications",
         "test_configuration": "Test connexion",
         "send_sms": "Envoyer un SMS",
         "key": "Clé",
+        "recovery": "Récupération",
+        "two_factor": "Double facteur",
         "user": "Utilisateur",
         "add_login": "Créer un identifiant",
         "edit_login": "Editer un identifiant",
@@ -365,11 +372,10 @@
         "copy": "Copier vers un autre espace de travail",
         "confirm_copy": "Confirmer la copie"
     },
-    "$vuetify": {
-        "dataIterator": {
-            "rowsPerPageText": "Element per sida:",
-            "pageText": "{0}-{1} av {2}"
+    "notifications": {
+        "details": {
+            "User recovery attempt": "L'utilisateur a utilisé la fonction de récupération, mais n'est pas autorisé"
         },
-        "noDataText": "BONSOIR"
+        "User recovery attempt": "Tentative de récupération de compte utilisateur"
     }
 }

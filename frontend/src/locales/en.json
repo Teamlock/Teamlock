@@ -1,5 +1,6 @@
 {
     "label": {
+        "general": "General",
         "updated_by": "Updated by",
         "created_by": "Created by",
         "no_notifications": "No notifications",
@@ -184,6 +185,8 @@
         "send_sms": "Send SMS",
         "key": "Key",
         "user": "User",
+        "recovery": "Recovery",
+        "two_factor": "Two factor",
         "add_login": "Create a login",
         "add_server": "Create a server",
         "add_phone": "Create a phone",
