@@ -185,6 +185,11 @@ export default defineComponent({
         }
     }),
 
+    beforeMount() {
+        const userAgent = navigator.userAgent.toLowerCase();
+        this.electron = userAgent.indexOf(' electron/') > -1
+    },
+
     mounted() {
         window.addEventListener("keydown", (e) => {
             if (e.ctrlKey && e.key === ":") {
@@ -218,7 +223,12 @@ export default defineComponent({
         logout() {
             EventBus.$emit("stopKeepAlive")
             sessionStorage.clear()
-            this.$router.push("/login")
+
+            if (!this.electron) {
+                this.$router.push("/login")
+            } else {
+                window.ipc.send("LOGOUT")
+            }
         },
 
         setTheme() {

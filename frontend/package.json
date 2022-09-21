@@ -20,7 +20,7 @@
     "@vue/composition-api": "^1.6.2",
     "axios": "^0.27.2",
     "core-js": "^3.22.7",
-    "electron-builder": "^23.0.3",
+    "electron-builder": "^23.3.3",
     "electron-settings": "^4.0.2",
     "electron-squirrel-startup": "^1.0.0",
     "humanize-duration": "^3.27.3",
@@ -49,6 +49,7 @@
     "@vue/cli-plugin-router": "~4.5.0",
     "@vue/cli-service": "~4.5.0",
     "babel-eslint": "^10.1.0",
+    "dmg-license": "^1.0.11",
     "electron": "^15.5.5",
     "electron-devtools-installer": "^3.2.0",
     "eslint": "^6.7.2",
@@ -81,6 +82,5 @@
     "last 2 versions",
     "not dead"
   ],
-  "productName": "TeamLock",
-  "config": {}
+  "productName": "TeamLock"
 }

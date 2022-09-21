@@ -44,7 +44,7 @@
                 <v-toolbar-title>{{ $t('title.notifications') }}</v-toolbar-title>
             </v-toolbar>
 
-            <v-list v-if="items.length === 0">
+            <v-list v-if="notifications.length === 0">
                 <v-list-item>
                     <v-list-item-content>
                         <v-list-item-title v-text="$t('label.no_notifications')" />
@@ -54,7 +54,7 @@
 
             <v-expansion-panels tile>
                 <v-expansion-panel
-                    v-for="(item, i) in items"
+                    v-for="(item, i) in notifications"
                     :key="i"
                 >
                     <v-expansion-panel-header style="padding: 0 10px">
@@ -105,7 +105,7 @@
                             </v-card-text>
                             <v-card-actions>
                                 <v-btn
-                                    @click="setNotificationRead(item, i)"
+                                    @click="ackNotification(notification, i)"
                                     text
                                     color="primary"
                                     :loading="loading[i]"
@@ -130,45 +130,31 @@ export default defineComponent({
     mixins: [renderMixin],
 
     data: () => ({
-        readNotifications: [],
         notifications: [],
-        selectedNotRead: [],
-        showReadNotif: false,
         loading: [],
         menu: false
     }),
 
-    computed: {
-        items() {
-            return this.showReadNotif ? this.readNotifications : this.notifications
-        }
-    },
-
     mounted() {
         this.getNofications()
-        this.getReadNotification()
     },
 
     methods: {
         async getNofications() {
-            const response = await http.get("/pro/api/v1/notif")
-            this.notifications = response.data
+            const { data } = await http.get("/pro/api/v1/notif")
+            this.notifications = data
         },
 
-        async getReadNotification() {
-            const response = await http.get("/pro/api/v1/notif", {params: {read: true}})
-            this.readNotifications = response.data
-        },
-
-        setNotificationRead(notif, index) {
-            this.loading[index] = true
-            const url = `/pro/api/v1/notif/${notif._id}`
-            http.delete(url).then(() => {
-                this.notifications.splice(index, 1)
-            }).then(() => {
-                this.loading[index] = false
+        ackNotification() {
+            const url = `/pro/api/v1/notif/`
+            http.post(url).then(() => {
+                this.$toast.success(this.$t('success.notif_ack'), {
+                    closeOnClick: true,
+                    timeout: 3000,
+                    icon: true
+                })
             })
-        }
+        }        
     }
 })
 </script>

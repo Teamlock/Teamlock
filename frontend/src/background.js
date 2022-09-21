@@ -1,9 +1,10 @@
 'use strict'
 
-import installExtension, { VUEJS_DEVTOOLS } from 'electron-devtools-installer'
-import { app, protocol, BrowserWindow, ipcMain } from 'electron'
+// import installExtension, { VUEJS_DEVTOOLS } from 'electron-devtools-installer'
 import { createProtocol } from 'vue-cli-plugin-electron-builder/lib'
+import { app, protocol, BrowserWindow, ipcMain, screen } from 'electron'
 import touchBar from './electron/touchBar.js'
+import settings from 'electron-settings';
 import ipc from "./electron/ipc.js"
 import path from "path"
 
@@ -14,28 +15,51 @@ protocol.registerSchemesAsPrivileged([
   { scheme: 'app', privileges: { secure: true, standard: true } }
 ])
 
-ipc.init(ipcMain)
 let win;
 
 async function createWindow() {
   // Create the browser window.
 
+  const size = await settings.get("teamlock.size")
+  const screenSize = screen.getPrimaryDisplay().workAreaSize
+
+  let width = 1400
+  let height = 700
+  if (size) {
+    if (size[0] > screenSize.width) {
+        size[0] = screenSize.width
+    }
+
+    if (size[1] > screenSize.height) {
+        size[1] = screenSize.height
+    }
+
+    width = size[0]
+    height = size[1]
+  }
+
   win = new BrowserWindow({
-    width: 1400,
-    height: 700,
+    width: width,
+    height: height,
     title: "TeamLock",
     icon: __dirname + "/assets/logo-final_without_name.ico",
     frame: true,
     webPreferences: {
       // Use pluginOptions.nodeIntegration, leave this alone
       // See nklayman.github.io/vue-cli-plugin-electron-builder/guide/security.html#node-integration for more info
-      nodeIntegration: true,
+      nodeIntegration: false,
       contextIsolation: true,
       enableRemoteModule: false,
       preload: path.resolve(__static, 'preload.js'),
     }
-
   })
+
+  win.on("resize", async () => {
+    const size = win.getSize()
+    await settings.set("teamlock.size", size)
+  })
+
+  ipc.init(ipcMain, win, app)
 
   win.setTouchBar(touchBar)
   if (process.env.WEBPACK_DEV_SERVER_URL) {
@@ -70,11 +94,11 @@ app.on('activate', () => {
 app.on('ready', async () => {
   if (isDevelopment && !process.env.IS_TEST) {
     // Install Vue Devtools
-    try {
-      await installExtension(VUEJS_DEVTOOLS)
-    } catch (e) {
-      console.error('Vue Devtools failed to install:', e.toString())
-    }
+    // try {
+    //   await installExtension(VUEJS_DEVTOOLS)
+    // } catch (e) {
+    //   console.error('Vue Devtools failed to install:', e.toString())
+    // }
   }
   createWindow()
 })

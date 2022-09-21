@@ -1,5 +1,6 @@
 {
     "label": {
+        "use_biometric": "Use biometric",
         "general": "General",
         "updated_by": "Updated by",
         "created_by": "Created by",
@@ -309,6 +310,7 @@
         "restore": "To restore that folder or those secrets, move them at the wanted place"
     },
     "error": {
+        "invalid_biometric": "Invalid biometric, please use your password to log in",
         "invalid_form": "Invalid form",
         "trash_cant_be_moved": "Trash can't be moved",
         "invalid_password": "Invalid password",
