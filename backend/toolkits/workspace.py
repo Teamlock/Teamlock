@@ -562,7 +562,6 @@ class WorkspaceUtils:
     @classmethod
     def search(cls, workspace, search, user, category):
         workspace, sym_key = cls.get_workspace(workspace, user)
-        cls.have_rights(workspace, user)
         folders: list[Folder] = Folder.objects(workspace=workspace)
 
         in_folder_query: Q =Q(folder__in=folders)
