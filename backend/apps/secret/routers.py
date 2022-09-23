@@ -106,7 +106,9 @@ async def global_search_keys(
 ):
     workspaces = list(Workspace.objects(owner=user.id))
     shared_query: Q = Q(user=user.id) & (Q(expire_at=None) | Q(expire_at__lte=datetime.utcnow()))
-    workspaces.extend(list(Share.objects(shared_query)))
+
+    shares = list(Share.objects(shared_query))
+    workspaces.extend([s.workspace for s in shares])
 
     keys: list = []
     for workspace in workspaces:
