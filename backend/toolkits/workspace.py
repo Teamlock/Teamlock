@@ -596,13 +596,18 @@ class WorkspaceUtils:
             )
     
     @classmethod
-    def search(cls, workspace, search, user, category):
+    def search(cls, workspace, search, user, category, order="name"):
         workspace, sym_key = cls.get_workspace(workspace, user)
         folders: list[Folder] = Folder.objects(workspace=workspace)
 
-        in_folder_query: Q =Q(folder__in=folders)
-        name_query: Q = Q(name__value__icontains=search)
-        urls_query: Q = Q(urls__value__icontains=search)
+        query: Q =Q(folder__in=folders)
+
+        if search:
+            name_query: Q = Q(name__value__icontains=search)
+            urls_query: Q = Q(urls__value__icontains=search)
+
+            # query = Q(query) & Q(Q(name_query) | Q(urls_query))
+            query &= (name_query | urls_query)
 
         model_ = const.MAPPING_SECRET[category]
 
@@ -613,7 +618,7 @@ class WorkspaceUtils:
         )
 
         keys: list = []
-        for tmp in model_.objects(in_folder_query & (name_query | urls_query)):
+        for tmp in model_.objects(query).order_by(order):
             schema = tmp.schema()
             tmp = WorkspaceUtils.decrypt_secret(decrypted_sym_key, schema)
             tmp.folder_name = Folder.objects(pk=tmp.folder).get().name

@@ -110,11 +110,11 @@ async def global_search_keys(
     shares = list(Share.objects(shared_query))
     workspaces.extend([s.workspace for s in shares])
 
-    keys: list = []
+    secrets: list = []
     for workspace in workspaces:
-        keys.extend(WorkspaceUtils.search(workspace.pk, search, user, category))
+        secrets.extend(WorkspaceUtils.search(workspace.pk, search, user, category))
     
-    return keys
+    return secrets
 
 
 @router.get(

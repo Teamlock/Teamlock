@@ -21,6 +21,8 @@ __maintainer__ = "Teamlock Project"
 __email__ = "contact@teamlock.io"
 __doc__ = ''
 
+from apps.secret.schema import BankSchema, LoginSchema, PhoneSchema, ServerSchema
+from toolkits.crypto import CryptoUtils
 from .schema import (EditShareSchema, EditWorkspaceSchema, ImportXMLFileSchema,
                      SharedWorkspaceSchema, UpdateShareSchema, UsersWorkspace, WorkspaceSchema)
 from fastapi import APIRouter, Depends, status, File, UploadFile, Form, BackgroundTasks
@@ -393,6 +395,21 @@ async def get_workspace_folders(
     user: LoggedUser = Depends(get_current_user)
 ) -> list[FolderSchema]:
     return WorkspaceUtils.get_folders(workspace_id, user)
+
+
+@router.get(
+    path="/{workspace_id}/secrets",
+    summary="Get all keys in a workspace",
+    response_model=list[LoginSchema] | list[ServerSchema] | list[BankSchema] | list[PhoneSchema]
+)
+async def get_workspace_keys(
+    workspace_id: str,
+    search: str = "",
+    category: str = "login",
+    user: LoggedUser = Depends(get_current_user)
+):
+    secrets: list = WorkspaceUtils.search(workspace_id, search, user, category)
+    return secrets
 
 
 @router.post(
