@@ -243,6 +243,7 @@
         "send": "Send"
     },
     "success": {
+        "notif_ack": "Notification read",
         "recovery_save": "Recovery Configuration saved",
         "recovery_ok": "Connection OK",
         "secret_created": "Secret created",

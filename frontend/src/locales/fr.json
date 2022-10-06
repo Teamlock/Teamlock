@@ -238,6 +238,7 @@
         "send": "Envoyer"
     },
     "success": {
+        "notif_ack": "Notification lue",
         "recovery_save": "Configuration sauvegrdée",
         "recovery_ok": "Connexion OK",
         "secret_created": "Secret créé",

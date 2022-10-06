@@ -105,7 +105,7 @@
                             </v-card-text>
                             <v-card-actions>
                                 <v-btn
-                                    @click="ackNotification(notification, i)"
+                                    @click="ackNotification(item, i)"
                                     text
                                     color="primary"
                                     :loading="loading[i]"
@@ -145,15 +145,21 @@ export default defineComponent({
             this.notifications = data
         },
 
-        ackNotification() {
-            const url = `/pro/api/v1/notif/`
-            http.post(url).then(() => {
-                this.$toast.success(this.$t('success.notif_ack'), {
-                    closeOnClick: true,
-                    timeout: 3000,
-                    icon: true
+        ackNotification(notif, i) {
+            const url = `/pro/api/v1/notif/${notif._id}`
+            this.loading[i] = true
+            this.$forceUpdate()
+            setTimeout(() => {
+                http.delete(url).then(() => {
+                    this.loading[i] = false
+                    this.notifications.splice(i, 1)
+                    this.$toast.success(this.$t('success.notif_ack'), {
+                        closeOnClick: true,
+                        timeout: 3000,
+                        icon: true
+                    })
                 })
-            })
+            }, 1000);
         }        
     }
 })
