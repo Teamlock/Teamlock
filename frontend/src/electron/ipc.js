@@ -1,4 +1,4 @@
-import { clipboard, safeStorage, systemPreferences } from 'electron';
+import { clipboard, safeStorage, systemPreferences, shell } from 'electron';
 import settings from 'electron-settings';
 
 const ipc = {
@@ -18,6 +18,10 @@ const ipc = {
                 event.reply("COPY")
             }
         }),
+
+        ipcMain.on("OPEN", (event, url) => {
+            shell.openExternal(url)
+        })
 
         ipcMain.on("FINGERPRINT", async (event, data) => {
             systemPreferences.promptTouchID("Teamlock need consent to enable Biometric Authentication")

@@ -12,24 +12,24 @@
                 {{ $t('warning.alert_delete_workspace') }}
             </v-card-text>
             <v-card-actions>
-            <v-spacer></v-spacer>
-            <v-btn
-                text
-                height="25"
-                small
-                @click="open = false"
-            >
-                {{ $t('button.cancel') }}
-            </v-btn>
-            <v-btn
-                color="primary"
-                text
-                height="25"
-                small
-                @click="deleteWorkspace"
-            >
-                {{ $t('button.confirm') }}
-            </v-btn>
+                <v-spacer></v-spacer>
+                <v-btn
+                    text
+                    height="25"
+                    small
+                    @click="open = false"
+                >
+                    {{ $t('button.cancel') }}
+                </v-btn>
+                <v-btn
+                    color="primary"
+                    text
+                    height="25"
+                    small
+                    @click="deleteWorkspace"
+                >
+                    {{ $t('button.confirm') }}
+                </v-btn>
             </v-card-actions>
         </v-card>
     </v-dialog>
@@ -47,9 +47,9 @@ export default defineComponent({
     }),
 
     mounted() {
-        EventBus.$on("deleteWorkspace", (workspace) => {
+        EventBus.$on("deleteWorkspace", (workspace_id) => {
             this.open = true
-            this.workspace_id = workspace._id
+            this.workspace_id = workspace_id
         })
     },
 

@@ -1,5 +1,8 @@
 {
     "label": {
+        "edit_workspace": "Edit workspace",
+        "share_workspace": "Share workspace",
+        "export_workspace": "Export workspace",
         "use_biometric": "Use biometric",
         "general": "General",
         "updated_by": "Updated by",
@@ -329,6 +332,7 @@
         "too_many_auth_failures": "Too many authentication failures. Account locked up for 10 minutes"
     },
     "help": {
+        "export_workspace_password": "This password will be used to encrypt the KeePass database",
         "googlechrome_import": "All passwords will be put in a Google folder",
         "send_recovery_enabled": "You can define an external storage to store User's recovery key. If an user lost his recovery key, you'll be able to restore his account.",
         "enable_twilio": "Enable Twilio. Will be used to send secrets by SMS",

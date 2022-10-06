@@ -79,7 +79,7 @@
                     text
                     v-bind="attrs"
                     v-on="on"
-                    class="ml-2"
+                    class=""
                 >
                     <v-img :src="flags[$vuetify.lang.current]" width="20" />
                 </v-btn>
@@ -96,7 +96,7 @@
             </v-list>
         </v-menu>
 
-        <notification v-if="isPro" />
+        <!-- <notification v-if="isPro" /> -->
 
         <v-menu
             v-if="user"

@@ -1,84 +1,88 @@
 <template>
     <span>
-        <h3 class="factor_title_profile mb-5 mt-3">
-            {{ $t('label.two_factor') }}
-        </h3>
-        <span v-if="!user.otp.enabled" >
-            <p class="p_status_profile">
-                {{ $t('label.status') }}:
-                <v-chip
-                    class="ma-2 text_disable"
-                    color="white"
-                    label
-                    small
-                    text-color="#B71C1C"
-                >
-                    {{ $t("label.disabled") }}
-                </v-chip>
-            </p>
-            <v-btn
-                color="primary"
-                @click="enable2FA"
-                :loading="loadingEnable2FA"
-                class="btn_mfa_profile mb-4"
-                text
-            >
-                {{ $t('label.enable_otp') }}
-            </v-btn>
-        </span>
-        <span v-if="user.otp.enabled">
-            <p class="p_status_profile">
-                {{ $t('label.status') }}:
-                <v-chip
-                    class="ma-2 text_disable"
-                    color="white"
-                    label
-                    small
-                    text-color="success"
-                >
-                    {{ $t("label.enabled") }}
-                </v-chip>
-            </p>
-            <v-dialog width="500" v-model="dialogDisable2FA" v-if="!enforce_totp">
-                <template v-slot:activator="{ on, attrs }">
-                    <v-btn
-                        v-bind="attrs"
-                        v-on="on"
-                        color="#B71C1C"
-                        dark
-                        text
-                        class="btn_mfa_profile mb-4"
-                    >
-                        {{ $t('label.disable_otp') }}
-                    </v-btn>
-                </template>
-                <v-card>
-                    <v-card-title>
-                        {{ $t("title.2fa_disable") }}
-                    </v-card-title>
-                    <v-card-text>
-                        <v-otp-input
-                            v-model="otp_disable_value"
-                            length="6"
-                            type="number"
-                            class="mt-5"
-                        />
-                    </v-card-text>
-                    <v-card-actions>
-                        <v-spacer />
-                        <v-btn
-                            text
+        <v-card flat>
+            <v-card-text>
+                <h3 class="factor_title_profile mb-5 mt-3">
+                    {{ $t('label.two_factor') }}
+                </h3>
+                <span v-if="!user.otp.enabled" >
+                    <p class="p_status_profile">
+                        {{ $t('label.status') }}:
+                        <v-chip
+                            class="ma-2 text_disable"
+                            color="white"
+                            label
                             small
-                            color="primary"
-                            :loading="loadingDisable2FA"
-                            @click="disable2FA"
+                            text-color="#B71C1C"
                         >
-                            {{ $t("button.validate") }}
-                        </v-btn>
-                    </v-card-actions>
-                </v-card>
-            </v-dialog>
-        </span>
+                            {{ $t("label.disabled") }}
+                        </v-chip>
+                    </p>
+                    <v-btn
+                        color="primary"
+                        @click="enable2FA"
+                        :loading="loadingEnable2FA"
+                        class="btn_mfa_profile mb-4"
+                        outlined
+                    >
+                        {{ $t('label.enable_otp') }}
+                    </v-btn>
+                </span>
+                <span v-if="user.otp.enabled">
+                    <p class="p_status_profile">
+                        {{ $t('label.status') }}:
+                        <v-chip
+                            class="ma-2 text_disable"
+                            color="white"
+                            label
+                            small
+                            text-color="success"
+                        >
+                            {{ $t("label.enabled") }}
+                        </v-chip>
+                    </p>
+                    <v-dialog width="500" v-model="dialogDisable2FA" v-if="!enforce_totp">
+                        <template v-slot:activator="{ on, attrs }">
+                            <v-btn
+                                v-bind="attrs"
+                                v-on="on"
+                                color="#B71C1C"
+                                dark
+                                outlined
+                                class="btn_mfa_profile mb-4"
+                            >
+                                {{ $t('label.disable_otp') }}
+                            </v-btn>
+                        </template>
+                        <v-card>
+                            <v-card-title>
+                                {{ $t("title.2fa_disable") }}
+                            </v-card-title>
+                            <v-card-text>
+                                <v-otp-input
+                                    v-model="otp_disable_value"
+                                    length="6"
+                                    type="number"
+                                    class="mt-5"
+                                />
+                            </v-card-text>
+                            <v-card-actions>
+                                <v-spacer />
+                                <v-btn
+                                    text
+                                    small
+                                    color="primary"
+                                    :loading="loadingDisable2FA"
+                                    @click="disable2FA"
+                                >
+                                    {{ $t("button.validate") }}
+                                </v-btn>
+                            </v-card-actions>
+                        </v-card>
+                    </v-dialog>
+                </span>
+            </v-card-text>
+        </v-card>
         <v-dialog v-model="dialog2FA" width="500">
             <v-card>
                 <v-card-title>

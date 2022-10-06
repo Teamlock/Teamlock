@@ -1,85 +1,85 @@
 <template>
     <v-form ref="form" @submit.prevent="changePassword" class>
-        <h3 class="pl-0 mt-3 title_change_pass">
-            {{ $t('label.change_password') }}
-        </h3>
-        <!-- CHANGE PASSWORD -->
-        <v-row>
-            <v-col :md="8" class="mx-auto">
-                <v-alert 
-                    v-if="user.need_change_password"
-                    type="warning"
-                    border="top"
-                    class="mt-4"
-                >
-                    {{ $t("warning.need_change_password") }}
-                </v-alert>
-                <v-alert 
-                    v-if="warning_change_password"
-                    type="warning"
-                    border="top"
-                    class="mt-4"
-                >
-                    {{ warning_change_password }}
-                </v-alert>
-                <v-text-field
-                    type="password"
-                    v-model="form.current_password"
-                    :label="$t('label.current_password')"
-                    class="input-field pl-1 pr-1 mb-2"
-                    hide-details
-                    color="#DAAB39"
-                    required
-                />
-                <v-text-field
-                    type="password"
-                    v-model="form.new_password"
-                    :label="$t('label.new_password')"
-                    class="input-field pl-1 pr-1 mb-2"
-                    :error-messages="errorPassword"
-                    :error-count="errorPassword.length"
-                    :hide-details="errorPassword.length === 0"
-                    color="#DAAB39"
-                    required
-                />
-                <v-text-field
-                    type="password"
-                    v-model="form.confirm_password"
-                    :label="$t('label.confirm_password')"
-                    class="input-field pl-1 pr-1 mb-2"
-                    color="#DAAB39"
-                    :error-messages="errorsFormChangePassword"
-                    :hide-details="errorsFormChangePassword"
-                    required
-                />
-            </v-col>
-        </v-row>
-    
-        <v-row>
-            <v-col :md="9" class="mx-auto">
+        <v-card flat>
+            <v-card-text>
                 <v-row>
-                    <v-col :md="8">
-                        <v-alert
+                    <v-col :md="8" class="">
+                        <v-alert 
+                            v-if="user.need_change_password"
                             type="warning"
-                            :icon="false"
-                            dense
+                            border="top"
+                            class="mt-4"
                         >
-                            <small>{{ $t('warning.remember_recovery2') }}</small>
+                            {{ $t("warning.need_change_password") }}
                         </v-alert>
-                    </v-col>
-                    <v-col :md="4">
-                        <v-btn
-                            :loading="loading"
-                            color="primary"
-                            text
-                            type="submit"
+                        <v-alert 
+                            v-if="warning_change_password"
+                            type="warning"
+                            border="top"
+                            class="mt-4"
                         >
-                            {{ $t('button.confirm') }}
-                        </v-btn>
+                            {{ warning_change_password }}
+                        </v-alert>
+                        <v-text-field
+                            type="password"
+                            v-model="form.current_password"
+                            :label="$t('label.current_password')"
+                            class="input-field pl-1 pr-1 mb-2"
+                            hide-details
+                            color="#DAAB39"
+                            required
+                        />
+                        <v-text-field
+                            type="password"
+                            v-model="form.new_password"
+                            :label="$t('label.new_password')"
+                            class="input-field pl-1 pr-1 mb-2"
+                            :error-messages="errorPassword"
+                            :error-count="errorPassword.length"
+                            :hide-details="errorPassword.length === 0"
+                            color="#DAAB39"
+                            required
+                        />
+                        <v-text-field
+                            type="password"
+                            v-model="form.confirm_password"
+                            :label="$t('label.confirm_password')"
+                            class="input-field pl-1 pr-1 mb-2"
+                            color="#DAAB39"
+                            :error-messages="errorsFormChangePassword"
+                            :hide-details="errorsFormChangePassword"
+                            required
+                        />
                     </v-col>
                 </v-row>
-            </v-col>
-        </v-row>
+            
+                <v-row>
+                    <v-col :md="8" class="">
+                        <v-row>
+                            <v-col :md="8">
+                                <v-alert
+                                    type="warning"
+                                    :icon="false"
+                                    dense
+                                >
+                                    <small>{{ $t('warning.remember_recovery2') }}</small>
+                                </v-alert>
+                            </v-col>
+                            <v-col :md="4">
+                                <v-btn
+                                    :loading="loading"
+                                    color="primary"
+                                    outlined
+                                    type="submit"
+                                >
+                                    {{ $t('button.confirm') }}
+                                </v-btn>
+                            </v-col>
+                        </v-row>
+                    </v-col>
+                </v-row>
+            </v-card-text>
+        </v-card>
     </v-form>
 </template>
 

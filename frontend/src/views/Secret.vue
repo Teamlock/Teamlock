@@ -154,6 +154,7 @@ export default defineComponent({
     loading: false,
     loader_secrets: {},
     is_pro: false,
+    electron: false,
     headers: [],
     secrets: []
   }),

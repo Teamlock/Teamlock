@@ -1,14 +1,11 @@
 <template>
     <v-bottom-navigation :height="50" v-resize-text="{minFontSize: 12}">
-        <v-tooltip right>
-            <template v-slot:activator="{ on, attrs }">
+        
                 <v-btn
-                    @click="selectWorkspace"
                     class="workspace-select-button"
-                    @contextmenu="showMenu"
+                    @contextmenu.native="openContextMenu"
+                    @click.stop="selectWorkspace"
                     :loading="loading"
-                    v-on="on"
-                    v-bind="attrs"
                     :color="color"
                     :height="50"
                     :width="60"
@@ -19,24 +16,31 @@
                     <small class="workspace-icon-name">{{ workspace.name }}</small>
                     <v-icon class="workspace-icon">{{ workspace.icon }}</v-icon>
                 </v-btn>
-            </template>
-            <span>
-                <v-icon small>{{ workspace.icon }}</v-icon>
-                {{ workspace.name }}<br>
-                <small>{{ $t('help.context_menu_workspace') }}</small>
-            </span>
-        </v-tooltip>
+        <v-menu
+            :position-x="x"
+            :position-y="y"
+            offset-y
+            v-model="contextMenuOpen"
+        >
+            <context-workspace :workspace="workspace" />
+        </v-menu>
     </v-bottom-navigation>
 </template>
 
 <script>
+import ContextWorkspace from './Context/ContextWorkspace.vue'
 import { defineComponent } from '@vue/composition-api'
+import 'vue-context/src/sass/vue-context.scss';
 import ResizeText from 'vue-resize-text'
+import VueContext from 'vue-context';
 import EventBus from "@/event"
 import http from "@/utils/http"
 
 export default defineComponent({
-    components: {},
+    components: {
+        ContextWorkspace,
+        VueContext
+    },
     directives: {
         ResizeText
     },
@@ -59,8 +63,11 @@ export default defineComponent({
     },
 
     data: () => ({
+        x: 0,
+        y: 0,
         interval: null,
-        loading: false
+        loading: false,
+        contextMenuOpen: false
     }),
 
     computed: {
@@ -105,6 +112,16 @@ export default defineComponent({
         selectWorkspace() {
             this.loading = true
             this.$emit('selectWorkspace', this.workspace._id, true)
+        },
+
+        openContextMenu(e) {
+            e.preventDefault()
+            e.stopPropagation()
+            this.x = e.clientX
+            this.y = e.clientY
+            this.$nextTick(() => {
+                this.contextMenuOpen = true
+            })
         }
     }
 })

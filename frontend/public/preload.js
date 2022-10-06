@@ -1,6 +1,6 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
-const validChannels = ["GET_SETTINGS", "SET_SETTINGS", "COPY", "FINGERPRINT", "ENCRYPTED_PASSWORD", "DECRYPT", "DECRYPTED_PASSWORD", "ERROR_FINGERPRINT", "CAPABILITIES", "LOGOUT"];
+const validChannels = ["GET_SETTINGS", "SET_SETTINGS", "COPY", "OPEN", "FINGERPRINT", "ENCRYPTED_PASSWORD", "DECRYPT", "DECRYPTED_PASSWORD", "ERROR_FINGERPRINT", "CAPABILITIES", "LOGOUT"];
 contextBridge.exposeInMainWorld(
     'ipc', {
     send: (channel, data) => {

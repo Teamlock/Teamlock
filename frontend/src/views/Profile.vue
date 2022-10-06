@@ -1,13 +1,11 @@
 <template>
-    <v-container>
-        <v-row class="yellow_line"></v-row>
-
-        <v-card>
-            <v-toolbar flat>
-                <v-icon class="mr-2" large color="primary">mdi-account-box</v-icon>
-                <v-toolbar-title>{{ $t('label.profile') }}</v-toolbar-title>
-            </v-toolbar>
-            <v-tabs fixed-tabs>
+    <v-container fluid class="no-padding full-height">
+        <v-card flat class="full-height">
+            <v-tabs
+                background-color="primary"
+                height="40"
+                dark
+            >
                 <v-tab>
                     <v-icon left>mdi-badge-account-horizontal</v-icon>
                     {{ $t('label.general') }}
@@ -26,26 +24,25 @@
                 </v-tab>
 
                 <v-tab-item>
-                    <v-list class="pb-0">
-                        <v-list-item class="card_pict_profile">
-                            <v-list-item-avatar class="pict_profile">
-                                <v-img :src="image" height="80" width="300"/>
-                            </v-list-item-avatar>
-                        </v-list-item>
-
-                        <v-list-item link class="content_card_profile">
-                            <v-list-item-content v-if="user">
-                                <v-list-item-subtitle class="mail_profile">{{ user.email }}</v-list-item-subtitle>
-                                <v-list-item-subtitle class="">{{ $t("label.last_change_password") }}: {{ renderDate(user.last_change_pass, "DD/MM/YYYY") }}</v-list-item-subtitle>
-                                <v-list-item-subtitle class="mt-5">
-                                    <v-btn color="primary" text @click="downloadCertificates" :loading="downloadCertificatesLoading">
-                                        <v-icon>mdi-download</v-icon>
-                                        {{ $t('button.download_certificates') }}
-                                    </v-btn>
-                                </v-list-item-subtitle>
-                            </v-list-item-content>
-                        </v-list-item>
-                    </v-list>
+                    <v-card flat class="pt-5 px-0">
+                        <v-img :src="image" height="140" width="180" class="mx-auto"/>
+                        <v-card-text>
+                            <v-list>
+                                <v-list-item>
+                                    <v-list-item-content v-if="user">
+                                        <v-list-item-subtitle class="mail_profile">{{ user.email }}</v-list-item-subtitle>
+                                        <v-list-item-subtitle class="">{{ $t("label.last_change_password") }}: {{ renderDate(user.last_change_pass, "DD/MM/YYYY") }}</v-list-item-subtitle>
+                                        <v-list-item-subtitle class="mt-5">
+                                            <v-btn color="primary" outlined @click="downloadCertificates" :loading="downloadCertificatesLoading">
+                                                <v-icon>mdi-download</v-icon>
+                                                {{ $t('button.download_certificates') }}
+                                            </v-btn>
+                                        </v-list-item-subtitle>
+                                    </v-list-item-content>
+                                </v-list-item>
+                            </v-list>
+                        </v-card-text>
+                    </v-card>
                 </v-tab-item>
                 <v-tab-item>
                     <change-password />
@@ -59,8 +56,7 @@
                 </v-tab-item>
             </v-tabs>
         </v-card>
-
-
+        <v-row class="yellow_line"></v-row>
     </v-container>
 </template>
 

@@ -1,5 +1,9 @@
 {
     "label": {
+        "edit_workspace": "Editer le l'espace de travail",
+        "share_workspace": "Partage l'espace de travail",
+        "export_workspace": "Exporter l'espace de travail",
+        "urls": "Urls",
         "general": "Général",
         "updated_by": "Mise à jour par",
         "created_by": "Créé par",
@@ -323,6 +327,7 @@
         "too_many_auth_failures": "Trop d'erreur d'authentification. Votre compte est bloqué pendant 10 minutes"
     },
     "help": {
+        "export_workspace_password": "Ce mot de passe sera utilisé pour chiffrer la base de données KeePass",
         "send_recovery_enabled": "Vous pouvez définir un stockage externe pour les clés de récupération utilisateur. Si un utilisateur perd sa clé de récupération, vous pourrez être en mesure de récupérer son compte.",
         "enable_twilio": "Activer Twilio. Sera utilisé pour envoyer des secrets par SMS",
         "twilio_recipient": "Numéro de téléphone avec l'indicatif téléphonique international (ex: +33 pour la France)",

@@ -77,7 +77,7 @@ export default defineComponent({
         is_loading: false,
         open: false,
         form: {
-            mail_to: "oderegis@gmail.com",
+            mail_to: "",
             expire_in: 6
         }
     }),

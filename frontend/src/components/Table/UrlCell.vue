@@ -54,9 +54,15 @@ export default defineComponent({
   },
 
   data: (vm) => ({
+    electron: false,
     tooltip_copy: [],
     tooltipHTML: vm.$t('tooltip.dblclick_copy')
   }),
+
+  beforeMount() {
+    const userAgent = navigator.userAgent.toLowerCase();
+    this.electron = userAgent.indexOf(' electron/') > -1
+  },
 
   methods: {
     openUrl(val) {
@@ -65,7 +71,12 @@ export default defineComponent({
         val = `http://${val}`
       }
 
-      window.open(val, "_blank")
+      if (!this.electron) {
+        window.open(val, "_blank")
+      } else {
+        window.ipc.send("OPEN", val);
+      }
+
     },
 
     copySuccess(index) {
