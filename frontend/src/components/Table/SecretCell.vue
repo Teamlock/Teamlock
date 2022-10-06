@@ -9,14 +9,25 @@
           v-bind="attrs"
           v-on="on"
         >
-          <span v-if="!is_loading">
+          <span v-if="!is_loading && !revealed_password">
             *********
+          </span>
+          <span v-else-if="revealed_password">
+            {{ revealed_password }}
           </span>
           <v-progress-circular v-else :width="2" :size="20" indeterminate color="primary"/>
         </span>
       </template>
       <span>{{ $t('tooltip.dblclick_copy') }}</span>
     </v-tooltip>
+    <v-btn
+      @click="revealPassword(item._id, field)"
+      style="float: right"
+      small
+      icon
+    >
+      <v-icon small>mdi-eye</v-icon>
+    </v-btn>
   </span>
 </template>
 
@@ -47,38 +58,49 @@ export default defineComponent({
   },
 
   data: () => ({
+    is_loading_reveal: false,
+    revealed_password: "",
     is_loading: false
   }),
 
   methods: {
-    copySecret(secret_id, field) {
+    async fetchSecret(secret_id, field) {
+      const uri = `/api/v1/secret/${secret_id}`
+
+      const { data } = await http.get(uri)
+      return data[field].value
+    },
+
+    async revealPassword(secret_id, field) {
+      this.is_loading = true
+      const secret_value = await this.fetchSecret(secret_id, field);
+      this.revealed_password = secret_value;
+      this.is_loading = false
+
+      setTimeout(() => {
+        this.revealed_password = ""
+      }, 5000);
+    },
+
+    async copySecret(secret_id, field) {
       this.is_loading = true
       this.$forceUpdate()
 
-      const uri = `/api/v1/secret/${secret_id}`
-
-      http.get(uri).then((response) => {
-        if (response.data[field].value) {
-          if (!this.electron) {
-            this.$copyText(response.data[field].value).then(() => {
-              this.copySuccess(this.$t("success.secret_copied"), secret_id)
-              this.is_loading = false
-              this.$forceUpdate()
-            })
-          } else {
-            window.ipc.send("COPY", response.data[field].value)
-            window.ipc.on("COPY", () => {
-              this.copySuccess(this.$t("success.secret_copied"), secret_id)
-              this.is_loading = false
-              this.$forceUpdate()
-            })
-          }
-        } else {
+      const secret_value = await this.fetchSecret(secret_id, field)
+      if (!this.electron) {
+        this.$copyText(secret_value).then(() => {
           this.copySuccess(this.$t("success.secret_copied"), secret_id)
           this.is_loading = false
           this.$forceUpdate()
-        }
-      })
+        })
+      } else {
+        window.ipc.send("COPY", secret_value)
+        window.ipc.on("COPY", () => {
+          this.copySuccess(this.$t("success.secret_copied"), secret_id)
+          this.is_loading = false
+          this.$forceUpdate()
+        })
+      }
     },
   }
 })
