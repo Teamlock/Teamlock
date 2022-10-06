@@ -99,11 +99,7 @@ export default defineComponent({
             http.get(uri).then((response) => {
                 if (!response.data.import_in_progress) {
                     clearInterval(this.interval)
-                    this.$toast.success("Import successfully ended", {
-                        closeOnClick: true,
-                        timeout: 3000,
-                        icon: true
-                    })
+                    this.$toast.success("Import successfully ended")
                     this.loading = false;
                 }
             })

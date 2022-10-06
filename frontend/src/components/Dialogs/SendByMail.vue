@@ -87,22 +87,14 @@ export default defineComponent({
             this.is_loading = true
             http.post(`/pro/api/v1/secret/${this.secret_id}/send/mail`, this.form)
                 .then(() => {
-                    this.$toast.success(this.$t('success.secret_shared'), {
-                        closeOnClick: true,
-                        timeout: 3000,
-                        icon: true
-                    })
+                    this.$toast.success(this.$t('success.secret_shared'))
                     this.is_loading = false
                     this.form.mail_to = ""
                     this.form.expire_in = 6
                     this.open = false
                 })
                 .catch(() => {
-                    this.$toast.error(this.$t("error.occurred"), {
-                        closeOnClick: true,
-                        timeout: 3000,
-                        icon: true
-                    })
+                    this.$toast.error(this.$t("error.occurred"))
                     this.is_loading = false
                 })
         }

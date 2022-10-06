@@ -141,17 +141,9 @@ export default defineComponent({
 
       http.post("/pro/api/v1/config/recovery", this.form)
       .then(() => {
-        this.$toast.success(this.$t("success.recovery_save"), {
-          closeOnClick: true,
-          timeout: 3000,
-          icon: true
-        })
+        this.$toast.success(this.$t("success.recovery_save"))
       }).catch(() => {
-        this.$toast.error(this.$t("error.occurred"), {
-          closeOnClick: true,
-          timeout: 3000,
-          icon: true
-        })
+        this.$toast.error(this.$t("error.occurred"))
       }).then(() => {
         this.is_loading = false
       })

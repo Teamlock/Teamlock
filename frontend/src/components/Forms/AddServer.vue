@@ -323,11 +323,7 @@ export default defineComponent({
                 this.errorPassword = detail
                 this.errorPasswordCount = detail.length + 1
             } else {
-                this.$toast.error(this.$t("error.occurred"), {
-                    closeOnClick: true,
-                    timeout: 3000,
-                    icon: true
-                })
+                this.$toast.error(this.$t("error.occurred"))
                 this.loading = false
                 throw error
             }
@@ -368,11 +364,7 @@ export default defineComponent({
             EventBus.$emit("refreshSecrets")
             EventBus.$emit("refreshStats")
             this.loading = false;
-            this.$toast.success(this.$t(message), {
-                closeOnClick: true,
-                timeout: 3000,
-                icon: true
-            })
+            this.$toast.success(this.$t(message))
             this.closePanel()
         }
     }

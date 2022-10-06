@@ -255,11 +255,7 @@ export default defineComponent({
                 folder_id = response.data
             }
 
-            this.$toast.success(message, {
-                closeOnClick: true,
-                timeout: 3000,
-                icon: true
-            })
+            this.$toast.success(message)
 
             this.loading = false
             this.closeDialog()

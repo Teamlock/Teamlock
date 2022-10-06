@@ -377,11 +377,7 @@ export default defineComponent({
             EventBus.$emit("refreshSecrets")
             EventBus.$emit("refreshStats")
             this.loading = false;
-            this.$toast.success(this.$t(message), {
-                closeOnClick: true,
-                timeout: 3000,
-                icon: true
-            })
+            this.$toast.success(this.$t(message))
             this.closePanel()
         }
     }

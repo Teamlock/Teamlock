@@ -169,11 +169,7 @@ export default defineComponent({
                     encrypt_informations: false
                 }
 
-                this.$toast.success(this.$t('success.import_running'), {
-                    closeOnClick: true,
-                    timeout: 3000,
-                    icon: true
-                })
+                this.$toast.success(this.$t('success.import_running'))
 
                 setTimeout(() => {
                     this.open = false

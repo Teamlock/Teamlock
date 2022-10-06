@@ -211,11 +211,7 @@ export default defineComponent({
             this.isLoading = true
             const uri = `/api/v1/workspace/${this.workspace_id}/share/${share_id}`
             http.delete(uri).then(() => {
-                this.$toast.success(this.$t("success.users_removed_from_workspace"), {
-                    closeOnClick: true,
-                    timeout: 3000,
-                    icon: true
-                })
+                this.$toast.success(this.$t("success.users_removed_from_workspace"))
 
                 this.isLoading = false
                 this.getUsers()
@@ -233,11 +229,7 @@ export default defineComponent({
 
             const uri = `/api/v1/workspace/${this.workspace_id}/share/${share._id}`
             http.put(uri, form).then(() => {
-                this.$toast.success(this.$t('success.shared_updated'), {
-                    closeOnClick: true,
-                    timeout: 3000,
-                    icon: true
-                })
+                this.$toast.success(this.$t('success.shared_updated'))
 
                 this.getUsers()
             })

@@ -211,11 +211,7 @@ export default defineComponent({
       if (!configured) {
         http.post(uri, {secret_id: this.item._id})
         .then(() => {
-          this.$toast.success(this.$t("success.notif_created"), {
-            closeOnClick: true,
-            timeout: 3000,
-            icon: true
-          })
+          this.$toast.success(this.$t("success.notif_created"))
           this.$emit("refreshNotif")
         })
         .then(() => {
@@ -224,11 +220,7 @@ export default defineComponent({
       } else {
         http.delete(uri)
         .then(() => {
-          this.$toast.success(this.$t("success.notif_deleted"), {
-            closeOnClick: true,
-            timeout: 3000,
-            icon: true
-          })
+          this.$toast.success(this.$t("success.notif_deleted"))
           this.$emit("refreshNotif")
         })
         .then(() => {

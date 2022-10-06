@@ -58,11 +58,7 @@ export default defineComponent({
             const uri = `/api/v1/workspace/${this.workspace_id}`
             http.delete(uri).then(() => {
                 this.open = false
-                this.$toast.success(this.$t('success.workspace_deleted'), {
-                    closeOnClick: true,
-                    timeout: 3000,
-                    icon: true
-                })
+                this.$toast.success(this.$t('success.workspace_deleted'))
 
                 localStorage.removeItem("current_workspace")
                 this.$emit("workspaceDeleted")

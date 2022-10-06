@@ -162,25 +162,13 @@ export default defineComponent({
                 .then(() => {
                     this.$store.dispatch("set_user")
                     this.dialogDisable2FA = false
-                    this.$toast.success(this.$t('success.otp_disabled'), {
-                        closeOnClick: true,
-                        timeout: 3000,
-                        icon: true
-                    })
+                    this.$toast.success(this.$t('success.otp_disabled'))
                 })
                 .catch((err) => {
                     if (err.response.status === 400) {
-                        this.$toast.error(this.$t("error.invalid_otp"), {
-                            closeOnClick: true,
-                            timeout: 3000,
-                            icon: true
-                        })
+                        this.$toast.error(this.$t("error.invalid_otp"))
                     } else if (err.response.status === 401) {
-                        this.$toast.error(this.$t("warning.otp_enforced"), {
-                            closeOnClick: true,
-                            timeout: 3000,
-                            icon: true
-                        })
+                        this.$toast.error(this.$t("warning.otp_enforced"))
                     }
                 })
                 .then(() => {
@@ -194,11 +182,7 @@ export default defineComponent({
             http.post("/pro/api/v1/user/totp/validate", {totp_value: this.otp_value})
                 .then(() => {
                     this.dialog2FA = false
-                    this.$toast.success(this.$t('success.otp_validated'), {
-                        closeOnClick: true,
-                        timeout: 3000,
-                        icon: true
-                    })
+                    this.$toast.success(this.$t('success.otp_validated'))
 
                     setTimeout(() => {
                         this.$store.dispatch("set_user")
@@ -206,11 +190,7 @@ export default defineComponent({
                 })
                 .catch((err) => {
                     if (err.response.status === 400) {
-                        this.$toast.error(this.$t("error.invalid_otp"), {
-                            closeOnClick: true,
-                            timeout: 3000,
-                            icon: true
-                        })
+                        this.$toast.error(this.$t("error.invalid_otp"))
                     }
                 })
                 .then(() => {

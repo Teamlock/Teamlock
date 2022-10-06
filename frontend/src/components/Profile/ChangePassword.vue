@@ -128,11 +128,7 @@ export default defineComponent({
 
             this.loading = true
             http.put("/api/v1/user", this.form).then(() => {
-                this.$toast.success(this.$t("success.password_changed"), {
-                    closeOnClick: true,
-                    timeout: 3000,
-                    icon: true
-                })
+                this.$toast.success(this.$t("success.password_changed"))
 
                 setTimeout(() => {
                     sessionStorage.clear()

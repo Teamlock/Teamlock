@@ -157,11 +157,7 @@ const secretMixin = {
 
   methods: {
     copySuccess(message) {
-      this.$toast.success(message, {
-        closeOnClick: true,
-        timeout: 3000,
-        icon: true
-      })
+      this.$toast.success(message)
 
       if (this.electron) {
         setTimeout(() => {

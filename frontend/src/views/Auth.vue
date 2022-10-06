@@ -180,11 +180,7 @@ export default defineComponent({
                         const encrypted_password = localStorage.getItem("ENCRYPTED_PASSWORD")
                         if (encrypted_password) {
                             window.ipc.on("ERROR_FINGERPRINT", () => {
-                                this.$toast.error(this.$t('error.invalid_biometric'), {
-                                    closeOnClick: true,
-                                    timeout: 3000,
-                                    icon: true
-                                })
+                                this.$toast.error(this.$t('error.invalid_biometric'))
                             })
     
                             window.ipc.on("DECRYPTED_PASSWORD", ({data}) => {

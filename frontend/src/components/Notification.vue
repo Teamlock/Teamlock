@@ -195,11 +195,7 @@ export default defineComponent({
                 http.delete(url).then(() => {
                     this.loading[i] = false
                     this.notifications.splice(i, 1)
-                    this.$toast.success(this.$t('success.notif_ack'), {
-                        closeOnClick: true,
-                        timeout: 3000,
-                        icon: true
-                    })
+                    this.$toast.success(this.$t('success.notif_ack'))
                 })
             }, 1000);
         },
@@ -209,11 +205,7 @@ export default defineComponent({
             http.delete("/pro/api/v1/notif/all")
             .then(() => {
                 this.notifications = []
-                this.$toast.success(this.$t('success.notif_cleaned'), {
-                    closeOnClick: true,
-                    timeout: 3000,
-                    icon: true
-                })
+                this.$toast.success(this.$t('success.notif_cleaned'))
             })
             .then(() => {
                 this.clean_loading = false

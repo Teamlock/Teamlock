@@ -237,20 +237,12 @@ export default defineComponent({
       const uri = `/api/v1/workspace/${sessionStorage.getItem("current_workspace")}/trash`;
       http.delete(uri).then(() =>{
         this.secrets = [];
-        this.$toast.success(this.$t("success.trash_emptied"), {
-          closeOnClick: true,
-          timeout: 3000,
-          icon: true
-        })
+        this.$toast.success(this.$t("success.trash_emptied"))
         this.loading = false;
         EventBus.$emit("refreshTreeview");
         }).catch((error) => {
         if (error.response.status === 500) {
-          this.$toast.error(this.$t("error.occurred"), {
-            closeOnClick: true,
-            timeout: 5000,
-            icon: true
-          })
+          this.$toast.error(this.$t("error.occurred"))
         }
       })
     },
@@ -298,11 +290,7 @@ export default defineComponent({
         this.loading = false
       }).catch((error) => {
         if (error.response.status === 500) {
-          this.$toast.error(this.$t("error.occurred"), {
-            closeOnClick: true,
-            timeout: 5000,
-            icon: true
-          })
+          this.$toast.error(this.$t("error.occurred"))
         }
       }).then(() => {
         this.loading = false
@@ -317,11 +305,7 @@ export default defineComponent({
           }
         }
         const msg = this.in_trash ? "success.key_deleted" : "success.key_moved_to_trash"
-        this.$toast.success(this.$t(msg), {
-          closeOnClick: true,
-          timeout: 3000,
-          icon: true
-        })
+        this.$toast.success(this.$t(msg))
       }
       if (!this.in_trash) http.post(`/api/v1/secret/${item._id}/move`, this.trash._id).then(callback)
       else http.delete(`/api/v1/secret/${item._id}`).then(callback);
