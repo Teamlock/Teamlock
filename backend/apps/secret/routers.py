@@ -21,14 +21,14 @@ __maintainer__ = "Teamlock Project"
 __email__ = "contact@teamlock.io"
 __doc__ = ''
 
+from fastapi import APIRouter, Depends, status, Body, Request, BackgroundTasks
+from toolkits.history import create_history, create_notification
 from toolkits.utils import check_password_complexity
-from fastapi import APIRouter, Depends, status, Body
 from apps.workspace.models import Workspace, Share
 from apps.config.schema import PasswordPolicySchema
 from toolkits.workspace import WorkspaceUtils
 from fastapi.exceptions import HTTPException
 from apps.auth.tools import get_current_user
-from toolkits.history import create_history
 from mongoengine.queryset.visitor import Q
 from apps.auth.schema import LoggedUser
 from toolkits.crypto import CryptoUtils
@@ -131,6 +131,8 @@ async def global_search_keys(
 )
 async def get_secret(
     secret_id: str,
+    request: Request,
+    background_task: BackgroundTasks,
     user: LoggedUser = Depends(get_current_user)
 ):
     try:
@@ -156,6 +158,14 @@ async def get_secret(
             workspace=workspace.name,
             workspace_owner=workspace.owner.email,
             action=f"Retreive secret for secret {decrypted_secret.name.value} in folder {secret.folder.name}"
+        )
+
+        create_notification(
+            user=user.id,
+            secret=secret,
+            request=request,
+            mail=True,
+            background_task=background_task
         )
 
         logger.info(f"[SECRET][{str(workspace.pk)}][{workspace.name}] {user.in_db.email} retreive secret {decrypted_secret.name.value}")

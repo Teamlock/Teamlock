@@ -16,7 +16,7 @@ const secretMixin = {
       align: 'start',
       value: 'actions',
       sortable: false,
-      width: "150px",
+      width: "180px",
       component: "ActionCell"
     },
     login: {

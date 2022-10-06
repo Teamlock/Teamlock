@@ -256,6 +256,7 @@ Only an user with the correct rights will be able to add an user.
 async def share_workspace(
     workspace_id: str,
     share_def: EditShareSchema,
+    background_task: BackgroundTasks,
     user: LoggedUser = Depends(get_current_user)
 ) -> None:
     workspace, _ = WorkspaceUtils.get_workspace(workspace_id, user)
@@ -263,7 +264,8 @@ async def share_workspace(
     WorkspaceUtils.share_workspace(
         user,
         workspace,
-        share_def
+        share_def,
+        background_task
     )
 
 

@@ -26,13 +26,13 @@ from mongoengine.errors import NotUniqueError
 from fastapi.exceptions import HTTPException
 from apps.user.schema import EditUserSchema
 from toolkits.redis_tools import RedisTools
+from fastapi import status, BackgroundTasks
 from .exceptions import UserExistException
 from apps.user.models import UserSession
 from apps.config.models import Config
 from apps.user.models import User
 from toolkits.mail import MailUtils
 from settings import settings
-from fastapi import status
 import logging.config
 import geocoder
 import datetime
@@ -74,7 +74,7 @@ def check_password_complexity(policy: PasswordPolicySchema, secret_def):
         )
 
 
-def create_user_toolkits(user_def: EditUserSchema) -> str:
+def create_user_toolkits(user_def: EditUserSchema, background_task: BackgroundTasks) -> str:
     try:
         # Create User
         user: User = User(
@@ -93,7 +93,12 @@ def create_user_toolkits(user_def: EditUserSchema) -> str:
         # Send mail to new user
         url: str = f"#/configure/{str(user.pk)}"
         if settings.SMTP_HOST:
-            MailUtils.send_mail([user.email], url, "registration")
+            background_task.add_task(
+                MailUtils.send_mail,
+                [user.email],
+                url,
+                "registration"
+            )
 
         return str(user.pk)
 

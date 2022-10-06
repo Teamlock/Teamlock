@@ -23,6 +23,7 @@ __doc__ = ''
 
 from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
 from exceptions import AuthenticationError, UserLocked, UserDontExist
+from fastapi import Depends, status, BackgroundTasks, Request
 from .schema import LoggedUser, Login, TokenData
 from fastapi.exceptions import HTTPException
 from toolkits.redis_tools import RedisTools
@@ -32,7 +33,6 @@ from passlib.context import CryptContext
 from datetime import timedelta, datetime
 from toolkits.crypto import CryptoUtils
 from toolkits.mail import MailUtils
-from fastapi import Depends, status
 from apps.user.models import User
 from jose import JWTError, jwt
 from settings import settings
@@ -200,12 +200,12 @@ def is_admin(user: UserSchema = Depends(get_current_user)) -> bool:
         )
 
 
-def invalid_authentication(email: str):
+def invalid_authentication(email: str, background_tasks: BackgroundTasks, request: Request):
     redis_key: str = f"{email}_invalid_auth"
     nb_invalid_auth = RedisTools.retreive(redis_key) or 0
     nb_invalid_auth += 1
 
-    if nb_invalid_auth == 3 and not settings.DEV_MODE:
+    if nb_invalid_auth > 2:# and not settings.DEV_MODE:
         # Send email and lock account for 10 minutes
         log_message: str = f"User {email}: Too many authentication failure. Lock account for 10 minutes"
         logger.info(log_message)
@@ -219,7 +219,27 @@ def invalid_authentication(email: str):
             action="Too many authentication failures. Lock account for 10 minutes"
         )
 
-        MailUtils.send_mail([email], None, "too_many_auth_failures")
+        try:
+            from teamlock_pro.toolkits.proNotif import create_notification
+            user = User.objects(email=email).get()
+            admins = User.objects(is_admin=True)
+            create_notification(
+                request=request,
+                secret_id=None,
+                message="Too many authentication failed",
+                user=user,
+                users=admins
+            )
+
+        except ImportError:
+            pass
+
+        background_tasks.add_task(
+            MailUtils.send_mail,
+            [email],
+            None,
+            "too_many_auth_failures"
+        )
 
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,

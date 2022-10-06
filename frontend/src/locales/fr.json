@@ -112,6 +112,7 @@
         "folder": "Dossier",
         "ip": "Adresse IP",
         "name": "Nom",
+        "secret_name": "Nom du secret",
         "login": "Username",
         "generate_password": "Générer un mot de passe avec la politique",
         "show_password": "Afficher le mot de passe",
@@ -238,6 +239,9 @@
         "send": "Envoyer"
     },
     "success": {
+        "notif_created": "Vous recevrez une alerte lorsque ce secret est utilisé",
+        "notif_deleted": "Vous ne recevrez plus d'alerte lorsque ce secret est utilisé",
+        "notif_cleaned": "Notifications supprimées",
         "notif_ack": "Notification lue",
         "recovery_save": "Configuration sauvegrdée",
         "recovery_ok": "Connexion OK",
@@ -328,6 +332,9 @@
         "too_many_auth_failures": "Trop d'erreur d'authentification. Votre compte est bloqué pendant 10 minutes"
     },
     "help": {
+        "clear_notification": "Supprimer toutes les notifications",
+        "warning_secret_use": "M'envoyer une alerte quand ce secret est utilisé",
+        "warning_secret_use_disable": "Ne plus m'envoyer d'alerte si ce secret est utilisé",
         "export_workspace_password": "Ce mot de passe sera utilisé pour chiffrer la base de données KeePass",
         "send_recovery_enabled": "Vous pouvez définir un stockage externe pour les clés de récupération utilisateur. Si un utilisateur perd sa clé de récupération, vous pourrez être en mesure de récupérer son compte.",
         "enable_twilio": "Activer Twilio. Sera utilisé pour envoyer des secrets par SMS",

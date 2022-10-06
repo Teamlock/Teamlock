@@ -115,6 +115,7 @@
         "folder": "Folder",
         "ip": "IP Address",
         "name": "Name",
+        "secret_name": "Secret name",
         "login": "Login",
         "generate_password": "Generate password accordingly to the password policy",
         "show_password": "Show password",
@@ -243,6 +244,9 @@
         "send": "Send"
     },
     "success": {
+        "notif_created": "You will receive an alert when this secret is used",
+        "notif_deleted": "You will no longer receive an alert when this secret is used",
+        "notif_cleaned": "Notifications cleared",
         "notif_ack": "Notification read",
         "recovery_save": "Recovery Configuration saved",
         "recovery_ok": "Connection OK",
@@ -333,6 +337,9 @@
         "too_many_auth_failures": "Too many authentication failures. Account locked up for 10 minutes"
     },
     "help": {
+        "clear_notification": "Clear notifications",
+        "warning_secret_use": "Send me an alert when this secret is used",
+        "warning_secret_use_disable": "Disable alert when this secret is used",
         "export_workspace_password": "This password will be used to encrypt the KeePass database",
         "googlechrome_import": "All passwords will be put in a Google folder",
         "send_recovery_enabled": "You can define an external storage to store User's recovery key. If an user lost his recovery key, you'll be able to restore his account.",
@@ -395,8 +402,12 @@
     },
     "notifications": {
         "details": {
-            "User recovery attempt": "User attempt to use the recovery, but his not allowed to"
+            "User recovery attempt": "User attempt to use the recovery, but his not allowed to",
+            "Too many authentication failed": "Too many authentication failed. User locked for 10 minutes",
+            "Secret usage": "An user has reveal a secret"
         },
-        "User recovery attempt": "User recovery attempt"
+        "User recovery attempt": "User recovery attempt",
+        "Too many authentication failed": "Too many authentication failed",
+        "Secret usage": "Secret used"
     }
 }

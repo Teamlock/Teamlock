@@ -21,6 +21,7 @@ from apps.config.models import PasswordPolicy
 from apps.workspace.models import Workspace
 from apps.folder.schema import FolderSchema
 from fastapi.exceptions import HTTPException
+from fastapi import status, BackgroundTasks
 from mongoengine.queryset.visitor import Q
 from apps.auth.tools import hash_password
 from apps.auth.schema import LoggedUser
@@ -34,7 +35,6 @@ from apps.user.models import User
 from .crypto import CryptoUtils
 from datetime import datetime
 from settings import settings
-from fastapi import status
 from toolkits import const
 from bson import ObjectId
 import logging.config
@@ -167,7 +167,8 @@ class WorkspaceUtils:
         cls,
         user: LoggedUser,
         workspace: Workspace,
-        share_def: EditShareSchema
+        share_def: EditShareSchema,
+        background_task: BackgroundTasks
     ) -> None:
         """Share a workspace to an other user
             Will encrypt the worskapce symetric key with the user public RSA key
@@ -208,7 +209,14 @@ class WorkspaceUtils:
                     "workspace_name": workspace.name,
                     "shared_by": user.in_db.email
                 }
-                MailUtils.send_mail([tmp_user.email], "", "workspace_shared", context)
+
+                background_task.add_task(
+                    MailUtils.send_mail,
+                    [tmp_user.email],
+                    "",
+                    "workspace_shared",
+                    context
+                )
 
                 logger.info(
                     f"[SHARE][{str(workspace.pk)}][{workspace.name}] Shared by {user.in_db.email} to {user.email}"
@@ -425,7 +433,8 @@ class WorkspaceUtils:
         cls,
         user: User,
         old_password: str,
-        new_password: str
+        new_password: str,
+        background_task: BackgroundTasks
     ):
         """Update password for an user
         With the new password, we generate new RSA Private & Public Key
@@ -491,7 +500,12 @@ class WorkspaceUtils:
             objet.sym_key = encrypted_sym_key
             objet.save()
          
-        MailUtils.send_mail([user.email], None, "password_change")
+        background_task.add_task(
+            MailUtils.send_mail,
+            [user.email],
+            None,
+            "password_change"
+        )
 
     @classmethod
     def recover_account(cls, user: User, sym_key: str, new_password: str):

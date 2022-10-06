@@ -100,8 +100,10 @@
               <action-cell
                 :can_share_external="can_share_external"
                 :category="category"
+                :notif="configuredNotifs.includes(item._id)"
                 :item="item"
                 @delete="deleteItem"
+                @refreshNotif="fetchNotifConfigured()"
               />
             </span>
             <span v-else>
@@ -151,10 +153,11 @@ export default defineComponent({
 
   data: () => ({
     can_share_external: false,
-    loading: false,
+    configuredNotifs: [],
     loader_secrets: {},
-    is_pro: false,
     electron: false,
+    loading: false,
+    is_pro: false,
     headers: [],
     secrets: []
   }),
@@ -175,8 +178,10 @@ export default defineComponent({
 
   watch: {},
 
-  beforeMount() {
+  async beforeMount() {
     let middleHeader = null
+    await this.fetchNotifConfigured()
+
     switch(this.category) {
       case "login":
         middleHeader = this.login.headers;
@@ -218,6 +223,11 @@ export default defineComponent({
   },
 
   methods: {
+    async fetchNotifConfigured() {
+      const { data } = await http.get("/pro/api/v1/user/notif")
+      this.configuredNotifs = data
+    },
+
     addSecret(secret_type, folder) {
       EventBus.$emit(`edit_${secret_type}`, null, folder)
     },

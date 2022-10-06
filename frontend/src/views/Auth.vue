@@ -269,6 +269,10 @@ export default defineComponent({
             this.error = ""
             // if (!this.$refs.form.validate()) return
 
+            if (!this.form.username || !this.form.password) {
+                return
+            }
+
             this.is_loading = true
             let base_url = process.env.VUE_APP_BASE_URL
             if (this.electron) {

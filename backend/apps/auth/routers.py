@@ -66,6 +66,12 @@ async def login_for_access_token(
     form_data: OAuth2PasswordRequestForm = Depends()
 ) -> Login:
 
+    if RedisTools.retreive(f"{form_data.username}_locked"):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Too many authentication failures"
+        )
+
     try:
         user: User = await authenticate_user(form_data)
     except UserDontExist:
@@ -76,7 +82,7 @@ async def login_for_access_token(
         )
 
     except AuthenticationError:
-        invalid_authentication(form_data.username)
+        invalid_authentication(form_data.username, background_tasks, request)
 
         log_message: str = f"[AUTH] Invalid authentication for Email {form_data.username}"
         logger.info(log_message)
@@ -93,12 +99,6 @@ async def login_for_access_token(
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Account currently locked by administrator"
-        )
-
-    if RedisTools.retreive(f"{user.email}_locked"):
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Too many authentication failures"
         )
 
     login: Login = create_access_token(

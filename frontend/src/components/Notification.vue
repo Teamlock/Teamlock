@@ -2,7 +2,7 @@
     <v-menu
         v-model="menu"
         :close-on-content-click="false"
-        :nudge-width="400"
+        :nudge-width="450"
         offset-y
         :rounded="false"
         left
@@ -42,6 +42,21 @@
             >
                 <v-icon class="mr-4">mdi-bell-ring</v-icon>
                 <v-toolbar-title>{{ $t('title.notifications') }}</v-toolbar-title>
+                <v-spacer />
+                <v-tooltip bottom>
+                    <template v-slot:activator="{ on, attrs }">
+                        <v-icon
+                            @click="emptyNotifications()"
+                            :loading="clean_loading"
+                            v-bind="attrs"
+                            v-on="on"
+                            dark
+                        >
+                            mdi-cancel
+                        </v-icon>
+                    </template>
+                    <span>{{ $t('help.clear_notification') }}</span>
+                </v-tooltip>
             </v-toolbar>
 
             <v-list v-if="notifications.length === 0">
@@ -75,7 +90,7 @@
                                 {{ $t(`notifications.details.${item.message}`) }}
                             </v-card-subtitle>
                             <v-card-text>
-                                <table style="width: 100%">
+                                <table style="width: 100%" class="mb-4">
                                     <thead>
                                         <tr>
                                             <th>{{ $t('label.user') }}</th>
@@ -99,6 +114,22 @@
                                             </td>
                                             <td>{{ item.client_info.city }}</td>
                                             <td>{{ item.client_info.os }}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                <table style="width: 100%" v-if="item.secret">
+                                    <thead>
+                                        <tr>
+                                            <th>{{ $t('label.secret_name') }}</th>
+                                            <th>{{ $t('label.folder') }}</th>
+                                            <th>{{ $t('label.workspace') }}</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>{{ item.secret.name }}</td>
+                                            <td>{{ item.secret.folder }}</td>
+                                            <td>{{ item.secret.workspace }}</td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -132,16 +163,27 @@ export default defineComponent({
     data: () => ({
         notifications: [],
         loading: [],
+        clean_loading: false,
+        interval: null,
         menu: false
     }),
 
     mounted() {
         this.getNofications()
+        this.interval = setInterval(() => {
+            this.getNofications()
+        }, 10000)
+    },
+
+    destroyed() {
+        if (this.interval) {
+            clearInterval(this.interval)
+        }
     },
 
     methods: {
         async getNofications() {
-            const { data } = await http.get("/pro/api/v1/notif")
+            const { data } = await http.get("/pro/api/v1/notif/")
             this.notifications = data
         },
 
@@ -160,7 +202,23 @@ export default defineComponent({
                     })
                 })
             }, 1000);
-        }        
+        },
+
+        emptyNotifications() {
+            this.clean_loading = true
+            http.delete("/pro/api/v1/notif/all")
+            .then(() => {
+                this.notifications = []
+                this.$toast.success(this.$t('success.notif_cleaned'), {
+                    closeOnClick: true,
+                    timeout: 3000,
+                    icon: true
+                })
+            })
+            .then(() => {
+                this.clean_loading = false
+            })
+        }
     }
 })
 </script>

@@ -30,21 +30,7 @@
                             hide-details
                             required
                             suffix
-                        >
-                            <v-tooltip bottom slot="append">
-                                <template v-slot:activator="{ on, attrs }">
-                                    <v-icon
-                                        v-on="on"
-                                        v-bind="attrs"
-                                        :color="form.name.encrypted ? '#daab39' : ''"
-                                        v-html="form.name.encrypted ? 'mdi-lock' : 'mdi-lock-open'"
-                                        @click="form.name.encrypted = !form.name.encrypted"
-                                        tabindex="-1"
-                                    />
-                                </template>
-                                <span v-html="$t('label.encrypt')" />
-                            </v-tooltip>
-                        </v-text-field>
+                        />
                     </v-row>
                     <v-row dense class="relative-row">
                         <v-text-field

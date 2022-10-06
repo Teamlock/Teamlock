@@ -49,6 +49,7 @@ from apps.secret.routers import router as secret_router
 
 from apps.user.schema import AdminUserSchema, EditUserSchema
 from apps.config.schema import ConfigSchema
+from toolkits.redis_tools import RedisTools
 from toolkits.utils import create_user_toolkits
 from apps.workspace.models import Share
 from apps.config.models import Config

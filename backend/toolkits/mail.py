@@ -144,15 +144,12 @@ Hello,<br/><br/>The workspace <b>{{ workspace_name }}</b> has been shared with y
         msg.attach(msgLogo)
         msg.attach(msgBackground)
         return msg
-    
+
     @classmethod
     def send_mail(cls, to: list[str], url: str, content_type: str, context: dict = {}) -> None:
-        if settings.DEV_MODE:
-            # Don't send mail in DEV MODE
-            return
-
-        server: smtplib.SMTP = cls.get_smtp_client()
-        message: MIMEMultipart = cls.construct_mail(to, url, content_type, context)
-        server.sendmail(settings.SMTP_EMAIL, to, message.as_string())
-        server.quit()
-    
+        if not settings.DEV_MODE:
+            server: smtplib.SMTP = cls.get_smtp_client()
+            message: MIMEMultipart = cls.construct_mail(to, url, content_type, context)
+            server.sendmail(settings.SMTP_EMAIL, to, message.as_string())
+            server.quit()
+        
