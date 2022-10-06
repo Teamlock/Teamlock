@@ -13,10 +13,10 @@ You should have received a copy of the GNU General Public License
 along with Teamlock.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+from apps.secret.schema import SecretListValueSchema, SecretValueSchema
 from apps.secret.models import Login, SecretListValue, SecretValue
 from apps.config.schema import PasswordPolicySchema
 from apps.workspace.schema import EditShareSchema
-from apps.secret.schema import LoginSchema, SecretListValueSchema, SecretValueSchema, ServerSchema
 from apps.config.models import PasswordPolicy
 from apps.workspace.models import Workspace
 from apps.folder.schema import FolderSchema
@@ -304,7 +304,7 @@ class WorkspaceUtils:
         """
 
         decrypted_secret = secret_def.copy()
-        ignored_fields = [secret_def.Base().protected_fields]
+        ignored_fields = list(secret_def.Base().protected_fields)
         ignored_fields.extend([
             "_id",
             "folder",
@@ -315,12 +315,12 @@ class WorkspaceUtils:
             "secret_type",
             "folder_name",
             "workspace_name",
-            "password_last_change"
+            "password_last_change",
+            "package_name"
         ])
 
         for property in secret_def.schema()["properties"].keys():
             if property not in ignored_fields:
-                
                 property_class = getattr(secret_def, property)
                 if isinstance(property_class, SecretValueSchema):                
                     value: str = property_class.value
@@ -336,7 +336,15 @@ class WorkspaceUtils:
                         tmp = []
                         for val in value:
                             tmp.append(CryptoUtils.sym_decrypt(val, sym_key))
-                        setattr(decrypted_secret, property, tmp)                        
+                        setattr(decrypted_secret, property, SecretListValueSchema(
+                            encrypted=True,
+                            value=tmp
+                        ))   
+                    else:
+                        setattr(decrypted_secret, property, SecretListValueSchema(
+                            encrypted=False,
+                            value=value
+                        ))   
 
         if get_protected_fields:
             for field in secret_def.Base().protected_fields:
@@ -534,10 +542,11 @@ class WorkspaceUtils:
         return folders
 
     @classmethod
-    def export_workspace(cls, workspace_id: str | ObjectId, user: LoggedUser) -> None:
+    def export_workspace(cls, workspace_id: str | ObjectId, user: LoggedUser, password: str) -> None:
         workspace, sym_key = WorkspaceUtils.get_workspace(workspace_id, user)
         kp = create_database(
-            f"/var/tmp/{workspace.name}.kdbx", password=None, keyfile=None, transformed_key=None)
+            f"/var/tmp/{workspace.pk}.kdbx", password=password, keyfile=None, transformed_key=None
+        )
         del workspace
         folders: list[FolderSchema] = WorkspaceUtils.get_folders(
             workspace_id, user)
@@ -560,18 +569,18 @@ class WorkspaceUtils:
                         decrypted_secret = WorkspaceUtils.decrypt_secret(
                             decrypted_sym_key,
                             key_schema,
-                            get_password=True
+                            get_protected_fields=True
                         )
 
                         kp.add_entry(
                             group, title=decrypted_secret.name.value,
                             username=decrypted_secret.login.value,
                             password=decrypted_secret.password.value,
-                            url=decrypted_secret.urls.value[0],
+                            url=",".join(decrypted_secret.urls.value),
                             notes=decrypted_secret.informations.value
                         )
 
-                if children != None:
+                if children is not None:
                     for child in children:
                         fill_database(child, group)
 
@@ -596,17 +605,18 @@ class WorkspaceUtils:
             )
     
     @classmethod
-    def search(cls, workspace, search, user, category, order="name"):
+    def search(cls, workspace, search, user, category, package_name="", order="name"):
         workspace, sym_key = cls.get_workspace(workspace, user)
         folders: list[Folder] = Folder.objects(workspace=workspace)
 
-        query: Q =Q(folder__in=folders)
+        query: Q = Q(folder__in=folders)
 
-        if search:
+        if package_name:
+            query &= Q(package_name=package_name)
+        elif search:
             name_query: Q = Q(name__value__icontains=search)
             urls_query: Q = Q(urls__value__icontains=search)
 
-            # query = Q(query) & Q(Q(name_query) | Q(urls_query))
             query &= (name_query | urls_query)
 
         model_ = const.MAPPING_SECRET[category]
@@ -620,7 +630,12 @@ class WorkspaceUtils:
         keys: list = []
         for tmp in model_.objects(query).order_by(order):
             schema = tmp.schema()
-            tmp = WorkspaceUtils.decrypt_secret(decrypted_sym_key, schema)
+            tmp = cls.decrypt_secret(
+                decrypted_sym_key,
+                schema,
+                get_protected_fields=package_name != ""
+            )
+
             tmp.folder_name = Folder.objects(pk=tmp.folder).get().name
             tmp.workspace_name = workspace.name
             keys.append(tmp)

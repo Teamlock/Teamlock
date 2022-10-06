@@ -62,6 +62,7 @@ async def login_for_access_token(
     request: Request,
     background_tasks: BackgroundTasks,
     x_teamlock_key: str | None = Header(None),
+    x_teamlock_app: str | None = Header(None),
     form_data: OAuth2PasswordRequestForm = Depends()
 ) -> Login:
 
@@ -100,7 +101,12 @@ async def login_for_access_token(
             detail="Too many authentication failures"
         )
 
-    login: Login = create_access_token(user, form_data.password, x_teamlock_key)
+    login: Login = create_access_token(
+        user,
+        form_data.password,
+        x_teamlock_key,
+        x_teamlock_app
+    )
 
     # Check if user has TOTP Enabled
     if user.otp and user.otp.enabled:

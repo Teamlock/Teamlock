@@ -97,11 +97,12 @@ async def search_secrets(
 @router.get(
     path="/global/search",
     summary="Search on all workspaces",
-    response_model=list[schema.BankSchema] | list[schema.ServerSchema] | list[schema.LoginSchema] | list[schema.PhoneSchema]
+    response_model=list[schema.BankSchema] | list[schema.ServerSchema] | list[schema.LoginSchema] | list[schema.PhoneSchema] | schema.LoginSchema
 )
 async def global_search_keys(
-    search: str,
-    category: str,
+    search: str = "",
+    category: str = "login",
+    package_name: str = "",
     user: LoggedUser = Depends(get_current_user)
 ):
     workspaces = list(Workspace.objects(owner=user.id))
@@ -112,8 +113,14 @@ async def global_search_keys(
 
     secrets: list = []
     for workspace in workspaces:
-        secrets.extend(WorkspaceUtils.search(workspace.pk, search, user, category))
+        secrets.extend(WorkspaceUtils.search(workspace.pk, search, user, category, package_name=package_name))
     
+    if len(secrets) == 0:
+        return []
+
+    if package_name:
+        return secrets[0]
+
     return secrets
 
 
@@ -152,8 +159,8 @@ async def get_secret(
         )
 
         logger.info(f"[SECRET][{str(workspace.pk)}][{workspace.name}] {user.in_db.email} retreive secret {decrypted_secret.name.value}")
-        
-        # tmp = decrypted_secret.dict()
+        decrypted_secret.folder_name = Folder.objects(pk=decrypted_secret.folder).get().name
+        decrypted_secret.workspace_name = workspace.name
         return decrypted_secret
 
     except Secret.DoesNotExist:
@@ -196,6 +203,7 @@ async def create_secret(
             
         encrypted_secret = WorkspaceUtils.encrypt_secret(user, sym_key, schema.secret)
         encrypted_secret.folder = folder
+        encrypted_secret.package_name = schema.package_name
 
         encrypted_secret.created_by = user.in_db
         encrypted_secret.updated_by = user.in_db

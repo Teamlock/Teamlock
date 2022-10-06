@@ -141,6 +141,7 @@ class CreatePhoneSchema(BaseSecretSchema, BasePhoneSchema):
 
 
 class CreateSecretSchema(BaseModel):
+    package_name: str = ""
     secret: Union[
         CreateLoginSchema,
         CreateServerSchema,

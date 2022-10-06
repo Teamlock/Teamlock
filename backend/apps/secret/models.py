@@ -32,7 +32,6 @@ class SecretValue(mongoengine.EmbeddedDocument):
     encrypted = mongoengine.BooleanField(default=True)
     value = mongoengine.StringField()
 
-
 class SecretListValue(mongoengine.EmbeddedDocument):
     encrypted = mongoengine.BooleanField(default=True)
     value = mongoengine.ListField(mongoengine.StringField())
@@ -63,6 +62,8 @@ class Secret(mongoengine.Document):
         Folder,
         reverse_delete_rule=mongoengine.CASCADE
     )
+
+    package_name = mongoengine.StringField(default="")
 
     meta = {
         "allow_inheritance": True

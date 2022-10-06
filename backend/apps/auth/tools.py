@@ -105,8 +105,17 @@ def validate_otp(tmp_token: str, otp: int):
     )
 
 
-def create_access_token(user: User, password: str, x_teamlock_key) -> Login:
-    access_token_expires: timedelta = timedelta(minutes=settings.TOKEN_EXPIRE)
+def create_access_token(user: User,
+    password: str,
+    x_teamlock_key: str|None,
+    x_teamlock_app: str|None
+) -> Login:
+
+    expire: int = settings.TOKEN_EXPIRE
+    if x_teamlock_app == "browser_ext":
+        expire: int = settings.TOKEN_EXPIRE_BROWSER_EXT
+
+    access_token_expires: timedelta = timedelta(minutes=expire)
     expire = datetime.utcnow() + access_token_expires
     token_data: TokenData = TokenData(email=user.email, expire=expire.isoformat())
 

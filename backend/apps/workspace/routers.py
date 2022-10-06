@@ -22,10 +22,9 @@ __email__ = "contact@teamlock.io"
 __doc__ = ''
 
 from apps.secret.schema import BankSchema, LoginSchema, PhoneSchema, ServerSchema
-from toolkits.crypto import CryptoUtils
 from .schema import (EditShareSchema, EditWorkspaceSchema, ImportXMLFileSchema,
                      SharedWorkspaceSchema, UpdateShareSchema, UsersWorkspace, WorkspaceSchema)
-from fastapi import APIRouter, Depends, status, File, UploadFile, Form, BackgroundTasks
+from fastapi import APIRouter, Depends, status, File, UploadFile, Form, Body, BackgroundTasks
 from fastapi.responses import FileResponse
 from mongoengine.errors import NotUniqueError
 from pymongo.errors import DuplicateKeyError
@@ -419,15 +418,15 @@ async def get_workspace_keys(
 async def export_workspace_file(
     background_tasks: BackgroundTasks,
     workspace_id: str,
+    password: str = Body(..., embed=True),
     user: LoggedUser = Depends(get_current_user)
 ):
-
     workspace, _ = WorkspaceUtils.get_workspace(workspace_id,user)
     WorkspaceUtils.have_rights(workspace,user,"can_export")
-    WorkspaceUtils.export_workspace(workspace_id, user)
-    background_tasks.add_task(WorkspaceUtils.delete_tmp_file,f"/var/tmp/{workspace.name}.kdbx")
+    WorkspaceUtils.export_workspace(workspace_id, user, password)
+    background_tasks.add_task(WorkspaceUtils.delete_tmp_file,f"/var/tmp/{workspace.pk}.kdbx")
     
-    return FileResponse(f"/var/tmp/{workspace.name}.kdbx")
+    return FileResponse(f"/var/tmp/{workspace.pk}.kdbx")
 
 
 @router.get(
