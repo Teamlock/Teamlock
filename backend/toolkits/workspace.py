@@ -26,7 +26,8 @@ from apps.auth.tools import hash_password
 from apps.auth.schema import LoggedUser
 from apps.workspace.models import Share
 from toolkits.schema import RSASchema
-from pykeepass import create_database
+# from pykeepass import create_database
+import xml.etree.ElementTree as xml
 from apps.folder.models import Folder
 from .const import WHITELIST_RIGHTS
 from toolkits.mail import MailUtils
@@ -501,9 +502,6 @@ class WorkspaceUtils:
     @classmethod
     def export_workspace(cls, workspace_id: str | ObjectId, user: LoggedUser) -> None:
         workspace, sym_key = WorkspaceUtils.get_workspace(workspace_id, user)
-        kp = create_database(
-            f"/var/tmp/{workspace.name}.kdbx", password=None, keyfile=None, transformed_key=None)
-        del workspace
         folders: list[FolderSchema] = WorkspaceUtils.get_folders(
             workspace_id, user)
 
@@ -512,38 +510,53 @@ class WorkspaceUtils:
             user.in_db.private_key,
             CryptoUtils.decrypt_password(user)
         )
+        field_name = ["Title", "UserName", "Password", "URL", "Notes"]
+        teamlock_field = ["name","login","password","url","informations"]
 
-        def fill_database(folder, current_group):
+        base = xml.Element("KeePassFile")
+        meta = xml.SubElement(base, "Meta")
+        xml.SubElement(meta, "DatabaseName").text = workspace.name
+
+        root = xml.SubElement(base,"Root")
+        root_group = xml.SubElement(root,"Group")
+        xml.SubElement(root_group,"Name").text = workspace.name
+        
+        def fill_db_from_folder(folder: FolderSchema,current_group = None):
             children = Folder.objects(parent=folder.id)
             if folder != None:
-                group = kp.add_group(current_group, folder.name)
-                # encrypted keys
+                if current_group is not None:
+                    group = xml.SubElement(current_group,"Group")
+                else:
+                    group = xml.SubElement(root_group,"Group")
+                xml.SubElement(group,"Name").text = folder.name
                 keys = Login.objects(folder=folder.id)
                 for key in keys:
-                    if key.name.value != "":  # error because there were various entries with name== ""
+                    if key.name.value != "":
                         key_schema = key.schema()
                         decrypted_secret = WorkspaceUtils.decrypt_secret(
                             decrypted_sym_key,
                             key_schema,
-                            get_password=True
+                            True
                         )
-                        kp.add_entry(
-                            group, title=decrypted_secret.name.value,
-                            username=decrypted_secret.login.value,
-                            password=decrypted_secret.password.value,
-                            url=decrypted_secret.url.value,
-                            notes=decrypted_secret.informations.value
-                        )
+                        entry = xml.SubElement(group,"Entry")
 
-                if children != None:
+                        index = 0
+                        for value in field_name:
+                            string = xml.SubElement(entry,"String")
+                            xml.SubElement(string,"Key").text = value
+                            xml.SubElement(string,"Value").text = getattr(decrypted_secret,teamlock_field[index]).value
+                            index += 1
+                if len(children) != 0:
                     for child in children:
-                        fill_database(child, group)
+                        fill_db_from_folder(child, group)
 
         for folder in folders:
             if not folder.parent:
-                fill_database(folder, kp.root_group)
-        kp.save()
+                fill_db_from_folder(folder)
 
+        xml.ElementTree(base).write(f"/var/tmp/{workspace.pk}.xml")
+
+ 
     @classmethod
     def delete_tmp_file(cls,path):
         if os.path.exists(path):

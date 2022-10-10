@@ -399,9 +399,9 @@ async def export_workspace_file(
     workspace, _ = WorkspaceUtils.get_workspace(workspace_id,user)
     WorkspaceUtils.have_rights(workspace,user,"can_export")
     WorkspaceUtils.export_workspace(workspace_id, user)
-    background_tasks.add_task(WorkspaceUtils.delete_tmp_file,f"/var/tmp/{workspace.name}.kdbx")
+    background_tasks.add_task(WorkspaceUtils.delete_tmp_file,f"/var/tmp/{workspace.pk}.xml")
     
-    return FileResponse(f"/var/tmp/{workspace.name}.kdbx")
+    return FileResponse(f"/var/tmp/{workspace.pk}.xml")
 
 
 @router.get(
