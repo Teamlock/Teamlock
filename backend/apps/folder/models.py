@@ -33,8 +33,6 @@ class Folder(mongoengine.Document):
     icon = mongoengine.StringField()
     created_at = mongoengine.DateTimeField(default=datetime.utcnow)
     password_policy = mongoengine.EmbeddedDocumentField(PasswordPolicy)
-    is_trash = mongoengine.BooleanField(default=False)
-    in_trash = mongoengine.BooleanField(default=False)
     created_by = mongoengine.ReferenceField(
         User,
         reverse_delete_rule=mongoengine.NULLIFY

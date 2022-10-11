@@ -26,6 +26,7 @@ from fastapi import APIRouter, Depends, status, Body
 from apps.workspace.models import Workspace, Share
 from apps.config.schema import PasswordPolicySchema
 from toolkits.workspace import WorkspaceUtils
+from toolkits.secret import SecretUtils
 from fastapi.exceptions import HTTPException
 from apps.auth.tools import get_current_user
 from toolkits.history import create_history
@@ -34,6 +35,7 @@ from apps.auth.schema import LoggedUser
 from toolkits.crypto import CryptoUtils
 from fastapi.responses import Response
 from apps.folder.models import Folder
+from apps.workspace.models import Workspace
 from .models import Login, Secret
 from datetime import datetime
 from settings import settings
@@ -174,12 +176,6 @@ async def create_secret(
 ) -> str:
     try:
         folder: Folder = Folder.objects(pk=schema.secret.folder).get()
-        if folder.in_trash or folder.is_trash:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Can't create a secret inside the trash"
-            )
-
         workspace, sym_key = WorkspaceUtils.get_workspace(folder.workspace.pk, user)
 
         # Check if user is allowed to create a key in this workspace
@@ -230,11 +226,12 @@ async def move_key(
 ):
     try:
         secret: Secret = Secret.objects(pk=secret_id).get()
-        new_folder: Folder = Folder.objects(pk=folder_id).get()
-
         workspace, _ = WorkspaceUtils.get_workspace(secret.folder.workspace.pk, user)
         WorkspaceUtils.have_rights(workspace, user)
+        new_folder: Folder = Folder.objects(pk=folder_id).get()
 
+        if secret.trash is not None:
+            secret.trash = None
         secret.folder = new_folder
         secret.save()
 
@@ -264,11 +261,6 @@ async def update_secret(
 ) -> None:
     try:
         secret: Secret = Secret.objects(pk=secret_id).get()
-        if secret.folder.in_trash or secret.folder.is_trash:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Can't edit a secret inside the trash"
-            )
         workspace, sym_key = WorkspaceUtils.get_workspace(secret.folder.workspace.pk, user)
 
         WorkspaceUtils.have_rights(workspace, user)
@@ -323,6 +315,12 @@ async def delete_secret(
 ) -> None:
     try:
         secret: Secret = Secret.objects(pk=secret_id).get()
+
+        if secret.folder is not None:
+            raise HTTPException(
+                status_code= status.HTTP_400_BAD_REQUEST,
+                detail="You have to first put the secret in the trash to delete it"
+            )
         workspace: Workspace = secret.folder.workspace
         WorkspaceUtils.have_rights(workspace, user)
         secret.delete()
@@ -341,3 +339,81 @@ async def delete_secret(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Secret not found"
         )
+
+
+
+@router.delete(
+    path="/{secret_id}/trash",
+    summary="Move a secret to the trash",
+    status_code=status.HTTP_204_NO_CONTENT
+)
+async def move_to_trash_secret(
+    secret_id: str,
+    user: LoggedUser = Depends(get_current_user)
+) -> None:
+    try:
+        secret: Secret = Secret.objects(pk=secret_id).get()
+        if secret.trash is not None:
+            raise HTTPException(
+                status_code = status.HTTP_400_BAD_REQUEST,
+                detail = "The secret is alreay in the trash"
+            )
+
+        workspace : Workspace = secret.folder.workspace
+        WorkspaceUtils.have_rights(workspace, user)
+        trash : Trash = WorkspaceUtils.get_trash_folder(workspace)
+
+        SecretUtils.move_to_trash(secret, trash)
+
+        create_history(
+            user=user.email,
+            workspace=workspace.name,
+            workspace_owner=workspace.owner.email,
+            action=f"Move secret {secret.name.value} in the trash"
+        )
+
+        logger.info(f"[SECRET][{str(workspace.pk)}][{workspace.name}] {user.in_db.email} move secret {secret.name.value} to trash")
+    
+    except Secret.DoesNotExist:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Secret not found"
+        )
+
+@router.patch(
+    path="/{secret_id}/restore",
+    summary = "Restore a secret from the trash",
+    status_code = status.HTTP_204_NO_CONTENT
+)
+async def restore(
+    secret_id: str,
+    user : LoggedUser = Depends(get_current_user)
+) -> None:
+    try:
+        secret: Secret = Secret.objects(pk=secret_id).get()
+    except Secret.DoesNotExist:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Secret not found"
+        )
+
+    if secret.trash is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail = "The secret is not in the trash"    
+        )
+
+    workspace : Workspace = secret.trash.workspace
+    WorkspaceUtils.have_rights(workspace, user)
+    SecretUtils.restore(secret, workspace)
+
+    create_history(
+        user=user.email,
+        workspace=workspace.name,
+        workspace_owner=workspace.owner.email,
+        action=f"Restored secret {secret.name.value}"
+    )
+
+    logger.info(f"[SECRET][{str(workspace.pk)}][{workspace.name}] {user.in_db.email} restored secret {secret.name.value}")
+
+

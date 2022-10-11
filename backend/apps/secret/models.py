@@ -22,6 +22,7 @@ __email__ = "contact@teamlock.io"
 __doc__ = ''
 
 from apps.folder.models import Folder
+from apps.trash.models import Trash
 from datetime import datetime
 from . import schema
 import mongoengine
@@ -43,6 +44,8 @@ class Secret(mongoengine.Document):
         Folder,
         reverse_delete_rule=mongoengine.CASCADE
     )
+
+    trash = mongoengine.ReferenceField(Trash, reverse_delete_rule=mongoengine.CASCADE)
 
     meta = {
         "allow_inheritance": True

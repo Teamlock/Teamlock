@@ -28,6 +28,7 @@ from apps.workspace.models import Share
 from toolkits.schema import RSASchema
 from pykeepass import create_database
 from apps.folder.models import Folder
+from apps.trash.models import Trash
 from .const import WHITELIST_RIGHTS
 from toolkits.mail import MailUtils
 from apps.user.models import User
@@ -148,13 +149,7 @@ class WorkspaceUtils:
 
         workspace.save()
 
-        Folder.objects.create(
-            name="Trash",
-            icon="mdi-delete",
-            created_by=user,
-            is_trash=True,
-            workspace=workspace
-        )
+        Trash.objects.create(workspace=workspace)
 
 
         Folder.objects.create(
@@ -252,7 +247,7 @@ class WorkspaceUtils:
         )
 
         encrypted_secret = const.MAPPING_SECRET[secret_def.secret_type]()
-        ignored_fields = ["_id", "folder", "created_at", "updated_at", "secret_type"]
+        ignored_fields = ["_id", "folder", "created_at", "updated_at", "secret_type","trash"]
 
         for property in secret_def.schema()["properties"].keys():
             if property not in ignored_fields:
@@ -291,7 +286,7 @@ class WorkspaceUtils:
 
         decrypted_secret = secret_def.copy()
         ignored_fields = [secret_def.Base().protected_fields]
-        ignored_fields.extend(["_id", "folder", "created_at", "updated_at", "secret_type", "folder_name", "workspace_name"])
+        ignored_fields.extend(["_id", "folder", "created_at", "updated_at", "secret_type", "folder_name", "workspace_name","trash"])
 
         for property in secret_def.schema()["properties"].keys():
             if property not in ignored_fields:
@@ -488,8 +483,6 @@ class WorkspaceUtils:
                 parent=parent,
                 icon=folder.icon,
                 name=folder.name,
-                is_trash=folder.is_trash, 
-                in_trash=folder.in_trash,  
                 created_by=folder.created_by.pk,
                 created_at=folder.created_at,
                 password_policy=password_policy,
@@ -550,13 +543,13 @@ class WorkspaceUtils:
             os.remove(path)
     
     @classmethod
-    def get_trash_folder(cls,workspace_id : str | ObjectId) -> Folder:
+    def get_trash_folder(cls,workspace_id : str | ObjectId) -> Trash:
         try:
-            return Folder.objects(is_trash=True,workspace=workspace_id).get()
-        except Folder.DoesNotExist:
+            return Trash.objects(workspace=workspace_id).get()
+        except Trash.DoesNotExist:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="Folder not found"
+                detail="Trash not found"
             )
     
     @classmethod

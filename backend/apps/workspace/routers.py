@@ -40,6 +40,8 @@ from apps.auth.schema import LoggedUser
 from fastapi.responses import Response
 from .models import Workspace, Share
 from apps.folder.models import Folder
+from apps.secret.models import Secret
+from apps.trash.schema import TrashSchema
 from datetime import datetime
 from settings import settings
 from toolkits import const
@@ -406,27 +408,23 @@ async def export_workspace_file(
 
 @router.get(
     path="/{workspace_id}/trash",
-    summary="Get the trash folder"
+    summary="Get the trash folder, and all its secrets"
 )
 async def get_trash(
     workspace_id: str,
     user: LoggedUser = Depends(get_current_user)
-) -> FolderSchema:
+) -> TrashSchema:
     trash = WorkspaceUtils.get_trash_folder(workspace_id)
     WorkspaceUtils.have_rights(workspace_id, user)
 
-    logger.info(f"[FOLDER][{str(trash.workspace.pk)}][{trash.workspace.name}] {user.in_db.email} retreive folder {trash.name}")
-    return FolderSchema(
-        id=trash.pk,
-        name=trash.name,
-        icon=trash.icon,
-        is_trash=True,
-        in_trash=False,
-        password_policy=None,
-        workspace=trash.workspace.pk,
-        created_at=trash.created_at,
-        created_by=trash.created_by.pk,
-        parent=None
+    trash_secrets = [sec.pk for sec in Secret.objects(trash = trash)]
+
+    logger.info(f"[FOLDER][{str(trash.workspace.pk)}][{trash.workspace.name}] {user.in_db.email} retreive trash")
+    return TrashSchema(
+        id = trash.pk,
+        workspace = trash.workspace.pk, 
+        created_at = trash.created_at,
+        secrets = trash_secrets
     )
 
 @router.delete(
@@ -438,16 +436,11 @@ async def delete_trash_content(
     workspace_id: str,
     user: LoggedUser = Depends(get_current_user)
 ):
+    workspace, _ = WorkspaceUtils.get_workspace(workspace_id,user)
     trash = WorkspaceUtils.get_trash_folder(workspace_id)
     WorkspaceUtils.have_rights(workspace_id, user)
-    #delete all the folder within the trash
-    children: list[Folder] = FolderUtils.get_root_children(trash.pk)
-    for child in children:
-        child.delete()
-    #delete keys in th trash
-
-    for model_ in const.MAPPING_SECRET.values():
-        model_.objects(folder=trash).delete()
+    
+    [secret.delete() for secret in Secret.objects(trash = trash)]
 
     return Response(status_code=status.HTTP_204_NO_CONTENT)
     

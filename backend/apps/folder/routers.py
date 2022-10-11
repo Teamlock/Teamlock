@@ -78,8 +78,6 @@ async def get_folder(
         return FolderSchema(
             name=folder.name,
             icon=folder.icon,
-            is_trash=folder.is_trash,
-            in_trash=folder.in_trash,
             password_policy=password_policy,
             workspace=folder.workspace.pk,
             created_at=folder.created_at,
@@ -123,11 +121,6 @@ async def create_folder(
     if folder_def.parent:
         try:
             folder_parent = Folder.objects(pk=folder_def.parent).get()
-            if folder_parent.in_trash or folder_parent.is_trash:
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Can't add a folder within the trash"
-                )                
             folder.parent = folder_parent
         except Folder.DoesNotExist:
             raise HTTPException(
@@ -165,11 +158,6 @@ async def update_folder(
 
     try:
         folder: Folder = Folder.objects(pk=folder_id).get()
-        if folder.is_trash:
-            raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Can't modify the trash"
-        )
     except Folder.DoesNotExist:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -185,11 +173,6 @@ async def update_folder(
         try:
             folder_parent = Folder.objects(id=folder_def.parent).get()
             folder.parent = folder_parent
-            #test where the folder is going to be 
-            if (folder_parent.in_trash and not folder.in_trash):
-                FolderUtils.move_to_trash(folder)
-            elif (not folder_parent.in_trash and folder.in_trash):
-                FolderUtils.restore(folder)
         except Folder.DoesNotExist:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -198,9 +181,6 @@ async def update_folder(
     elif folder_def.moved:
         folder.parent = None
 
-    if folder.in_trash and (not folder_def.parent or not folder.parent.in_trash):
-        folder.in_trash = False
-    
     folder.save()
     logger.info(f"[FOLDER][{str(folder.workspace.pk)}][{folder.workspace.name}] {user.in_db.email} update folder {folder_def.name}")
 
@@ -228,11 +208,6 @@ async def copy_folder(
         folder: Folder = Folder.objects(pk=folder_id).get()
         WorkspaceUtils.have_rights(str(folder.workspace.pk), user)
 
-        if folder.is_trash or folder.in_trash:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Can't copy a folder within the trash to another workspace"
-            )
         # Check if user has rights on the other workspace
         to_workspace: Workspace = Workspace.objects(pk=to_workspace_id).get()
         WorkspaceUtils.have_rights(to_workspace_id, user)
@@ -275,40 +250,35 @@ async def copy_folder(
         )
 
 
-@router.delete(
-    path="/{folder_id}",
-    summary="Delete a folder",
-    status_code=status.HTTP_204_NO_CONTENT
-)
-async def delete_folder(
-    folder_id: str,
-    user: LoggedUser = Depends(get_current_user)
-): 
-    try:
-        folder: Folder = Folder.objects(pk=folder_id).get()
-        WorkspaceUtils.have_rights(str(folder.workspace.pk), user)
-        if folder.is_trash:
-            raise HTTPException(
-                status_code=status.HTTP_406_NOT_ACCEPTABLE,
-                detail="You can't remove the trash folder"
-            )
+# @router.delete(
+#     path="/{folder_id}",
+#     summary="Delete a folder",
+#     status_code=status.HTTP_204_NO_CONTENT
+# )
+# async def delete_folder(
+#     folder_id: str,
+#     user: LoggedUser = Depends(get_current_user)
+# ): 
+#     try:
+#         folder: Folder = Folder.objects(pk=folder_id).get()
+#         WorkspaceUtils.have_rights(str(folder.workspace.pk), user)
 
-        logger.info(f"[FOLDER][{str(folder.workspace.pk)}][{folder.workspace.name}] {user.in_db.email} delete folder {folder.name}")
-        folder.delete()
+#         logger.info(f"[FOLDER][{str(folder.workspace.pk)}][{folder.workspace.name}] {user.in_db.email} delete folder {folder.name}")
+#         folder.delete()
 
-        create_history(
-            user=user.in_db.email,
-            workspace=folder.workspace.name,
-            workspace_owner=folder.workspace.owner.email,
-            action=f"Folder {folder.name} deleted"
-        )
+#         create_history(
+#             user=user.in_db.email,
+#             workspace=folder.workspace.name,
+#             workspace_owner=folder.workspace.owner.email,
+#             action=f"Folder {folder.name} deleted"
+#         )
 
-        return Response(status_code=status.HTTP_204_NO_CONTENT)
-    except Folder.DoesNotExist:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Folder not found"
-        )
+#         return Response(status_code=status.HTTP_204_NO_CONTENT)
+#     except Folder.DoesNotExist:
+#         raise HTTPException(
+#             status_code=status.HTTP_404_NOT_FOUND,
+#             detail="Folder not found"
+#         )
 
 @router.delete(
     path="/{folder_id}/trash",
@@ -321,28 +291,11 @@ async def move_trash_folder(
 ):
     try:
         folder: Folder = Folder.objects(pk=folder_id).get()
-        if folder.is_trash:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="You can't move to trash that folder"
-            )
 
         WorkspaceUtils.have_rights(folder.workspace, user)
-        trash_folder = Folder.objects(is_trash=True,workspace=folder.workspace).get()
-        if folder.parent and folder.parent.pk == trash_folder.pk:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="The folder is already in the trash"
-            )
-
-        if folder.pk == trash_folder.pk:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Can't put in trash the trash folder"
-            )
-        folder.parent = trash_folder
-        FolderUtils.move_to_trash(folder)
-        folder.save()
+        trash : Trash = WorkspaceUtils.get_trash_folder(folder.workspace)
+        FolderUtils.move_to_trash(folder, trash, user)
+        
         return Response(status_code=status.HTTP_204_NO_CONTENT)
     except Folder.DoesNotExist:
         raise HTTPException(
@@ -389,28 +342,11 @@ async def get_secrets(
 ):
     try:
         folder: Folder = Folder.objects(pk=folder_id).get()
+        secrets = FolderUtils.get_secrets(folder_id,category, user)
+        logger.info(f"[FOLDER][{str(folder.workspace.pk)}][{folder.workspace.name}] {user.in_db.email} retreive secrets in folder {folder.name}")
+        return secrets
     except Folder.DoesNotExist:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Folder not found"
         )
-
-    _, sym_key = WorkspaceUtils.get_workspace(folder.workspace.pk, user)
-
-    model_ = const.MAPPING_SECRET[category]
-    tmp_secrets: list = list(model_.objects(folder=folder))
-    print(Secret.objects.all())
-    secrets: list = []
-
-    decrypted_sym_key = CryptoUtils.rsa_decrypt(
-        sym_key,
-        user.in_db.private_key,
-        CryptoUtils.decrypt_password(user)
-    )
-
-    for tmp in tmp_secrets:
-        schema = tmp.schema()
-        secrets.append(WorkspaceUtils.decrypt_secret(decrypted_sym_key, schema))
-
-    logger.info(f"[FOLDER][{str(folder.workspace.pk)}][{folder.workspace.name}] {user.in_db.email} retreive secrets in folder {folder.name}")
-    return secrets
