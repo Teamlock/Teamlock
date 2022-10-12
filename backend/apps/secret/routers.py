@@ -160,13 +160,14 @@ async def get_secret(
             action=f"Retreive secret for secret {decrypted_secret.name.value} in folder {secret.folder.name}"
         )
 
-        create_notification(
-            user=user.id,
-            secret=secret,
-            request=request,
-            mail=True,
-            background_task=background_task
-        )
+        if user.email != decrypted_secret.created_by:
+            create_notification(
+                user=user.id,
+                secret=secret,
+                request=request,
+                mail=True,
+                background_task=background_task
+            )
 
         logger.info(f"[SECRET][{str(workspace.pk)}][{workspace.name}] {user.in_db.email} retreive secret {decrypted_secret.name.value}")
         decrypted_secret.folder_name = Folder.objects(pk=decrypted_secret.folder).get().name

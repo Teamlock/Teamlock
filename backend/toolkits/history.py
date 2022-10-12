@@ -65,7 +65,7 @@ def create_notification(
                     if background_task:
                         background_task.add_task(
                             ProMail().send_mail,
-                            ["olivier.deregis@teamlock.io"],
+                            [notif.user.email],
                             "",
                             "secret_used"
                         )

@@ -60,7 +60,7 @@ router: APIRouter = APIRouter()
 )
 async def get_workspaces(user: LoggedUser = Depends(get_current_user)) -> list[WorkspaceSchema]:
     workspaces = [SharedWorkspaceSchema(
-        **data.to_mongo()) for data in Workspace.objects(owner=user.id)]
+        **data.to_mongo()) for data in Workspace.objects(owner=user.id).order_by("name")]
 
     shared_query: Q = Q(user=user.id) & (
         Q(expire_at=None) | Q(expire_at__lte=datetime.utcnow()))

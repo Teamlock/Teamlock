@@ -43,7 +43,7 @@
                 <v-icon class="mr-4">mdi-bell-ring</v-icon>
                 <v-toolbar-title>{{ $t('title.notifications') }}</v-toolbar-title>
                 <v-spacer />
-                <v-tooltip bottom>
+                <v-tooltip bottom v-if="notifications.length > 0">
                     <template v-slot:activator="{ on, attrs }">
                         <v-icon
                             @click="emptyNotifications()"

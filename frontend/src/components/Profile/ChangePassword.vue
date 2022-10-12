@@ -69,6 +69,7 @@
                                 <v-btn
                                     :loading="loading"
                                     color="primary"
+                                    class="float-right"
                                     outlined
                                     type="submit"
                                 >

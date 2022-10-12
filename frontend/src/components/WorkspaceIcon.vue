@@ -1,6 +1,7 @@
 <template>
     <v-bottom-navigation :height="50" v-resize-text="{minFontSize: 12}">
         <v-btn
+            @click="selectWorkspace"
             class="workspace-select-button"
             @contextmenu.native="openContextMenu"
             :loading="workspace.import_in_progress"

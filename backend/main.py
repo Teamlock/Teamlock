@@ -58,7 +58,7 @@ logger = logging.getLogger("api")
 
 log_config = uvicorn.config.LOGGING_CONFIG
 log_config["formatters"]["access"]["fmt"] = '{"date": "%(asctime)s", "level": "%(levelname)s", "message": "%(message)s"}'
-log_config["formatters"]["default"]["fmt"] = '{"date": "%(asctime)s", "level": "%(levelname)s", "message": "%(message)s"}'
+# log_config["formatters"]["default"]["fmt"] = '{"date": "%(asctime)s", "level": "%(levelname)s", "message": "%(message)s"}'
 
 templates = Jinja2Templates(directory="templates")
 
