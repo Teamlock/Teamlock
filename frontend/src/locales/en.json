@@ -1,5 +1,15 @@
 {
     "label": {
+        "edit_workspace": "Edit workspace",
+        "share_workspace": "Share workspace",
+        "export_workspace": "Export workspace",
+        "use_biometric": "Use biometric",
+        "general": "General",
+        "updated_by": "Updated by",
+        "created_by": "Created by",
+        "no_notifications": "No notifications",
+        "urls": "URLs",
+        "remove": "Remove",
         "recovery_configuration": "Recovery External Storage",
         "send_recovery_enabled": "Send user's recovery key to an external storage",
         "product_type": "Storage Type",
@@ -63,7 +73,7 @@
         "mail_template": "Mail template",
         "registration": "Registration",
         "import_workspace": "Import",
-        "last_change_password": "Last password change",
+        "last_change_password": "Last change password",
         "workspace_owner": "You're the owner of this workspace",
         "allow_self_registration": "Allow self registration",
         "allowed_email_addresses": "Allowed Email Addresses",
@@ -105,6 +115,7 @@
         "folder": "Folder",
         "ip": "IP Address",
         "name": "Name",
+        "secret_name": "Secret name",
         "login": "Login",
         "generate_password": "Generate password accordingly to the password policy",
         "show_password": "Show password",
@@ -174,10 +185,13 @@
         "copy_id": "Copy ID"
     },
     "title": {
+        "notifications": "Notifications",
         "test_configuration": "Test connection",
         "send_sms": "Send SMS",
         "key": "Key",
         "user": "User",
+        "recovery": "Recovery",
+        "two_factor": "Two factor",
         "add_login": "Create a login",
         "add_server": "Create a server",
         "add_phone": "Create a phone",
@@ -206,6 +220,7 @@
         "phone": "Phone"
     },
     "button": {
+        "notification_read": "Read",
         "download_certificates": "Download Certificates",
         "test": "Test",
         "recover": "Recover account",
@@ -229,6 +244,10 @@
         "send": "Send"
     },
     "success": {
+        "notif_created": "You will receive an alert when this secret is used",
+        "notif_deleted": "You will no longer receive an alert when this secret is used",
+        "notif_cleaned": "Notifications cleared",
+        "notif_ack": "Notification read",
         "recovery_save": "Recovery Configuration saved",
         "recovery_ok": "Connection OK",
         "secret_created": "Secret created",
@@ -299,6 +318,7 @@
         "restore": "To restore that folder or those secrets, move them at the wanted place"
     },
     "error": {
+        "invalid_biometric": "Invalid biometric, please use your password to log in",
         "file_too_large": "File too large. Teamlock accept only files of 10MB or less",
         "invalid_form": "Invalid form",
         "trash_cant_be_moved": "Trash can't be moved",
@@ -318,6 +338,11 @@
         "too_many_auth_failures": "Too many authentication failures. Account locked up for 10 minutes"
     },
     "help": {
+        "clear_notification": "Clear notifications",
+        "warning_secret_use": "Send me an alert when this secret is used",
+        "warning_secret_use_disable": "Disable alert when this secret is used",
+        "export_workspace_password": "This password will be used to encrypt the KeePass database",
+        "googlechrome_import": "All passwords will be put in a Google folder",
         "send_recovery_enabled": "You can define an external storage to store User's recovery key. If an user lost his recovery key, you'll be able to restore his account.",
         "enable_twilio": "Enable Twilio. Will be used to send secrets by SMS",
         "twilio_recipient": "Phone Number with international country code (ex: +33 for France)",
@@ -360,7 +385,8 @@
         "edit_key": "Edit user",
         "empty_trash": "Empty trash",
         "context_menu_workspace": "Right click for more options",
-        "copied": "Copied"
+        "copied": "Copied",
+        "show_read_notifications": "Show read notifications"
     },
     "folder": {
         "edit": "Edit folder",
@@ -374,5 +400,15 @@
             "text": "Hello,<br/><br/>You have been added into a Teamlock application.<br/>Please click on the following link to configure your account:",
             "link_text": "Configure your account"
         }
+    },
+    "notifications": {
+        "details": {
+            "User recovery attempt": "User attempt to use the recovery, but his not allowed to",
+            "Too many authentication failed": "Too many authentication failed. User locked for 10 minutes",
+            "Secret usage": "An user has reveal a secret"
+        },
+        "User recovery attempt": "User recovery attempt",
+        "Too many authentication failed": "Too many authentication failed",
+        "Secret usage": "Secret used"
     }
 }

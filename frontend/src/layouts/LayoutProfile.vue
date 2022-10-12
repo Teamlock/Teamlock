@@ -21,7 +21,7 @@
             >
                 <v-list-item link :to="{ name: 'Profile' }" exact>
                     <v-list-item-icon>
-                    <v-icon>mdi-account-circle</v-icon>
+                    <v-icon>mdi-account-box</v-icon>
                     </v-list-item-icon>
                     <v-list-item-title>{{ $t('label.profile') }}</v-list-item-title>
                 </v-list-item>

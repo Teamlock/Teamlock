@@ -16,7 +16,7 @@ const secretMixin = {
       align: 'start',
       value: 'actions',
       sortable: false,
-      width: "150px",
+      width: "180px",
       component: "ActionCell"
     },
     login: {
@@ -34,9 +34,10 @@ const secretMixin = {
           component: "SecretCell"
         },
         {
-          text: vm.$t('label.url'),
+          text: vm.$t('label.urls'),
           align: 'start',
-          value: 'url',
+          value: 'urls',
+          width: 300,
           component: "UrlCell"
         },
         {
@@ -156,11 +157,7 @@ const secretMixin = {
 
   methods: {
     copySuccess(message) {
-      this.$toast.success(message, {
-        closeOnClick: true,
-        timeout: 3000,
-        icon: true
-      })
+      this.$toast.success(message)
 
       if (this.electron) {
         setTimeout(() => {

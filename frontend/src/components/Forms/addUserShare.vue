@@ -262,11 +262,7 @@ export default defineComponent({
                 this.$emit("reload")
                 this.$emit("close")
 
-                this.$toast.success(this.$t("success.users_added_to_workspace"), {
-                    closeOnClick: true,
-                    timeout: 3000,
-                    icon: true
-                })
+                this.$toast.success(this.$t("success.users_added_to_workspace"))
             })
         }
     }

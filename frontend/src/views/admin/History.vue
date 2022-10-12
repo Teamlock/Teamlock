@@ -111,6 +111,7 @@
         <template v-slot:[`item.workspace`]="{ item }">
             <v-btn
                 @click="addFilter('workspace', item.workspace)"
+                v-if="item.workspace"
                 color="primary"
                 tile
                 icon

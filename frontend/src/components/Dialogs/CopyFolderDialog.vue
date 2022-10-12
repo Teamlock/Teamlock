@@ -86,11 +86,7 @@ export default defineComponent({
             this.is_loading = true;
             const uri = `/api/v1/folder/${this.folder_id}/copy`
             http.post(uri, this.to_workspace).then(() => {
-                this.$toast.success(this.$t("success.folder_copied"), {
-                    closeOnClick: true,
-                    timeout: 3000,
-                    icon: true
-                })
+                this.$toast.success(this.$t("success.folder_copied"))
 
                 this.is_loading = false
                 this.open = false

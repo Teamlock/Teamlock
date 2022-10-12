@@ -21,21 +21,21 @@ __maintainer__ = "Teamlock Project"
 __email__ = "contact@teamlock.io"
 __doc__ = ''
 
+from fastapi import APIRouter, Depends, status, Body, Request, BackgroundTasks
+from toolkits.history import create_history, create_notification
 from toolkits.utils import check_password_complexity
-from fastapi import APIRouter, Depends, status, Body
 from apps.workspace.models import Workspace, Share
 from apps.config.schema import PasswordPolicySchema
 from toolkits.workspace import WorkspaceUtils
 from fastapi.exceptions import HTTPException
 from apps.auth.tools import get_current_user
-from toolkits.history import create_history
 from mongoengine.queryset.visitor import Q
 from apps.auth.schema import LoggedUser
 from toolkits.crypto import CryptoUtils
 from fastapi.responses import Response
 from apps.folder.models import Folder
 from .models import Login, Secret
-from datetime import datetime
+from datetime import date, datetime
 from settings import settings
 from typing import Union
 from . import schema
@@ -97,11 +97,12 @@ async def search_secrets(
 @router.get(
     path="/global/search",
     summary="Search on all workspaces",
-    response_model=list[schema.BankSchema] | list[schema.ServerSchema] | list[schema.LoginSchema] | list[schema.PhoneSchema]
+    response_model=list[schema.BankSchema] | list[schema.ServerSchema] | list[schema.LoginSchema] | list[schema.PhoneSchema] | schema.LoginSchema
 )
 async def global_search_keys(
-    search: str,
-    category: str,
+    search: str = "",
+    category: str = "login",
+    package_name: str = "",
     user: LoggedUser = Depends(get_current_user)
 ):
     workspaces = list(Workspace.objects(owner=user.id))
@@ -110,11 +111,17 @@ async def global_search_keys(
     shares = list(Share.objects(shared_query))
     workspaces.extend([s.workspace for s in shares])
 
-    keys: list = []
+    secrets: list = []
     for workspace in workspaces:
-        keys.extend(WorkspaceUtils.search(workspace.pk, search, user, category))
+        secrets.extend(WorkspaceUtils.search(workspace.pk, search, user, category, package_name=package_name))
     
-    return keys
+    if len(secrets) == 0:
+        return []
+
+    if package_name:
+        return secrets[0]
+
+    return secrets
 
 
 @router.get(
@@ -124,6 +131,8 @@ async def global_search_keys(
 )
 async def get_secret(
     secret_id: str,
+    request: Request,
+    background_task: BackgroundTasks,
     user: LoggedUser = Depends(get_current_user)
 ):
     try:
@@ -151,9 +160,17 @@ async def get_secret(
             action=f"Retreive secret for secret {decrypted_secret.name.value} in folder {secret.folder.name}"
         )
 
+        create_notification(
+            user=user.id,
+            secret=secret,
+            request=request,
+            mail=True,
+            background_task=background_task
+        )
+
         logger.info(f"[SECRET][{str(workspace.pk)}][{workspace.name}] {user.in_db.email} retreive secret {decrypted_secret.name.value}")
-        
-        # tmp = decrypted_secret.dict()
+        decrypted_secret.folder_name = Folder.objects(pk=decrypted_secret.folder).get().name
+        decrypted_secret.workspace_name = workspace.name
         return decrypted_secret
 
     except Secret.DoesNotExist:
@@ -196,6 +213,7 @@ async def create_secret(
             
         encrypted_secret = WorkspaceUtils.encrypt_secret(user, sym_key, schema.secret)
         encrypted_secret.folder = folder
+        encrypted_secret.package_name = schema.package_name
 
         encrypted_secret.created_by = user.in_db
         encrypted_secret.updated_by = user.in_db
@@ -282,10 +300,26 @@ async def update_secret(
         if policy:
             check_password_complexity(policy, schema.secret)
 
+        decrypted_sym_key = CryptoUtils.rsa_decrypt(
+            sym_key,
+            user.in_db.private_key,
+            CryptoUtils.decrypt_password(user)
+        )
+        decrypted_secret = WorkspaceUtils.decrypt_secret(
+            decrypted_sym_key,
+            secret.schema(),
+            get_protected_fields=True
+        )
+
         encrypted_secret: Secret = WorkspaceUtils.encrypt_secret(user, sym_key, schema.secret)
+
+        encrypted_secret.check_changes(decrypted_secret, schema.secret)
 
         encrypted_secret.folder = secret.folder
         encrypted_secret.pk = secret.pk
+
+        if not encrypted_secret.created_by:
+            encrypted_secret.created_by = user.in_db
 
         encrypted_secret.updated_by = user.in_db
         encrypted_secret.save()

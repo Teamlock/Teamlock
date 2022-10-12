@@ -3,6 +3,7 @@
     <router-view />
 
     <portal-target name="contextMenuFolder" />
+    <portal-target name="contextMenuWorkspace" />
   </div>
 </template>
 

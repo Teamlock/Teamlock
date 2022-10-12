@@ -1,5 +1,12 @@
 {
     "label": {
+        "edit_workspace": "Editer le l'espace de travail",
+        "share_workspace": "Partage l'espace de travail",
+        "export_workspace": "Exporter l'espace de travail",
+        "urls": "Urls",
+        "general": "Général",
+        "updated_by": "Mise à jour par",
+        "created_by": "Créé par",
         "recovery_configuration": "Storage Externe pour la récupération",
         "send_recovery_enabled": "Envoyer les clés de récupération des utilisateurs sur un stockage externe",
         "product_type": "Stockage",
@@ -51,6 +58,7 @@
         "history": "Historique",
         "expire": "Expire",
         "expire_at": "Expire le",
+        "no_notifications": "Aucune notification",
         "created_at": "Créé le",
         "user_agent": "User agent",
         "download": "Télécharger",
@@ -104,6 +112,7 @@
         "folder": "Dossier",
         "ip": "Adresse IP",
         "name": "Nom",
+        "secret_name": "Nom du secret",
         "login": "Username",
         "generate_password": "Générer un mot de passe avec la politique",
         "show_password": "Afficher le mot de passe",
@@ -173,9 +182,12 @@
         "copy_id": "Copier l'ID"
     },
     "title": {
+        "notifications": "Notifications",
         "test_configuration": "Test connexion",
         "send_sms": "Envoyer un SMS",
         "key": "Clé",
+        "recovery": "Récupération",
+        "two_factor": "Double facteur",
         "user": "Utilisateur",
         "add_login": "Créer un identifiant",
         "edit_login": "Editer un identifiant",
@@ -227,6 +239,10 @@
         "send": "Envoyer"
     },
     "success": {
+        "notif_created": "Vous recevrez une alerte lorsque ce secret est utilisé",
+        "notif_deleted": "Vous ne recevrez plus d'alerte lorsque ce secret est utilisé",
+        "notif_cleaned": "Notifications supprimées",
+        "notif_ack": "Notification lue",
         "recovery_save": "Configuration sauvegrdée",
         "recovery_ok": "Connexion OK",
         "secret_created": "Secret créé",
@@ -317,6 +333,10 @@
         "too_many_auth_failures": "Trop d'erreur d'authentification. Votre compte est bloqué pendant 10 minutes"
     },
     "help": {
+        "clear_notification": "Supprimer toutes les notifications",
+        "warning_secret_use": "M'envoyer une alerte quand ce secret est utilisé",
+        "warning_secret_use_disable": "Ne plus m'envoyer d'alerte si ce secret est utilisé",
+        "export_workspace_password": "Ce mot de passe sera utilisé pour chiffrer la base de données KeePass",
         "send_recovery_enabled": "Vous pouvez définir un stockage externe pour les clés de récupération utilisateur. Si un utilisateur perd sa clé de récupération, vous pourrez être en mesure de récupérer son compte.",
         "enable_twilio": "Activer Twilio. Sera utilisé pour envoyer des secrets par SMS",
         "twilio_recipient": "Numéro de téléphone avec l'indicatif téléphonique international (ex: +33 pour la France)",
@@ -366,11 +386,10 @@
         "copy": "Copier vers un autre espace de travail",
         "confirm_copy": "Confirmer la copie"
     },
-    "$vuetify": {
-        "dataIterator": {
-            "rowsPerPageText": "Element per sida:",
-            "pageText": "{0}-{1} av {2}"
+    "notifications": {
+        "details": {
+            "User recovery attempt": "L'utilisateur a utilisé la fonction de récupération, mais n'est pas autorisé"
         },
-        "noDataText": "BONSOIR"
+        "User recovery attempt": "Tentative de récupération de compte utilisateur"
     }
 }
