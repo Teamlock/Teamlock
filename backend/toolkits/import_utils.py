@@ -8,6 +8,7 @@ import xml.etree.ElementTree as ET
 from apps.user.models import User
 from settings import settings
 import logging.config
+import traceback
 import logging
 import json
 import csv
@@ -74,7 +75,7 @@ class ImportUtils(WorkspaceUtils):
         def save_folders(user, folders, parent=None):
             for tmp_folder in folders:
                 try:
-                    folder = Folder.objects(name=group_name, parent=parent, workspace=workspace)[0]
+                    folder = Folder.objects(name=tmp_folder['name'], parent=parent, workspace=workspace)[0]
                 except IndexError:
                     folder = Folder.objects.create(
                         workspace=workspace,
@@ -111,14 +112,17 @@ class ImportUtils(WorkspaceUtils):
         try:
             save_folders(user, file)
             workspace.import_in_progress = False
+            workspace.import_error = ""
             workspace.save()
 
             logger.info(
                 f"[IMPORT][{str(workspace.pk)}][{workspace.name}] Import finished"
             )
         except Exception as error:
-            logger.critical(error, exc_info=1)
+            tb = traceback.format_exc()
+            logger.critical(error)
             workspace.import_in_progress = False
+            workspace.import_error = tb
             workspace.save()
 
     @classmethod
@@ -194,6 +198,7 @@ class ImportUtils(WorkspaceUtils):
             save_xml_folder(user, racine)
 
             workspace.import_in_progress = False
+            workspace.import_error = ""
             workspace.save()
 
             logger.info(
@@ -201,8 +206,10 @@ class ImportUtils(WorkspaceUtils):
             )
 
         except Exception as error:
+            tb = traceback.format_exc()
             logger.critical(error, exc_info=1)
             workspace.import_in_progress = False
+            workspace.import_error = tb
             workspace.save()
     
     @classmethod
@@ -249,14 +256,17 @@ class ImportUtils(WorkspaceUtils):
                 Login.objects.insert(secrets)
             
             workspace.import_in_progress = False
+            workspace.import_error = ""
             workspace.save()
 
             logger.info(
                 f"[IMPORT][{str(workspace.pk)}] Import finished"
             )
         except Exception as error:
+            tb = traceback.format_exc()
             logger.critical(error, exc_info=1)
             workspace.import_in_progress = False
+            workspace.import_error = tb
             workspace.save()
 
     @classmethod
@@ -337,12 +347,15 @@ class ImportUtils(WorkspaceUtils):
                 Login.objects.insert(keys)
 
             workspace.import_in_progress = False
+            workspace.import_error = ""
             workspace.save()
 
             logger.info(
                 f"[IMPORT][{str(workspace.pk)}][{workspace.name}] Import finished"
             )
         except Exception as error:
-            logger.critical(error, exc_info=1)
+            tb = traceback.format_exc()
+            logger.critical(error)
             workspace.import_in_progress = False
+            workspace.import_error = tb
             workspace.save()

@@ -1,21 +1,19 @@
 <template>
     <v-bottom-navigation :height="50" v-resize-text="{minFontSize: 12}">
-        
-                <v-btn
-                    class="workspace-select-button"
-                    @contextmenu.native="openContextMenu"
-                    @click.stop="selectWorkspace"
-                    :loading="loading"
-                    :color="color"
-                    :height="50"
-                    :width="60"
-                    block
-                    small
-                    tile
-                >
-                    <small class="workspace-icon-name">{{ workspace.name }}</small>
-                    <v-icon class="workspace-icon">{{ workspace.icon }}</v-icon>
-                </v-btn>
+        <v-btn
+            class="workspace-select-button"
+            @contextmenu.native="openContextMenu"
+            :loading="workspace.import_in_progress"
+            :color="color"
+            :height="50"
+            :width="60"
+            block
+            small
+            tile
+        >
+            <small class="workspace-icon-name">{{ workspace.name }}</small>
+            <v-icon class="workspace-icon">{{ workspace.icon }}</v-icon>
+        </v-btn>
         <v-menu
             :position-x="x"
             :position-y="y"
@@ -76,17 +74,16 @@ export default defineComponent({
         }
     },
 
+    destroyed() {
+        if (this.interval) {
+            clearInterval(this.interval)
+        }
+    },
+
     mounted() {
         if (this.workspace.import_in_progress) {
-            this.loading = true
-            this.interval = setInterval(() => {
-                this.fetchWorkspace()
-            }, 5000)
+            this.startInterval()
         }
-
-        EventBus.$on("workspaceSelected", () => {
-            this.loading = false
-        })
     },
 
     methods: {
@@ -94,10 +91,17 @@ export default defineComponent({
             this.$emit('showMenu', e, this.workspace)
         },
 
+        startInterval() {
+            this.interval = setInterval(() => {
+                this.fetchWorkspace()
+            }, 5000)
+        },
+
         fetchWorkspace() {
             const uri = `/api/v1/workspace/${this.workspace._id}`
             http.get(uri).then((response) => {
                 if (!response.data.import_in_progress) {
+                    EventBus.$emit("importFinished", this.workspace._id)
                     clearInterval(this.interval)
                     this.$toast.success("Import successfully ended")
                     this.loading = false;

@@ -1,3 +1,5 @@
+/*eslint no-unused-vars: ["error", { "vars": "local" }]*/
+
 <template>
     <v-dialog v-model="open" width="600" scrollable>
         <v-card v-if="open">
@@ -141,7 +143,7 @@ export default defineComponent({
     },
 
     methods: {
-        importFile() {
+        async importFile() {
             this.loading = true;
 
             const formData = new FormData()
@@ -158,7 +160,6 @@ export default defineComponent({
                     "Content-Type": "multipart/form-data"
                 }
             }).then(() => {
-                this.loading = false
                 this.file = null
                 this.form = {
                     import_type: null,
@@ -173,11 +174,19 @@ export default defineComponent({
 
                 setTimeout(() => {
                     this.open = false
-                    EventBus.$emit("reloadWorkspaces")
+                    EventBus.$emit("importStarted", this.selected_workspace._id)
                 }, 200)
             }).catch((error) => {
-                this.loading = false
+                if (error.response.status === 413) {
+                    this.$toast.error(this.$t("error.file_too_large"), {
+                        closeOnClick: true,
+                        timeout: 3000,
+                        icon: true
+                    })
+                }
                 throw error
+            }).then(() => {
+                this.loading = false
             })
         }
     }
