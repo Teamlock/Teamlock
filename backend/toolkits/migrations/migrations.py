@@ -61,7 +61,7 @@ def migrate_1_12(db):
     db.secret.update({}, {'$set': {'_cls': 'Secret.Login'}}, multi=True)
 
 
-def migrate_1_14(db):
+def migrate_1_15(db):
     secrets = db.secret.find({'_cls': 'Secret.Login'})
     for secret in secrets:
         url = secret["url"]
@@ -87,7 +87,7 @@ class Migrations:
         1.0: migrate_1_0,
         1.1: migrate_1_1,
         1.12: migrate_1_12,
-        1.14: migrate_1_14
+        1.15: migrate_1_15
     }
 
     def __init__(self):
