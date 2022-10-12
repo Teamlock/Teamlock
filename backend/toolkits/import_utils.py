@@ -8,6 +8,7 @@ import xml.etree.ElementTree as ET
 from apps.user.models import User
 from settings import settings
 import logging.config
+import traceback
 import logging
 import json
 
@@ -112,7 +113,7 @@ class ImportUtils(WorkspaceUtils):
               f"[IMPORT][{str(workspace.pk)}][{workspace.name}] Import finished"
           )
       except Exception as error:
-          logger.critical(error, exc_info=1)
+          logger.critical(error)
           workspace.import_in_progress = False
           workspace.save()
 
@@ -188,9 +189,11 @@ class ImportUtils(WorkspaceUtils):
           )
 
       except Exception as error:
-          logger.critical(error, exc_info=1)
-          workspace.import_in_progress = False
-          workspace.save()
+        tb = traceback.format_exc()
+        logger.critical(error)
+        workspace.import_in_progress = False
+        workspace.import_error = tb
+        workspace.save()
 
   @classmethod
   def import_json_bitwarden(
@@ -268,6 +271,6 @@ class ImportUtils(WorkspaceUtils):
               f"[IMPORT][{str(workspace.pk)}][{workspace.name}] Import finished"
           )
       except Exception as error:
-          logger.critical(error, exc_info=1)
+          logger.critical(error)
           workspace.import_in_progress = False
           workspace.save()
