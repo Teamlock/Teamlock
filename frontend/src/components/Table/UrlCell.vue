@@ -19,7 +19,7 @@
             v-bind="attrs"
             v-on="on"
           >
-            {{ val }}
+            {{ val|str_limit(50) }}
           </span>
         </template>
         <span v-html="tooltipHTML" />
