@@ -6,7 +6,7 @@
                     @click="selectWorkspace"
                     class="workspace-select-button"
                     @contextmenu="showMenu"
-                    :loading="loading"
+                    :loading="workspace.import_in_progress"
                     v-on="on"
                     v-bind="attrs"
                     :color="color"
@@ -59,8 +59,7 @@ export default defineComponent({
     },
 
     data: () => ({
-        interval: null,
-        loading: false
+        interval: null
     }),
 
     computed: {
@@ -69,17 +68,20 @@ export default defineComponent({
         }
     },
 
+    destroyed() {
+        if (this.interval) {
+            clearInterval(this.interval)
+        }
+    },
+
     mounted() {
         if (this.workspace.import_in_progress) {
-            this.loading = true
             this.interval = setInterval(() => {
                 this.fetchWorkspace()
             }, 5000)
+            
+            this.$forceUpdate()
         }
-
-        EventBus.$on("workspaceSelected", () => {
-            this.loading = false
-        })
     },
 
     methods: {
@@ -91,13 +93,13 @@ export default defineComponent({
             const uri = `/api/v1/workspace/${this.workspace._id}`
             http.get(uri).then((response) => {
                 if (!response.data.import_in_progress) {
+                    EventBus.$emit("importFinished", this.workspace._id)
                     clearInterval(this.interval)
                     this.$toast.success("Import successfully ended", {
                         closeOnClick: true,
                         timeout: 3000,
                         icon: true
                     })
-                    this.loading = false;
                 }
             })
         },

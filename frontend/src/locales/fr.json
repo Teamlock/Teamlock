@@ -298,6 +298,7 @@
         "trash_emptied": "Corbeille vidée"
     },
     "error": {
+        "file_too_large": "Fichier trop volumineux. Teamlock n'accepte que les fichiers de 10MB et moins",
         "invalid_form": "Formulaire invalide",
         "trash_cant_be_moved": "La corbeille ne peut être déplacée",
         "invalid_password": "Mot de passe incorrect",

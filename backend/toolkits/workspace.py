@@ -252,7 +252,7 @@ class WorkspaceUtils:
         )
 
         encrypted_secret = const.MAPPING_SECRET[secret_def.secret_type]()
-        ignored_fields = ["_id", "folder", "created_at", "updated_at", "secret_type"]
+        ignored_fields = ["_id", "folder", "created_at", "updated_at", "secret_type", "folder_name", "workspace_name"]
 
         for property in secret_def.schema()["properties"].keys():
             if property not in ignored_fields:

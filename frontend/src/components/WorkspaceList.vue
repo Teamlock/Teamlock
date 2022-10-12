@@ -149,6 +149,14 @@ export default defineComponent({
     EventBus.$on("reloadWorkspaces", () => {
       this.fetchWorkspaces()
     })
+
+    EventBus.$on("importFinished", (workspace_id) => {
+      for (const i in this.workspaces) {
+        if (this.workspaces[i]._id == workspace_id) {
+          this.workspaces[i].import_in_progress = false
+        }
+      }
+    })
   },
 
   methods: {
@@ -203,22 +211,20 @@ export default defineComponent({
       }
     },
   
-    fetchWorkspaces() {
+    async fetchWorkspaces() {
       this.workspaces = []
+      
+      const response = await http.get("/api/v1/workspace/")
+      this.workspaces = response.data
 
-      http.get("/api/v1/workspace/")
-        .then((response) => {
-          this.workspaces = response.data
+      if (this.workspaces.length === 0) {
+        localStorage.removeItem("current_workspace")
+      }
 
-          if (this.workspaces.length === 0) {
-            localStorage.removeItem("current_workspace")
-          }
-
-          const current_workspace = this.getCurrentWorkspace()
-          if (current_workspace) {
-            this.selectWorkspace(current_workspace)
-          }
-        })
+      const current_workspace = this.getCurrentWorkspace()
+      if (current_workspace) {
+        this.selectWorkspace(current_workspace)
+      }
     },
 
     copyWorkspaceID(workspace_id) {
