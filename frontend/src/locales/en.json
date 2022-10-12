@@ -299,6 +299,7 @@
         "restore": "To restore that folder or those secrets, move them at the wanted place"
     },
     "error": {
+        "file_too_large": "File too large. Teamlock accept only files of 10MB or less",
         "invalid_form": "Invalid form",
         "trash_cant_be_moved": "Trash can't be moved",
         "invalid_password": "Invalid password",

@@ -12,8 +12,8 @@
       <div v-for="workspace in workspaces" :key="workspace._id">
         <workspace-icon
           @showMenu="show"
-          @selectWorkspace="selectWorkspace"
           :workspace="workspace"
+          @selectWorkspace="selectWorkspace"
           :owner="workspace.owner === $store.state.user._id"
           :selected="workspace._id === $store.state.selected_workspace._id"
         />
@@ -135,12 +135,19 @@ export default defineComponent({
     workspaceEditOpen: false,
     dialogWorkspaceDelete: false,
     tooltip_copy: false,
+    interval: null,
     showMenu: false,
     tooltipWorkspaceId: vm.$t('tooltip.copy_id'),
     workspace_to_edit: null,
     x: 0,
     y: 0
   }),
+  
+  destroyed() {
+    if (this.interval) {
+      clearInterval(this.interval)
+    }
+  },
 
   mounted() {
     setTimeout(() => {
@@ -148,6 +155,37 @@ export default defineComponent({
     }, 200);
     EventBus.$on("reloadWorkspaces", () => {
       this.fetchWorkspaces()
+    })
+
+    EventBus.$on("importStarted", (workspace_id) => {
+      for (const i in this.workspaces) {
+        if (this.workspaces[i]._id === workspace_id) {
+          this.workspaces[i].import_in_progress = true
+
+          this.interval = setInterval(async () => {
+            const uri = `/api/v1/workspace/${workspace_id}`
+            const { data } = await http.get(uri)
+            if (!data.import_in_progress) {
+              this.workspaces[i].import_in_progress = false
+              clearInterval(this.interval)
+
+              this.$toast.success("Import successfully ended", {
+                closeOnClick: true,
+                timeout: 3000,
+                icon: true
+              })
+            }
+          }, 5000);
+        }
+      }
+    })
+
+    EventBus.$on("importFinished", (workspace_id) => {
+      for (const i in this.workspaces) {
+        if (this.workspaces[i]._id == workspace_id) {
+          this.workspaces[i].import_in_progress = false
+        }
+      }
     })
   },
 
@@ -203,22 +241,20 @@ export default defineComponent({
       }
     },
   
-    fetchWorkspaces() {
+    async fetchWorkspaces() {
       this.workspaces = []
+      
+      const response = await http.get("/api/v1/workspace/")
+      this.workspaces = response.data
 
-      http.get("/api/v1/workspace/")
-        .then((response) => {
-          this.workspaces = response.data
+      if (this.workspaces.length === 0) {
+        localStorage.removeItem("current_workspace")
+      }
 
-          if (this.workspaces.length === 0) {
-            localStorage.removeItem("current_workspace")
-          }
-
-          const current_workspace = this.getCurrentWorkspace()
-          if (current_workspace) {
-            this.selectWorkspace(current_workspace)
-          }
-        })
+      const current_workspace = this.getCurrentWorkspace()
+      if (current_workspace) {
+        this.selectWorkspace(current_workspace)
+      }
     },
 
     copyWorkspaceID(workspace_id) {

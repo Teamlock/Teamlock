@@ -371,8 +371,6 @@ async def import_keepass_file(
         content_file.decode("utf-8")
     )
 
-    return Response(status_code=status.HTTP_200_OK)
-
 
 @router.get(
     path="/{workspace_id}/folders",
