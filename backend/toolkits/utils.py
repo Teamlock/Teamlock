@@ -151,7 +151,7 @@ def create_user_session(user, request) -> None | dict:
 
     # Keep only the last 30 days informations
     last_month = datetime.datetime.utcnow() - datetime.timedelta(days=30)
-    UserSession.objects(date__lte=last_month).delete()
+    UserSession.objects(date__lte=last_month, user=user).delete()
 
     user.last_seen = datetime.datetime.utcnow()
     user.save()

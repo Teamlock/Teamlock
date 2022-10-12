@@ -49,7 +49,6 @@ from apps.secret.routers import router as secret_router
 
 from apps.user.schema import AdminUserSchema, EditUserSchema
 from apps.config.schema import ConfigSchema
-from toolkits.redis_tools import RedisTools
 from toolkits.utils import create_user_toolkits
 from apps.workspace.models import Share
 from apps.config.models import Config
@@ -114,11 +113,6 @@ if not settings.DEV_MODE:
     async def main(request: Request):
         return templates.TemplateResponse("index.html", {"request": request})
 
-
-# @app.middleware("http")
-# async def add_process_time_header(request: Request, call_next):
-#     response = await call_next(request)
-#     return response
 
 
 @app.get("/ping", tags=["Supervision"])

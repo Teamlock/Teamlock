@@ -28,10 +28,9 @@ import os
 
 dotenv.load_dotenv()
 
-path = pathlib.Path(__file__).parent.resolve()
 
 class AppSettings(BaseSettings):
-    BASE_DIR: str = os.path.dirname(os.path.abspath(__file__))
+    BASE_DIR: str = str(pathlib.Path(__file__).parent.resolve())
     APP_URL: str = os.environ["APP_URL"]
     HOST: str = os.environ.get("HOST", "0.0.0.0")
     PORT: int = os.environ.get("PORT", 8000)
