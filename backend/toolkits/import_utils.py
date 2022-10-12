@@ -165,11 +165,11 @@ class ImportUtils(WorkspaceUtils):
 
                     secrets.append(cls.create_secret_import(
                         import_schema,
-                        tmp["name"],
-                        tmp["url"],
-                        tmp["login"],
-                        tmp["password"],
-                        tmp["informations"],
+                        tmp.get("name", ""),
+                        tmp.get("url", ""),
+                        tmp.get("login", ""),
+                        tmp.get("password", ""),
+                        tmp.get("informations", ""),
                         sym_key,
                         folder,
                         user
