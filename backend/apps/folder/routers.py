@@ -399,7 +399,6 @@ async def get_secrets(
 
     model_ = const.MAPPING_SECRET[category]
     tmp_secrets: list = list(model_.objects(folder=folder))
-    print(Secret.objects.all())
     secrets: list = []
 
     decrypted_sym_key = CryptoUtils.rsa_decrypt(
