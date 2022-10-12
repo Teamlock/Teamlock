@@ -152,8 +152,8 @@ export default defineComponent({
 
                 setTimeout(() => {
                     this.open = false
-                    window.location.reload()
-                }, 1000)
+                    EventBus.$emit("importStarted", this.selected_workspace._id)
+                }, 200)
             }).catch((error) => {
                 if (error.response.status === 413) {
                     this.$toast.error(this.$t("error.file_too_large"), {

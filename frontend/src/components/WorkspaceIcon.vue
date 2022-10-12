@@ -76,17 +76,19 @@ export default defineComponent({
 
     mounted() {
         if (this.workspace.import_in_progress) {
-            this.interval = setInterval(() => {
-                this.fetchWorkspace()
-            }, 5000)
-            
-            this.$forceUpdate()
+            this.startInterval()
         }
     },
 
     methods: {
         showMenu(e) {
             this.$emit('showMenu', e, this.workspace)
+        },
+
+        startInterval() {
+            this.interval = setInterval(() => {
+                this.fetchWorkspace()
+            }, 5000)
         },
 
         fetchWorkspace() {
