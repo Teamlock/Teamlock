@@ -7,13 +7,16 @@ module.exports = {
     electronBuilder: {
       builderOptions: {
         productName: "Teamlock",
-        appId: "teamlock.io",
+        appId: "io.teamlock.app",
         nsis: {
           // installerIcon: "public/icon.ico",
           // uninstallerIcon: "public/icon.ico"
         },
         mac: {
-          // icon: "public/icon.ico"
+          icon: "public/appstore.png"
+        },
+        win: {
+            icon: "public/appstore.png"
         }
       },
       // builderOptions: {

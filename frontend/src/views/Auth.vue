@@ -49,6 +49,12 @@
                                             :label="$t('label.password')"
                                             required
                                         />
+                                        <v-checkbox
+                                            v-if="electron && capabilities.touchID"
+                                            v-model="useBiometric"
+                                            :label="$t('label.use_biometric')"
+                                        />
+
                                         <v-btn type="submit" :loading="is_loading" color="primary">
                                             <v-icon>mdi-log-in</v-icon>
                                             {{ $t('button.login')}}
@@ -79,21 +85,21 @@
                         </v-card-text>
                         <v-card-actions>
                             <router-link 
-                                    v-if="self_registration"
-                                    text
-                                    :to="{name: 'Registration'}"
-                                >
-                                    {{ $t("button.register") }}
-                                </router-link>
+                                v-if="self_registration"
+                                text
+                                :to="{name: 'Registration'}"
+                            >
+                                {{ $t("button.register") }}
+                            </router-link>
 
-                                <v-spacer v-if="self_registration" />
+                            <v-spacer v-if="self_registration" />
 
-                                <router-link 
-                                    text
-                                    :to="{name: 'Recover'}"
-                                >
-                                    {{ $t("button.recover") }}
-                                </router-link>
+                            <router-link 
+                                text
+                                :to="{name: 'Recover'}"
+                            >
+                                {{ $t("button.recover") }}
+                            </router-link>
                         </v-card-actions>
                     </v-card>
                 </v-col>
@@ -119,9 +125,13 @@ export default defineComponent({
         is_loading_otp: false,
         is_loading: false,
         electron: false,
+        useBiometric: false,
         need_otp: false,
         valid: true,
         otpValid: true,
+        capabilities: {
+            touchID: false
+        },
         rememberOTP: false,
         form: {
             teamlock_url: "",
@@ -141,8 +151,16 @@ export default defineComponent({
             const url = `${process.env.VUE_APP_BASE_URL}/api/v1/config/registration`
             const response = await axios.get(url)
             this.self_registration = response.data
+
+        } else {
+            window.ipc.on("CAPABILITIES", (capabilities) => {
+                this.capabilities = capabilities
+            })
+            window.ipc.send("CAPABILITIES")
         }
     },
+
+    beforeDestroy() {},
 
     async mounted() {
         localStorage.removeItem("current_workspace")
@@ -154,8 +172,26 @@ export default defineComponent({
                 if (settings) {
                     this.form.teamlock_url = settings.teamlock_url
                     this.form.username = settings.username
-                    this.$refs.password.focus()
-                    return
+                    if (this.$refs.password) {
+                        this.$refs.password.focus()
+                    }
+
+                    if (this.capabilities.touchID) {
+                        const encrypted_password = localStorage.getItem("ENCRYPTED_PASSWORD")
+                        if (encrypted_password) {
+                            window.ipc.on("ERROR_FINGERPRINT", () => {
+                                this.$toast.error(this.$t('error.invalid_biometric'))
+                            })
+    
+                            window.ipc.on("DECRYPTED_PASSWORD", ({data}) => {
+                                this.form.password = data
+                                this.login()
+                            })
+                            window.ipc.send("DECRYPT", {password: encrypted_password})
+                        } else {
+                            localStorage.removeItem("ENCRYPTED_PASSWORD")
+                        }
+                    }
                 }
             })
         }
@@ -201,6 +237,14 @@ export default defineComponent({
                     localStorage.setItem("auth_key", response.data.remember_key)
                 }
 
+                if (this.useBiometric) {
+                    window.ipc.on("ENCRYPTED_PASSWORD", ({ data }) => {
+                        localStorage.setItem("ENCRYPTED_PASSWORD", data)
+                    })
+
+                    window.ipc.send("FINGERPRINT", {password: this.form.password})
+                }
+
                 this.$store.dispatch("set_user")
 
                 let path = sessionStorage.getItem("redirectPath")
@@ -219,7 +263,11 @@ export default defineComponent({
 
         async login() {
             this.error = ""
-            if (!this.$refs.form.validate()) return
+            // if (!this.$refs.form.validate()) return
+
+            if (!this.form.username || !this.form.password) {
+                return
+            }
 
             this.is_loading = true
             let base_url = process.env.VUE_APP_BASE_URL
@@ -244,6 +292,14 @@ export default defineComponent({
                         username: this.form.username
                     })
                     base_url = this.form.teamlock_url
+
+                    if (!response.data.otp && this.useBiometric) {
+                        window.ipc.on("ENCRYPTED_PASSWORD", ({ data }) => {
+                            localStorage.setItem("ENCRYPTED_PASSWORD", data)
+                        })
+
+                        window.ipc.send("FINGERPRINT", {password: this.form.password})
+                    }
                 }
 
                 if (response.data.otp) {

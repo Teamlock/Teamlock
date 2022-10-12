@@ -91,11 +91,7 @@ export default defineComponent({
                     msgKey = "success.folder_moved_to_trash";
                 }
                 http.delete(uri).then(() => {
-                        this.$toast.success(this.$t(msgKey), {
-                            closeOnClick: true,
-                            timeout: 3000,
-                            icon: true
-                        })
+                        this.$toast.success(this.$t(msgKey))
                         this.open = false
                         this.$emit("folderDeleted", this.parent_id)
                     }).then(() => {

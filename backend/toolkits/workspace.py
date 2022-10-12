@@ -13,14 +13,15 @@ You should have received a copy of the GNU General Public License
 along with Teamlock.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from apps.secret.models import Login, SecretValue
+from apps.secret.schema import SecretListValueSchema, SecretValueSchema
+from apps.secret.models import Login, SecretListValue, SecretValue
 from apps.config.schema import PasswordPolicySchema
 from apps.workspace.schema import EditShareSchema
-from apps.secret.schema import SecretValueSchema
 from apps.config.models import PasswordPolicy
 from apps.workspace.models import Workspace
 from apps.folder.schema import FolderSchema
 from fastapi.exceptions import HTTPException
+from fastapi import status, BackgroundTasks
 from mongoengine.queryset.visitor import Q
 from apps.auth.tools import hash_password
 from apps.auth.schema import LoggedUser
@@ -35,7 +36,6 @@ from apps.user.models import User
 from .crypto import CryptoUtils
 from datetime import datetime
 from settings import settings
-from fastapi import status
 from toolkits import const
 from bson import ObjectId
 import logging.config
@@ -47,12 +47,6 @@ import os
 logging.config.dictConfig(settings.LOGGING)
 logger = logging.getLogger("api")
 logger_security = logging.getLogger("security")
-
-FULL_KEY_ATTRS: tuple = (
-    "name", "url", "ip", "login",
-    "informations", "password"
-)
-KEY_ATTRS: tuple = ("name", "url", "ip", "login", "informations")
 
 
 class WorkspaceUtils:
@@ -174,7 +168,8 @@ class WorkspaceUtils:
         cls,
         user: LoggedUser,
         workspace: Workspace,
-        share_def: EditShareSchema
+        share_def: EditShareSchema,
+        background_task: BackgroundTasks
     ) -> None:
         """Share a workspace to an other user
             Will encrypt the worskapce symetric key with the user public RSA key
@@ -215,7 +210,14 @@ class WorkspaceUtils:
                     "workspace_name": workspace.name,
                     "shared_by": user.in_db.email
                 }
-                MailUtils.send_mail([tmp_user.email], "", "workspace_shared", context)
+
+                background_task.add_task(
+                    MailUtils.send_mail,
+                    [tmp_user.email],
+                    "",
+                    "workspace_shared",
+                    context
+                )
 
                 logger.info(
                     f"[SHARE][{str(workspace.pk)}][{workspace.name}] Shared by {user.in_db.email} to {user.email}"
@@ -253,21 +255,41 @@ class WorkspaceUtils:
         )
 
         encrypted_secret = const.MAPPING_SECRET[secret_def.secret_type]()
-        ignored_fields = ["_id", "folder", "created_at", "updated_at", "secret_type"]
+        ignored_fields = ["_id", "folder", "created_at", "updated_at", "secret_type", "folder_name", "workspace_name"]
 
         for property in secret_def.schema()["properties"].keys():
             if property not in ignored_fields:
-                value: str = getattr(secret_def, property).value
-                if getattr(secret_def, property).encrypted:
-                    setattr(encrypted_secret, property, SecretValue(
-                        encrypted=True,
-                        value=CryptoUtils.sym_encrypt(value, sym_key)
-                    ))
-                else:
-                    setattr(encrypted_secret, property, SecretValue(
-                        encrypted=False,
-                        value=value
-                    ))
+
+                property_class = getattr(secret_def, property)
+                
+                if isinstance(property_class, SecretValueSchema):
+                    value: str = property_class.value
+                    if property_class.encrypted:
+                        setattr(encrypted_secret, property, SecretValue(
+                            encrypted=True,
+                            value=CryptoUtils.sym_encrypt(value, sym_key)
+                        ))
+                    else:
+                        setattr(encrypted_secret, property, SecretValue(
+                            encrypted=False,
+                            value=value
+                        ))
+                elif isinstance(property_class, SecretListValueSchema):
+                    value: list[str] = property_class.value
+                    if property_class.encrypted:
+                        tmp = []
+                        for val in value:
+                            tmp.append(CryptoUtils.sym_encrypt(val, sym_key))
+
+                        setattr(encrypted_secret, property, SecretListValue(
+                            encrypted=True,
+                            value=tmp
+                        ))
+                    else:
+                        setattr(encrypted_secret, property, SecretListValue(
+                            encrypted=False,
+                            value=value
+                        ))
 
         return encrypted_secret
 
@@ -291,18 +313,47 @@ class WorkspaceUtils:
         """
 
         decrypted_secret = secret_def.copy()
-        ignored_fields = [secret_def.Base().protected_fields]
-        ignored_fields.extend(["_id", "folder", "created_at", "updated_at", "secret_type", "folder_name", "workspace_name"])
+        ignored_fields = list(secret_def.Base().protected_fields)
+        ignored_fields.extend([
+            "_id",
+            "folder",
+            "created_at",
+            "updated_at",
+            "created_by",
+            "updated_by",
+            "secret_type",
+            "folder_name",
+            "workspace_name",
+            "password_last_change",
+            "package_name"
+        ])
 
         for property in secret_def.schema()["properties"].keys():
             if property not in ignored_fields:
-                value: str = getattr(secret_def, property).value
-                if getattr(secret_def, property).encrypted:
-                    tmp = SecretValueSchema(
-                        encrypted=True,
-                        value=CryptoUtils.sym_decrypt(value, sym_key)
-                    )
-                    setattr(decrypted_secret, property, tmp)
+                property_class = getattr(secret_def, property)
+                if isinstance(property_class, SecretValueSchema):                
+                    value: str = property_class.value
+                    if property_class.encrypted:
+                        tmp = SecretValueSchema(
+                            encrypted=True,
+                            value=CryptoUtils.sym_decrypt(value, sym_key)
+                        )
+                        setattr(decrypted_secret, property, tmp)
+                elif isinstance(property_class, SecretListValueSchema):
+                    value: list[str] = property_class.value
+                    if property_class.encrypted:
+                        tmp = []
+                        for val in value:
+                            tmp.append(CryptoUtils.sym_decrypt(val, sym_key))
+                        setattr(decrypted_secret, property, SecretListValueSchema(
+                            encrypted=True,
+                            value=tmp
+                        ))   
+                    else:
+                        setattr(decrypted_secret, property, SecretListValueSchema(
+                            encrypted=False,
+                            value=value
+                        ))   
 
         if get_protected_fields:
             for field in secret_def.Base().protected_fields:
@@ -383,7 +434,8 @@ class WorkspaceUtils:
         cls,
         user: User,
         old_password: str,
-        new_password: str
+        new_password: str,
+        background_task: BackgroundTasks
     ):
         """Update password for an user
         With the new password, we generate new RSA Private & Public Key
@@ -449,7 +501,12 @@ class WorkspaceUtils:
             objet.sym_key = encrypted_sym_key
             objet.save()
          
-        MailUtils.send_mail([user.email], None, "password_change")
+        background_task.add_task(
+            MailUtils.send_mail,
+            [user.email],
+            None,
+            "password_change"
+        )
 
     @classmethod
     def recover_account(cls, user: User, sym_key: str, new_password: str):
@@ -500,8 +557,9 @@ class WorkspaceUtils:
         return folders
 
     @classmethod
-    def export_workspace(cls, workspace_id: str | ObjectId, user: LoggedUser) -> None:
+    def export_workspace(cls, workspace_id: str | ObjectId, user: LoggedUser, password: str) -> None:
         workspace, sym_key = WorkspaceUtils.get_workspace(workspace_id, user)
+
         folders: list[FolderSchema] = WorkspaceUtils.get_folders(
             workspace_id, user)
 
@@ -536,16 +594,16 @@ class WorkspaceUtils:
                         decrypted_secret = WorkspaceUtils.decrypt_secret(
                             decrypted_sym_key,
                             key_schema,
+
                             True
                         )
                         entry = xml.SubElement(group,"Entry")
 
-                        index = 0
-                        for value in field_name:
+                        for i, value in enumerate(field_name):
                             string = xml.SubElement(entry,"String")
                             xml.SubElement(string,"Key").text = value
-                            xml.SubElement(string,"Value").text = getattr(decrypted_secret,teamlock_field[index]).value
-                            index += 1
+                            xml.SubElement(string,"Value").text = getattr(decrypted_secret,teamlock_field[i]).value
+
                 if len(children) != 0:
                     for child in children:
                         fill_db_from_folder(child, group)
@@ -573,13 +631,19 @@ class WorkspaceUtils:
             )
     
     @classmethod
-    def search(cls, workspace, search, user, category):
+    def search(cls, workspace, search, user, category, package_name="", order="name"):
         workspace, sym_key = cls.get_workspace(workspace, user)
         folders: list[Folder] = Folder.objects(workspace=workspace)
 
-        in_folder_query: Q =Q(folder__in=folders)
-        name_query: Q = Q(name__value__icontains=search)
-        url_query: Q = Q(url__value__icontains=search)
+        query: Q = Q(folder__in=folders)
+
+        if package_name:
+            query &= Q(package_name=package_name)
+        elif search:
+            name_query: Q = Q(name__value__icontains=search)
+            urls_query: Q = Q(urls__value__icontains=search)
+
+            query &= (name_query | urls_query)
 
         model_ = const.MAPPING_SECRET[category]
 
@@ -590,10 +654,14 @@ class WorkspaceUtils:
         )
 
         keys: list = []
-        for tmp in model_.objects(in_folder_query & (name_query | url_query)):
+        for tmp in model_.objects(query).order_by(order):
             schema = tmp.schema()
-            print(schema)
-            tmp = WorkspaceUtils.decrypt_secret(decrypted_sym_key, schema)
+            tmp = cls.decrypt_secret(
+                decrypted_sym_key,
+                schema,
+                get_protected_fields=package_name != ""
+            )
+
             tmp.folder_name = Folder.objects(pk=tmp.folder).get().name
             tmp.workspace_name = workspace.name
             keys.append(tmp)

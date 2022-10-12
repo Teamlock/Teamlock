@@ -321,11 +321,7 @@ export default defineComponent({
     saveConfig() {
       this.isLoadingConfigForm = true
       http.post("/api/v1/config/", this.form).then(() => {
-        this.$toast.success(this.$t("success.configuration_saved"), {
-          closeOnClick: true,
-          timeout: 3000,
-          icon: true
-        })
+        this.$toast.success(this.$t("success.configuration_saved"))
         this.getConfig()
       }).then(() => {
         this.isLoadingConfigForm = false
@@ -335,11 +331,7 @@ export default defineComponent({
     saveProConfig() {
       this.isLoadingProForm = true
       http.post("/pro/api/v1/config/", this.form_pro).then(() => {
-        this.$toast.success(this.$t("success.configuration_saved"), {
-          closeOnClick: true,
-          timeout: 3000,
-          icon: true
-        })
+        this.$toast.success(this.$t("success.configuration_saved"))
         this.getProConfig()
       }).then(() => {
         this.isLoadingProForm = false

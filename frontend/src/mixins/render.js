@@ -1,3 +1,4 @@
+import humanizeDuration from "humanize-duration"
 import moment from "moment"
 
 const renderMixin = {
@@ -16,6 +17,17 @@ const renderMixin = {
             return {
                 background: this.$vuetify.theme.themes[theme].background
             }
+        },
+
+        humanizeDate(date) {
+            const now = moment.utc().local()
+            const delta = now - moment.utc(date).local()
+            return humanizeDuration(delta, {
+                language: moment.locale(),
+                fallbacks: ['en'],
+                round: true,
+                units: ['y', 'mo', 'w', 'd', 'h', 'm']
+            })
         },
 
         renderDate(date, format) {

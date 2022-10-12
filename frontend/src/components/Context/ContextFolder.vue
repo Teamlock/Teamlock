@@ -1,6 +1,6 @@
 <template>
     <div>
-        <v-list dense v-if="node" style="text-align: left" color="primary">
+        <v-list dense v-if="node" style="text-align: left" light>
             <v-subheader>
                 <v-icon style="margin-right: 5px" v-if="node.data.icon">{{ node.data.icon }}</v-icon>
                 <v-icon style="margin-right: 5px" v-else>mdi-folder</v-icon>
@@ -127,7 +127,6 @@ export default defineComponent({
     },
 
     methods: {
-        copyFolder() {},
         editFolder() {
             EventBus.$emit("editFolder", this.node.data._id)
         },
@@ -155,6 +154,5 @@ export default defineComponent({
 
 .v-list-item--link:hover {
     background-color: #fccb58;
-    color: #fff !important;
 }
 </style>

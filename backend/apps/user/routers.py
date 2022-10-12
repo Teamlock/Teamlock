@@ -23,12 +23,12 @@ __doc__ = ''
 
 from toolkits.paginate import PaginationParamsSchema, UserPaginationSchema, get_order
 from apps.auth.tools import get_current_user, hash_password, is_admin, check_password
-from toolkits.utils import check_password_complexity, create_user_toolkits
 from fastapi import APIRouter, status, Depends, Request, BackgroundTasks
 from apps.workspace.models import Share, Workspace
 from fastapi.responses import FileResponse, Response
 from toolkits.exceptions import UserExistException
 from starlette.background import BackgroundTask
+from toolkits.utils import create_user_toolkits
 from toolkits.workspace import WorkspaceUtils
 from fastapi.exceptions import HTTPException
 from apps.config.schema import ConfigSchema
@@ -177,7 +177,7 @@ async def get_sessions(
     summary="Endpoint to create an user",
     dependencies=[Depends(is_admin)]
 )
-async def create_user(user_def: schema.EditUserSchema) -> str:
+async def create_user(user_def: schema.EditUserSchema, background_task: BackgroundTasks) -> str:
     try:
         if settings.MAX_USERS > 0:
             # Check if max users has been reached
@@ -188,7 +188,7 @@ async def create_user(user_def: schema.EditUserSchema) -> str:
                     detail="MAX USERS LIMIT"
                 )
 
-        user_id: str = create_user_toolkits(user_def)
+        user_id: str = create_user_toolkits(user_def, background_task)
         return user_id
     except UserExistException:
         raise HTTPException(

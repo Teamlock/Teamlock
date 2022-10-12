@@ -1,3 +1,5 @@
+/*eslint no-unused-vars: ["error", { "vars": "local" }]*/
+
 <template>
     <v-dialog v-model="open" width="600" scrollable>
         <v-card v-if="open">
@@ -13,7 +15,14 @@
 
                 <v-card-text>
                     <v-row dense>
-                        <v-alert style="width: 100%" dense color="primary" border-top>{{ $t('warning.import') }}</v-alert>
+                        <v-alert
+                            style="width: 100%"
+                            dense
+                            color="primary"
+                            border-top
+                        >
+                            {{ $t('warning.import') }}
+                        </v-alert>
                     </v-row>
                     <v-row dense>
                         <v-col>
@@ -26,6 +35,15 @@
                             />
                         </v-col>
                     </v-row>
+                    <v-alert
+                        v-if="help"
+                        style="width: 100%"
+                        dense
+                        color="grey darken-1"
+                        border-top
+                    >
+                        {{ help }}
+                    </v-alert>
                     <v-row dense>
                         <v-col>
                             <v-file-input
@@ -90,7 +108,8 @@ export default defineComponent({
         importChoices: [
             {value: 'keepass', text: 'KeePass XML File'},
             {value: 'teamlock_v1', text: 'Teamlock v1'},
-            {value: 'bitwarden', text: 'Bitwarden JSON'}
+            {value: 'bitwarden', text: 'Bitwarden JSON'},
+            {value: 'googlechrome', text: 'Google Chrome'}
         ],
         form: {
             import_type: null,
@@ -106,6 +125,15 @@ export default defineComponent({
         ...mapGetters({
             selected_workspace: 'getWorkspace'
         }),
+
+        help() {
+            switch (this.form.import_type) {
+                case "googlechrome":
+                    return this.$t("help.googlechrome_import")
+                default:
+                    return ""
+            }
+        }
     },
 
     mounted() {
@@ -115,7 +143,7 @@ export default defineComponent({
     },
 
     methods: {
-        importFile() {
+        async importFile() {
             this.loading = true;
 
             const formData = new FormData()
@@ -132,7 +160,6 @@ export default defineComponent({
                     "Content-Type": "multipart/form-data"
                 }
             }).then(() => {
-                this.loading = false
                 this.file = null
                 this.form = {
                     import_type: null,
@@ -143,19 +170,23 @@ export default defineComponent({
                     encrypt_informations: false
                 }
 
-                this.$toast.success(this.$t('success.import_running'), {
-                    closeOnClick: true,
-                    timeout: 3000,
-                    icon: true
-                })
+                this.$toast.success(this.$t('success.import_running'))
 
                 setTimeout(() => {
                     this.open = false
-                    EventBus.$emit("reloadWorkspaces")
+                    EventBus.$emit("importStarted", this.selected_workspace._id)
                 }, 200)
             }).catch((error) => {
-                this.loading = false
+                if (error.response.status === 413) {
+                    this.$toast.error(this.$t("error.file_too_large"), {
+                        closeOnClick: true,
+                        timeout: 3000,
+                        icon: true
+                    })
+                }
                 throw error
+            }).then(() => {
+                this.loading = false
             })
         }
     }

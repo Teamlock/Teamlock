@@ -23,7 +23,12 @@ Vue.use(VueRouter)
 Vue.use(PortalVue)
 Vue.use(VueClipboard)
 
-const toastsOptions = {};
+const toastsOptions = {
+  position: "top-right",
+  closeOnClick: true,
+  timeout: 3000,
+  icon: true
+};
 Vue.use(Toast, toastsOptions);
 
 Vue.component('font-awesome-icon', FontAwesomeIcon)
