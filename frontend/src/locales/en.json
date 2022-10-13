@@ -127,6 +127,8 @@
         "share": "Share",
         "create": "Create",
         "empty_trash": "Empty trash",
+        "restore_trash": "Restore trash",
+        "trash" : "Trash",
         "delete": "Delete",
         "import": "Import",
         "favorite": "Favorite",
@@ -226,6 +228,7 @@
         "install": "Install",
         "ok": "OK",
         "empty_trash": "Empty trash",
+        "restore_trash": "Restore trash",
         "send": "Send"
     },
     "success": {
@@ -266,6 +269,8 @@
         "user_updated": "User updated",
         "recovery_enabled": "Recovery mode enabled for this user",
         "trash_emptied": "Trash emptied",
+        "trash_restored": "Trash restored",
+        "key_restored": "Key restored",
         "secret_shared": "The secret is successfully shared"
     },
     "warning": {
@@ -277,6 +282,8 @@
         "confirm_enable_recovery2": "This user will be able to recover his account using his recovery file.",
         "key_encryption": "Be aware that encrypted informations can't be searched. Encrypt only sensible data.",
         "confirm_empty_trash": "The trash is going to be emptied, with all its content",
+        "confirm_restore_trash": "The trash is going to be restored, with all its content in the first folder",
+        "confirm_restore_key": "The key is going to be restored in the first folder",
         "confirm_delete": "Are you sure to delete this entry ?",
         "confirm_delete_folder": "Confirm delete folder, with all its content",
         "confirm_delete_workspace": "Confirm delete workspace, with all its content",
@@ -296,11 +303,10 @@
         "remember_recovery": "Once configured and logged in, don't forget to download your recovery key, in case you forget your password.",
         "remember_recovery2": "Once you've change your password, don't forget to download your new recovery key.",
         "wait_registration": "Registration can take a few seconds, please wait.",
-        "restore": "To restore that folder or those secrets, move them at the wanted place"
+        "restore": "To restore those secrets, move them at the wanted place"
     },
     "error": {
         "invalid_form": "Invalid form",
-        "trash_cant_be_moved": "Trash can't be moved",
         "invalid_password": "Invalid password",
         "occurred": "An error has occurred",
         "otp_need_config": "Please configure MFA with your Authenticator application",
@@ -358,6 +364,8 @@
         "add_user": "Add an user",
         "edit_key": "Edit user",
         "empty_trash": "Empty trash",
+        "restore_trash": "Restore trash",
+        "restore_key": "Restore key",
         "context_menu_workspace": "Right click for more options",
         "copied": "Copied"
     },

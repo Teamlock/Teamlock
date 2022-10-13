@@ -32,16 +32,18 @@ from toolkits.workspace import WorkspaceUtils
 from toolkits.import_utils import ImportUtils
 from fastapi.exceptions import HTTPException
 from apps.folder.schema import FolderSchema
+from apps.secret.models import Login, Secret, Server, Bank, Phone
 from apps.auth.tools import get_current_user
 from mongoengine.queryset.visitor import Q
 from toolkits.folder import FolderUtils
 from toolkits.crypto import CryptoUtils
+from toolkits.secret import SecretUtils
 from apps.auth.schema import LoggedUser
 from fastapi.responses import Response
 from .models import Workspace, Share
 from apps.folder.models import Folder
 from apps.secret.models import Secret
-from apps.trash.schema import TrashSchema
+from apps.trash.schema import TrashSchema, TrashStats
 from datetime import datetime
 from settings import settings
 from toolkits import const
@@ -408,23 +410,38 @@ async def export_workspace_file(
 
 @router.get(
     path="/{workspace_id}/trash",
-    summary="Get the trash folder, and all its secrets"
+    summary="Get the trash folder, and all its secrets depending on the category you want"
 )
 async def get_trash(
     workspace_id: str,
+    category: str,
     user: LoggedUser = Depends(get_current_user)
 ) -> TrashSchema:
     trash = WorkspaceUtils.get_trash_folder(workspace_id)
     WorkspaceUtils.have_rights(workspace_id, user)
 
-    trash_secrets = [sec.pk for sec in Secret.objects(trash = trash)]
+    model_ = const.MAPPING_SECRET[category]
+    tmp_secrets: list = list(model_.objects(folder=None))
+    secrets = []
+
+    _, sym_key = WorkspaceUtils.get_workspace(workspace_id, user)
+    decrypted_sym_key = CryptoUtils.rsa_decrypt(
+        sym_key,
+        user.in_db.private_key,
+        CryptoUtils.decrypt_password(user)
+    )
+
+    for tmp in tmp_secrets:
+            schema = tmp.schema()
+            secrets.append(WorkspaceUtils.decrypt_secret(decrypted_sym_key, schema))
+
 
     logger.info(f"[FOLDER][{str(trash.workspace.pk)}][{trash.workspace.name}] {user.in_db.email} retreive trash")
     return TrashSchema(
         id = trash.pk,
         workspace = trash.workspace.pk, 
         created_at = trash.created_at,
-        secrets = trash_secrets
+        secrets = secrets
     )
 
 @router.delete(
@@ -444,3 +461,38 @@ async def delete_trash_content(
 
     return Response(status_code=status.HTTP_204_NO_CONTENT)
     
+
+@router.get(
+    path="/{workspace_id}/trash/stats",
+    summary="Get stats of a trash",
+    response_model=TrashStats,
+    dependencies=[Depends(get_current_user)]
+)
+async def get_trash_stats(
+    workspace_id: str
+) -> TrashStats:
+    trash = WorkspaceUtils.get_trash_folder(workspace_id)
+
+    stats: TrashStats = TrashStats(
+        login=Login.objects(folder=None, trash = trash).count(),
+        server=Server.objects(folder=None, trash = trash).count(),
+        bank=Bank.objects(folder=None, trash = trash).count(),
+        phone=Phone.objects(folder=None, trash = trash).count()
+    )
+
+    return stats
+
+@router.patch(
+    path="/{workspace_id}/trash/restore",
+    summary="Restore the trash entirely",
+    status_code=status.HTTP_204_NO_CONTENT,
+    dependencies=[Depends(get_current_user)]
+)
+async def restore_trash(
+    workspace_id: str
+) -> None:
+    trash = WorkspaceUtils.get_trash_folder(workspace_id)
+
+    [SecretUtils.restore(secret,trash.workspace) for secret in Secret.objects(trash = trash)]
+
+    return Response(status_code=status.HTTP_204_NO_CONTENT)

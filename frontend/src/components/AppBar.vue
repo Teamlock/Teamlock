@@ -24,6 +24,10 @@
             <v-icon>mdi-clock</v-icon>&nbsp;
             {{ $t('label.history') }}
         </span>
+        <span v-else-if="showTrash" class="text_label_app_bar">
+            <v-icon>mdi-delete</v-icon>&nbsp;
+            {{ $t('label.trash') }}
+        </span>
         <span v-else-if="selectedFolder" class="text_label_app_bar">
             <v-icon>{{selectedFolder.icon}}</v-icon>
             {{ selectedFolder.name }}
@@ -48,6 +52,10 @@
             </v-tooltip>
         </span>
         <v-spacer></v-spacer>
+        
+        <small id="version">
+            v{{version}}
+        </small>
 
          <v-text-field
             v-if="searchBar"
@@ -136,6 +144,7 @@
 import { defineComponent } from '@vue/composition-api'
 import { mapGetters } from 'vuex'
 import EventBus from "@/event"
+import http from "@/utils/http"
 
 export default defineComponent({
     components: {},
@@ -160,7 +169,7 @@ export default defineComponent({
             } else {
                 return "mdi-white-balance-sunny"
             }
-        }
+        },
     },
 
     data: (vm) => ({
@@ -171,8 +180,10 @@ export default defineComponent({
             "en": "gb",
             "fr": "fr"
         },
+        version : null,
         langs: ["en", "fr"],
         selectedFolder: null,
+        showTrash: false,
         image: require("@/assets/img/man.svg"),
         flags: {
             en: require("@/assets/img/flags/en.svg"),
@@ -190,6 +201,10 @@ export default defineComponent({
         EventBus.$on("selectedFolder", (folder) => {
             this.selectedFolder = folder
         })
+
+        EventBus.$on("showTrash",(val) => this.showTrash = val)
+        this.showTrash = localStorage.getItem("showTrash") === "true"
+        this.getVersion()
     },
 
     methods: {
@@ -237,6 +252,12 @@ export default defineComponent({
                 }, 1000);
             }, 50);
         },
+        getVersion(){
+            http.get("/api/v1/version")
+                .then(response => {
+                    this.version = response.data
+                })
+        }
     }
 })
 </script>

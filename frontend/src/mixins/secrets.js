@@ -1,8 +1,6 @@
 const secretMixin = {
   data: (vm) => ({
     trash: {},
-    in_trash: false,
-    is_trash: false,
     electron: false,
     tooltip_copy_password: {},
     tooltipSecretId: vm.$t("tooltip.copy_id"),
@@ -16,7 +14,7 @@ const secretMixin = {
       align: 'start',
       value: 'actions',
       sortable: false,
-      width: "150px",
+      width: "200px",
       component: "ActionCell"
     },
     login: {

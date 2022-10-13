@@ -132,7 +132,8 @@ async def get_secret(
         secret = Secret.objects(pk=secret_id).get()
         secret_schema = secret.schema()
 
-        workspace, sym_key = WorkspaceUtils.get_workspace(secret.folder.workspace.pk, user)
+        workspace_pk = secret.folder.workspace.pk if secret.folder is not None else secret.trash.workspace.pk
+        workspace, sym_key = WorkspaceUtils.get_workspace(workspace_pk, user)
 
         decrypted_sym_key = CryptoUtils.rsa_decrypt(
             sym_key,
@@ -146,11 +147,13 @@ async def get_secret(
             get_protected_fields=True
         )
 
+        action = f"in folder {secret.folder.name}" if secret.folder is not None else "in trash"
+
         create_history(
             user=user.in_db.email,
             workspace=workspace.name,
             workspace_owner=workspace.owner.email,
-            action=f"Retreive secret for secret {decrypted_secret.name.value} in folder {secret.folder.name}"
+            action=f"Retreive secret for secret {decrypted_secret.name.value} {action}"
         )
 
         logger.info(f"[SECRET][{str(workspace.pk)}][{workspace.name}] {user.in_db.email} retreive secret {decrypted_secret.name.value}")
@@ -226,7 +229,7 @@ async def move_key(
 ):
     try:
         secret: Secret = Secret.objects(pk=secret_id).get()
-        workspace, _ = WorkspaceUtils.get_workspace(secret.folder.workspace.pk, user)
+        workspace, _ = WorkspaceUtils.get_workspace(secret.folder.workspace.pk if secret.trash is None else secret.trash.workspace.pk, user)
         WorkspaceUtils.have_rights(workspace, user)
         new_folder: Folder = Folder.objects(pk=folder_id).get()
 
@@ -321,7 +324,7 @@ async def delete_secret(
                 status_code= status.HTTP_400_BAD_REQUEST,
                 detail="You have to first put the secret in the trash to delete it"
             )
-        workspace: Workspace = secret.folder.workspace
+        workspace: Workspace = secret.trash.workspace
         WorkspaceUtils.have_rights(workspace, user)
         secret.delete()
 
@@ -329,7 +332,7 @@ async def delete_secret(
             user=user.email,
             workspace=workspace.name,
             workspace_owner=workspace.owner.email,
-            action=f"Delete secret {secret.name.value} in folder {secret.folder.name}"
+            action=f"Delete secret {secret.name.value} in trash"
         )
 
         logger.info(f"[SECRET][{str(workspace.pk)}][{workspace.name}] {user.in_db.email} delete secret {secret.name.value}")

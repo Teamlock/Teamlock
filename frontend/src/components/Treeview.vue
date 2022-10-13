@@ -178,10 +178,9 @@ export default defineComponent({
                 name: selected[0].data.name,
                 icon: selected[0].data.icon,
             })
-            EventBus.$emit("folder_trash",{
-                in_trash:selected[0].data.in_trash,
-                is_trash:selected[0].data.is_trash
-            });
+            EventBus.$emit("showTrash",false)
+            localStorage.setItem("showTrash", false)
+            
             localStorage.setItem("selected_folder", folder_id)
             this.$store.dispatch("set_current_folder", folder_id)
         },
@@ -207,14 +206,6 @@ export default defineComponent({
 
         dropEnd(node_dragged, node_dest) {
             const folder_to_move = node_dragged[0].data
-            if (folder_to_move.is_trash) {
-                this.$toast.error(this.$t('error.trash_cant_be_moved'), {
-                    closeOnClick: true,
-                    timeout: 3000,
-                    icon: true
-                })
-                return
-            }
 
             this.loading = true
             let folder_dest = node_dest.node.data

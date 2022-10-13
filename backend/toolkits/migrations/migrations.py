@@ -59,7 +59,7 @@ def migrate_1_12(db):
     # Apply cls on Secret
     db.secret.update({}, {'$set': {'_cls': 'Secret.Login'}}, multi=True)
 
-def migrate_1_15(db):
+def migrate_1_16(db):
     # Add a trash for each workspace
     for workspace in db.workspace.find():
         trash = db.trash.insert_one({
@@ -83,7 +83,7 @@ class Migrations:
         1.0: migrate_1_0,
         1.1: migrate_1_1,
         1.12: migrate_1_12,
-        1.15: migrate_1_15
+        1.16: migrate_1_16
     }
 
     def __init__(self):

@@ -58,7 +58,7 @@
         <span v-html="tooltipHTML" />
     </v-tooltip>
     <span v-if="(selected_workspace.owner === user._id || selected_workspace.can_write)">
-      <v-tooltip bottom v-if="!in_trash">
+      <v-tooltip bottom>
         <template v-slot:activator="{ on, attrs }">
           <v-icon
             small
@@ -99,6 +99,38 @@
             <v-spacer></v-spacer>
               <v-btn small text>{{ $t('button.cancel') }}</v-btn>
               <v-btn small color="primary" text @click="$emit('delete', item)">
+                {{ $t('button.confirm') }}
+              </v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-menu>
+      <v-menu offset-y left v-if="showTrash">
+        <template v-slot:activator="{ on: menu, attrs }">
+          <v-tooltip bottom>
+            <template v-slot:activator="{ on: tooltip }">
+              <v-icon
+                small
+                v-bind="attrs"
+                v-on="{ ...tooltip, ...menu }"
+                @click.stop
+              >
+                mdi-delete-empty
+              </v-icon>
+            </template>
+            <span>{{ $t('help.restore_key')}}</span>
+          </v-tooltip>
+        </template>
+        <v-card>
+          <v-card-title style="font-size: 16px">
+            <small>
+              <v-icon>mdi-alert</v-icon> 
+              {{$t('warning.confirm_restore_key')}}
+            </small>
+          </v-card-title>
+          <v-card-actions>
+            <v-spacer></v-spacer>
+              <v-btn small text>{{ $t('button.cancel') }}</v-btn>
+              <v-btn small color="primary" text @click="$emit('restore', item)">
                 {{ $t('button.confirm') }}
               </v-btn>
           </v-card-actions>
@@ -152,11 +184,19 @@ export default defineComponent({
     tooltipHTML: vm.$t('tooltip.copy_id'),
     twilioEnabled: false,
     is_pro: false,
+    showTrash: false
   }),
 
   beforeMount() {
     this.is_pro = this.$store.state.pro
     this.twilioEnabled = this.$store.state.twilio
+  },
+
+  mounted() {
+    EventBus.$on("showTrash", val => {
+      this.showTrash = val
+    })
+    this.showTrash = localStorage.getItem("showTrash") === "true";
   },
 
   computed: {
