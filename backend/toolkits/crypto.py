@@ -108,7 +108,7 @@ class CryptoUtils:
     def generate_sim(cls, length: int = 32) -> str:
         """Generate symmetric key
         """
-        letters = string.ascii_lowercase + string.digits + string.punctuation
+        letters = string.ascii_uppercase + string.ascii_lowercase + string.digits
         return ''.join(random.choice(letters) for i in range(length))
     
     @classmethod
