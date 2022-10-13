@@ -180,6 +180,11 @@ export default defineComponent({
     can_share_external: {
       type: Boolean,
       required: true
+    },
+
+    in_trash: {
+      type: Boolean,
+      default: false
     }
   },
 

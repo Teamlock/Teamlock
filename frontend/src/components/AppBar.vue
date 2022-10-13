@@ -96,7 +96,9 @@
             </v-list>
         </v-menu>
 
-        <notification v-if="isPro" />
+        <span v-if="isPro">
+            <notification/>
+        </span>
 
         <v-menu
             v-if="user"

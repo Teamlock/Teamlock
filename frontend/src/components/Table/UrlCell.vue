@@ -1,7 +1,7 @@
 <template>
   <v-chip-group v-if="item[field].value.length > 0" column>
     <v-chip
-      v-for="(val, index) of item[field].value"
+      v-for="(val, index) of items"
       @click="openUrl(val)"
       :key="index"
       class="mb-0"
@@ -58,6 +58,13 @@ export default defineComponent({
     tooltip_copy: [],
     tooltipHTML: vm.$t('tooltip.dblclick_copy')
   }),
+
+  computed: {
+    items() {
+      // we don't show the if it's empty
+      return this.item[this.field].value.filter(i => i !== '')
+    }
+  },
 
   beforeMount() {
     const userAgent = navigator.userAgent.toLowerCase();

@@ -156,6 +156,7 @@ class Server(Secret):
         sch.os_type = schema.SecretValueSchema(**self.os_type.to_mongo())
         sch.login = schema.SecretValueSchema(**self.login.to_mongo())
         sch.password = schema.SecretValueSchema(**self.password.to_mongo())
+        return sch
     
     def check_changes(self, last, new):
         if last.password.value != new.password.value:
@@ -171,7 +172,7 @@ class Phone(Secret):
         schema = schema.PhoneSchema
 
     def schema(self):
-        sch = super().schema("phoen")
+        sch = super().schema("phone")
         sch.number = schema.SecretValueSchema(**self.number.to_mongo())
         sch.pin_code = schema.SecretValueSchema(**self.pin_code.to_mongo())
         sch.puk_code = schema.SecretValueSchema(**self.puk_code.to_mongo())

@@ -311,7 +311,8 @@
         "remember_recovery2": "Une fois le mot de passe changé, retournez télécharger votre nouvelle clé de récupération.",
         "wait_registration": "L'instription peut prendre quelques secondes, merci d'être patient.",
         "restore": "Pour restaurer ce dossier ou ces secrets, déplacer les à l'endroit souhaité",
-        "trash_emptied": "Corbeille vidée"
+        "trash_emptied": "Corbeille vidée",
+        "secret_cannot_be_copied": "Le secret ne peut pas être copié car il est vide"
     },
     "error": {
         "file_too_large": "Fichier trop volumineux. Teamlock n'accepte que les fichiers de 10MB et moins",

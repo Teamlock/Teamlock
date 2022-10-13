@@ -315,7 +315,8 @@
         "remember_recovery": "Once configured and logged in, don't forget to download your recovery key, in case you forget your password.",
         "remember_recovery2": "Once you've change your password, don't forget to download your new recovery key.",
         "wait_registration": "Registration can take a few seconds, please wait.",
-        "restore": "To restore that folder or those secrets, move them at the wanted place"
+        "restore": "To restore that folder or those secrets, move them at the wanted place",
+        "secret_cannot_be_copied": "The secret cannot be copied because it is empty"
     },
     "error": {
         "invalid_biometric": "Invalid biometric, please use your password to log in",

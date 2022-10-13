@@ -64,7 +64,7 @@
         </v-btn>     
       </template>
       <template v-slot:item="{ item,index }">
-        <td class="restore_folder" colspan="6" v-if="index == 0 && in_trash">
+        <td class="restore_folder" colspan="12" v-if="index == 0 && in_trash">
           <v-icon small>mdi-alert</v-icon>
           {{$t("warning.restore")}}
         </td>
@@ -103,6 +103,7 @@
                 :notif="configuredNotifs.includes(item._id)"
                 :item="item"
                 @delete="deleteItem"
+                :in_trash="in_trash || is_trash"
                 @refreshNotif="fetchNotifConfigured()"
               />
             </span>
@@ -224,6 +225,7 @@ export default defineComponent({
 
   methods: {
     async fetchNotifConfigured() {
+      if (!this.is_pro) return;
       const { data } = await http.get("/pro/api/v1/user/notif")
       this.configuredNotifs = data
     },

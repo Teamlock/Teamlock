@@ -85,14 +85,17 @@ export default defineComponent({
     async copySecret(secret_id, field) {
       this.is_loading = true
       this.$forceUpdate()
-
       const secret_value = await this.fetchSecret(secret_id, field)
       if (!this.electron) {
-        this.$copyText(secret_value).then(() => {
-          this.copySuccess(this.$t("success.secret_copied"), secret_id)
-          this.is_loading = false
-          this.$forceUpdate()
-        })
+        this.$copyText(secret_value)
+          .then(() => {
+            this.copySuccess(this.$t("success.secret_copied"), secret_id)
+            this.is_loading = false
+            this.$forceUpdate()
+          }, () => {
+            this.$toast.warning(this.$t("warning.secret_cannot_be_copied"))
+            this.is_loading = false
+          })
       } else {
         window.ipc.send("COPY", secret_value)
         window.ipc.on("COPY", () => {
