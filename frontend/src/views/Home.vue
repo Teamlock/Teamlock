@@ -75,7 +75,6 @@ export default defineComponent({
   data: () => ({
     selected_tab: 0,
     tabs: ["login", "server", "phone", "bank"],
-    is_trash: false,
     stats: {
       login: 0,
       server: 0,
@@ -89,11 +88,8 @@ export default defineComponent({
       current_folder: 'getFolder',
     })
   }, 
-    
 
   mounted(){
-    EventBus.$on("folder_trash", (res) => this.is_trash = res.is_trash);
-
     EventBus.$on("selectedFolder", (folder) => {
       this.getStats(folder._id)
     })
@@ -102,15 +98,27 @@ export default defineComponent({
       this.getStats(this.current_folder)
     })
 
+    EventBus.$on("showTrash", (val) => {
+      if (val === true) this.getStats("",true)
+    })
+
+    EventBus.$on("refreshTrashStats", () => {
+      this.getStats("",true)
+    })
+
     EventBus.$on("refreshSecrets", () => {
       this.$refs[this.tabs[this.selected_tab]].getSecrets()
     })
   },
 
   methods: {
-    getStats(folder) {
-      http.get(`/api/v1/folder/${folder}/stats`).then((response) => {
-        this.stats = response.data
+    getStats(folder, showTrash = false) {
+      const url = showTrash === true ? 
+        `/api/v1/workspace/${sessionStorage.getItem("current_workspace")}/trash/stats` : 
+        `/api/v1/folder/${folder}/stats/`
+
+      http.get(url).then((response) => {
+        this.stats = response.data;
       })
     },
 

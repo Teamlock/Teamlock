@@ -1,5 +1,11 @@
 from fastapi.exceptions import HTTPException
 from apps.folder.models import Folder
+from apps.secret.models import Secret
+from apps.trash.models import Trash
+from toolkits.workspace import WorkspaceUtils
+from toolkits.secret import SecretUtils
+from toolkits.crypto import CryptoUtils
+from toolkits import const
 from bson import ObjectId
 from fastapi import status
 
@@ -22,27 +28,29 @@ class FolderUtils:
         return children_list
 
     @classmethod
-    def move_to_trash(cls,folder: Folder,to_trash: bool = True):
-        """Move to trash or restore a folder and its children
+    def move_to_trash(cls,folder: Folder, trash: Trash, user):
+        """Move a folder to the trash
 
         Args:
             folder_id (str | ObjectId): id of the folder
-            to_trash (bool): specify if we put the folders in the trash or not
+            trash (Trash): trash of the workspace
+            user (LoggedUser) : user who move the folder
         """ 
+
+        def search_secret(folder: Folder):
+            for cat in const.MAPPING_SECRET:  #get secrets for each category
+                model_ = const.MAPPING_SECRET[cat]
+                tmp_secrets: list = list(model_.objects(folder=folder))
+                for secret in tmp_secrets:
+                    SecretUtils.move_to_trash(secret,trash)
+
+
         children = cls.get_children(folder.pk)
-        folder.in_trash = to_trash
+        search_secret(folder)
         for child in children:
-            child.in_trash = to_trash
-            child.save()
-
-    @classmethod
-    def restore(cls,folder:Folder):
-        """Restore a folder from the trash (wrapper of move_to_trash)
-
-        Args:
-            folder_id (str | ObjectId): id of the folder
-        """ 
-        cls.move_to_trash(folder,to_trash=False)
+            search_secret(child)
+            child.delete()
+        folder.delete()
 
     @classmethod
     def get_root_children(cls,folder_id: str | ObjectId) -> list[Folder]:
@@ -58,6 +66,40 @@ class FolderUtils:
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Folder not found"
             )
-        
+    
+    @classmethod
+    def get_secrets(cls,folder_id: str | ObjectId, category : str, user)-> list[Secret]:
+        """Get all secrets in a folder
+
+        Args:
+            folder_id (str | ObjectId): id of the folder
+            category (str) category of the secret wanted
+            user (LoggedUser): user who want to get the secrets
+        """
+        try:
+            folder: Folder = Folder.objects(pk=folder_id).get()
+        except Folder.DoesNotExist:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Folder not found"
+            )
+
+        _, sym_key = WorkspaceUtils.get_workspace(folder.workspace.pk, user)
+
+        model_ = const.MAPPING_SECRET[category]
+        tmp_secrets: list = list(model_.objects(folder=folder))
+        secrets: list = []
+
+        decrypted_sym_key = CryptoUtils.rsa_decrypt(
+            sym_key,
+            user.in_db.private_key,
+            CryptoUtils.decrypt_password(user)
+        )
+
+        for tmp in tmp_secrets:
+            schema = tmp.schema()
+            secrets.append(WorkspaceUtils.decrypt_secret(decrypted_sym_key, schema))
+        return secrets
+
         
                 

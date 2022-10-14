@@ -404,13 +404,21 @@ div.v-input__slot {
 }
 
 #version {
-    position: absolute;
-    right: 5px;
-    bottom: 5px;
     z-index: 100;
+    right:20px;
+    position: relative;
 }
 
 .card-actions {
     position: absolute;
     bottom: 0;
+}
+
+.trash{
+    text-align: left;
+    position: absolute;
+    right: 10px;
+    bottom: 10px;
+    width: 220px;
+    z-index: 100;
 }

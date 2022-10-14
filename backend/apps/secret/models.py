@@ -22,6 +22,7 @@ __email__ = "contact@teamlock.io"
 __doc__ = ''
 
 from apps.folder.models import Folder
+from apps.trash.models import Trash
 from apps.user.models import User
 from datetime import datetime
 from . import schema
@@ -63,6 +64,7 @@ class Secret(mongoengine.Document):
         reverse_delete_rule=mongoengine.CASCADE
     )
 
+    trash = mongoengine.ReferenceField(Trash, reverse_delete_rule=mongoengine.CASCADE)
     package_name = mongoengine.StringField(default="")
 
     meta = {
@@ -77,6 +79,10 @@ class Secret(mongoengine.Document):
         updated_by = None
         if self.updated_by:
             updated_by = self.updated_by.email
+        
+        folder = None
+        if self.folder:
+            folder = str(self.folder.pk)
 
         return self.Config.schema(
             id=self.pk,
@@ -88,7 +94,7 @@ class Secret(mongoengine.Document):
             created_by=created_by,
             updated_by=updated_by,
             password_last_change=self.password_last_change,
-            folder=str(self.folder.pk)
+            folder=folder
         )
     
     def check_changes(self, last, new):

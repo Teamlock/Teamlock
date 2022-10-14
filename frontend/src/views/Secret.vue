@@ -1,27 +1,51 @@
 <template>
   <span v-if="selected_workspace" @click.stop>
     <v-data-table
-        hide-default-footer
         :headers="headers"
         :loading="loading"
         class="elevation-1"
         fill-height
         :items="secrets"
         item-key="_id"
-        sort-by="name.value"
-        :sort-desc="false"
-        disable-pagination
         dense
     >
-      <template v-slot:no-data="">
-        <div class="restore_folder" style="margin-bottom:10px" v-if="in_trash">
-          <v-icon small>mdi-alert</v-icon>
-          {{$t("warning.restore")}}
-        </div>
+      <template v-slot:no-data>
         {{ $t('label.no_data_available') }}
       </template>
       <template v-slot:[`header.actions`]="{}">
-        <v-menu offset-y left  v-if="(is_trash || in_trash) && (selected_workspace.owner === user._id || selected_workspace.can_write)">
+        <v-menu offset-y left  v-if="showTrash && (selected_workspace.owner === user._id || selected_workspace.can_write)">
+          <template v-slot:activator="{ on: menu, attrs }">
+            <v-tooltip bottom>
+              <template v-slot:activator="{ on: tooltip }">
+                <v-icon
+                  v-bind="attrs"
+                  v-on="{ ...tooltip, ...menu }"
+                  class="mr-2"
+                  @click.stop
+                >
+                  mdi-delete
+                </v-icon>
+              </template>
+              <span>{{ $t('help.empty_trash') }}</span>
+            </v-tooltip>
+          </template>
+          <v-card>
+            <v-card-title style="font-size: 16px">
+              <small>
+                <v-icon>mdi-alert</v-icon> 
+                {{$t("warning.confirm_empty_trash")}}
+              </small>
+            </v-card-title>
+            <v-card-actions>
+              <v-spacer></v-spacer>
+                <v-btn small text>{{ $t('button.cancel') }}</v-btn>
+                <v-btn small color="primary" text @click="emptyTrash">{{ $t('button.confirm') }}</v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-menu>
+        
+
+        <v-menu offset-y left  v-if="showTrash && (selected_workspace.owner === user._id || selected_workspace.can_write)">
           <template v-slot:activator="{ on: menu, attrs }">
             <v-tooltip bottom>
               <template v-slot:activator="{ on: tooltip }">
@@ -34,37 +58,39 @@
                   mdi-delete-empty
                 </v-icon>
               </template>
-              <span>{{ $t('help.empty_trash') }}</span>
+              <span>{{ $t('help.restore_trash') }}</span>
             </v-tooltip>
           </template>
-        <v-card>
-          <v-card-title style="font-size: 16px">
-            <small>
-              <v-icon>mdi-alert</v-icon> 
-              {{$t("warning.confirm_empty_trash")}}
-            </small>
-          </v-card-title>
-          <v-card-actions>
-            <v-spacer></v-spacer>
-              <v-btn small text>{{ $t('button.cancel') }}</v-btn>
-              <v-btn small color="primary" text @click="emptyTrash">{{ $t('button.confirm') }}</v-btn>
-          </v-card-actions>
-        </v-card>
+          <v-card >
+            <v-card-title style="font-size: 16px">
+              <small>
+                <v-icon>mdi-alert</v-icon> 
+                {{$t("warning.confirm_restore_trash")}}
+              </small>
+            </v-card-title>
+            <v-card-actions>
+              <v-spacer></v-spacer>
+                <v-btn small text>{{ $t('button.cancel') }}</v-btn>
+                <v-btn small color="primary" text @click="restoreTrash">{{ $t('button.confirm') }}</v-btn>
+            </v-card-actions>
+          </v-card>
         </v-menu>
+
+
         <v-btn
           tile
           x-small
           color="primary"
           @click="addSecret(category, current_folder)"
           style="float: right"
-          v-if="!in_trash && (selected_workspace.owner === user._id || selected_workspace.can_write)"
+          v-if="!showTrash && (selected_workspace.owner === user._id || selected_workspace.can_write)"
         >
           <v-icon small>mdi-plus</v-icon>
           {{ $t("button.add") }}
         </v-btn>     
       </template>
       <template v-slot:item="{ item,index }">
-        <td class="restore_folder" colspan="12" v-if="index == 0 && in_trash">
+        <td class="restore" colspan="12" v-if="index == 0 && showTrash">
           <v-icon small>mdi-alert</v-icon>
           {{$t("warning.restore")}}
         </td>
@@ -103,8 +129,7 @@
                 :notif="configuredNotifs.includes(item._id)"
                 :item="item"
                 @delete="deleteItem"
-                :in_trash="in_trash || is_trash"
-                @refreshNotif="fetchNotifConfigured()"
+                @restore="restoreItem"
               />
             </span>
             <span v-else>
@@ -160,7 +185,8 @@ export default defineComponent({
     loading: false,
     is_pro: false,
     headers: [],
-    secrets: []
+    secrets: [],
+    showTrash: false,
   }),
 
   computed: {
@@ -170,14 +196,13 @@ export default defineComponent({
       current_folder: 'getFolder',
       selected_workspace: "getWorkspace"
     }),
-
     height() {
       const height = document.getElementsByClassName("v-main__wrap")[0].offsetHeight;
       return height - 45
     }
   },
 
-  watch: {},
+  watch : {},
 
   async beforeMount() {
     let middleHeader = null
@@ -205,22 +230,18 @@ export default defineComponent({
     this.is_pro = this.$store.state.pro
   },
 
-  mounted() {
-    EventBus.$on("refreshSecrets", () => {
-      this.getSecrets()
-    })
 
+  mounted() {
     EventBus.$on("searchSecrets", (search) => {
       this.searchSecrets(search)
     })
 
-    EventBus.$on("folder_trash", res =>{
-      this.in_trash = res.in_trash;
-      this.is_trash = res.is_trash;
-      if(res.is_trash) this.in_trash = true;
+    EventBus.$on("showTrash", val => {
+      this.showTrash = val
+      if(this.showTrash)this.getSecrets();
     })
 
-    EventBus.$on("empty_trash",() => this.emptyTrash());
+    this.showTrash = localStorage.getItem("showTrash") === "true";
   },
 
   methods: {
@@ -241,13 +262,40 @@ export default defineComponent({
         this.secrets = [];
         this.$toast.success(this.$t("success.trash_emptied"))
         this.loading = false;
-        EventBus.$emit("refreshTreeview");
+        EventBus.$emit("refreshTrashStats");
         }).catch((error) => {
         if (error.response.status === 500) {
           this.$toast.error(this.$t("error.occurred"))
         }
       })
     },
+
+    restoreTrash(){
+      this.loading = true;
+      const uri = `/api/v1/workspace/${sessionStorage.getItem("current_workspace")}/trash/restore`;
+      http.patch(uri)
+        .then(() =>{
+          this.secrets = []
+          this.$toast.success(this.$t("success.trash_restored"), {
+            closeOnClick: true,
+            timeout: 3000,
+            icon: true
+          })
+          this.loading = false;
+          EventBus.$emit("refreshTrashStats");
+        })
+        .catch((error) => {
+          if (error.response.status === 500) {
+            this.$toast.error(this.$t("error.occurred"), {
+              closeOnClick: true,
+              timeout: 5000,
+              icon: true
+            })
+          }
+        })
+    },
+
+
     searchSecrets(search) {
       this.loading = true;
       this.secrets = []
@@ -266,10 +314,7 @@ export default defineComponent({
     },
 
     getSecrets() {
-      if (!this.current_folder) return
-
-      http.get(`/api/v1/workspace/${sessionStorage.getItem("current_workspace")}/trash`)
-        .then(response => this.trash = response.data)
+      if(!this.current_folder) return
 
       if (this.selected_workspace.owner  === this.$store.state.user._id) {
         this.can_share_external = true
@@ -277,26 +322,37 @@ export default defineComponent({
         this.can_share_external = this.selected_workspace.can_share_external
       }
 
-      this.loading = true;
-      this.secrets = [];
-
-      const params = {
+      this.secrets = [];                            
+      
+      let params = {
         params: {
           category: this.category
         }
       }
 
-      const uri = `/api/v1/folder/${this.current_folder}/secrets`
-      http.get(uri, params).then((response) => {
-        this.secrets = response.data
-        this.loading = false
-      }).catch((error) => {
-        if (error.response.status === 500) {
-          this.$toast.error(this.$t("error.occurred"))
-        }
-      }).then(() => {
-        this.loading = false
-      })
+      let uri;
+      if(this.showTrash){
+        uri = `/api/v1/workspace/${sessionStorage.getItem("current_workspace")}/trash`;
+      } else {
+        uri = `/api/v1/folder/${this.current_folder}/secrets`
+      }
+      
+      this.loading = true;
+      http.get(uri, params)
+        .then((response) => {
+          this.secrets = response.data;
+          this.loading = false;
+        })
+        .catch((error) => {
+          if (error.response.status === 500) {
+            this.$toast.error(this.$t("error.occurred"), {
+              closeOnClick: true,
+              timeout: 5000,
+              icon: true
+            })
+          }
+        })
+      
     },
     deleteItem(item) {
       const callback = () => {
@@ -306,17 +362,47 @@ export default defineComponent({
             break
           }
         }
-        const msg = this.in_trash ? "success.key_deleted" : "success.key_moved_to_trash"
-        this.$toast.success(this.$t(msg))
+        const msg = this.showTrash ? "success.key_deleted" : "success.key_moved_to_trash"
+        this.$toast.success(this.$t(msg), {
+          closeOnClick: true,
+          timeout: 3000,
+          icon: true
+        })
       }
-      if (!this.in_trash) http.post(`/api/v1/secret/${item._id}/move`, this.trash._id).then(callback)
-      else http.delete(`/api/v1/secret/${item._id}`).then(callback);
+      if(this.showTrash){
+        http.delete(`/api/v1/secret/${item._id}`).then(() => {
+          EventBus.$emit("refreshTrashStats");
+          callback();
+        })
+      }
+      else{
+        http.delete(`/api/v1/secret/${item._id}/trash`).then(() =>{
+          EventBus.$emit("refreshStats");
+          callback();
+        });
+      }
+    },
+    restoreItem(item){
+      http.patch(`/api/v1/secret/${item._id}/restore`).then(() =>{
+        EventBus.$emit("refreshTrashStats");
+        for (let i in this.secrets) {
+          if (this.secrets[i]._id === item._id) {
+            this.secrets.splice(i, 1)
+            break
+          }
+        }
+        this.$toast.success(this.$t("success.key_restored"), {
+          closeOnClick: true,
+          timeout: 3000,
+          icon: true
+        })
+      });
     },
   }
 })
 </script>
 <style>
-.restore_folder{
+.restore{
   padding:5px;
   font-weight: bold;
   background-color: #DDB249;

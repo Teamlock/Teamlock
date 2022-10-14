@@ -178,10 +178,9 @@ export default defineComponent({
                 name: selected[0].data.name,
                 icon: selected[0].data.icon,
             })
-            EventBus.$emit("folder_trash",{
-                in_trash:selected[0].data.in_trash,
-                is_trash:selected[0].data.is_trash
-            });
+            EventBus.$emit("showTrash",false)
+            localStorage.setItem("showTrash", false)
+            
             localStorage.setItem("selected_folder", folder_id)
             this.$store.dispatch("set_current_folder", folder_id)
         },

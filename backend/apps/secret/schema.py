@@ -41,7 +41,8 @@ class SecretListValueSchema(BaseModel):
 class BaseSecretSchema(BaseModel):
     name: SecretValueSchema = SecretValueSchema()
     informations: SecretValueSchema = SecretValueSchema()
-    folder: PyObjectId = Field(default_factory=PyObjectId)
+    folder: PyObjectId | None = Field(default_factory=PyObjectId)
+    trash: PyObjectId | None = None
 
 
 class GlobalSecretSchema(BaseSecretSchema):

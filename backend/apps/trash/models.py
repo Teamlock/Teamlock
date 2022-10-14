@@ -13,7 +13,7 @@ You should have received a copy of the GNU General Public License
 along with Teamlock.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-__author__ = "Olivier de Régis"
+__author__ = "Romain Lefebvre"
 __credits__ = []
 __license__ = "GPLv3"
 __version__ = "3.0.0"
@@ -21,30 +21,13 @@ __maintainer__ = "Teamlock Project"
 __email__ = "contact@teamlock.io"
 __doc__ = ''
 
-from apps.config.models import PasswordPolicy
-from apps.workspace.models import Workspace
-from apps.user.models import User
-from datetime import datetime
 import mongoengine
+from apps.workspace.models import Workspace
+from datetime import datetime
 
-
-class Folder(mongoengine.Document):
-    name = mongoengine.StringField()
-    icon = mongoengine.StringField()
-    created_at = mongoengine.DateTimeField(default=datetime.utcnow)
-    password_policy = mongoengine.EmbeddedDocumentField(PasswordPolicy)
-    created_by = mongoengine.ReferenceField(
-        User,
-        reverse_delete_rule=mongoengine.NULLIFY
-    )
-
-    parent = mongoengine.ReferenceField(
-        "Folder",
-        null=True,
-        reverse_delete_rule=mongoengine.CASCADE
-    )
-
+class Trash(mongoengine.Document):
     workspace = mongoengine.ReferenceField(
         Workspace,
         reverse_delete_rule=mongoengine.CASCADE
     )
+    created_at = mongoengine.DateTimeField(default=datetime.utcnow)
