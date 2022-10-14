@@ -572,7 +572,6 @@ class WorkspaceUtils:
         keys: list = []
         for tmp in model_.objects(in_folder_query & (name_query | url_query)):
             schema = tmp.schema()
-            print(schema)
             tmp = WorkspaceUtils.decrypt_secret(decrypted_sym_key, schema)
             tmp.folder_name = Folder.objects(pk=tmp.folder).get().name
             tmp.workspace_name = workspace.name

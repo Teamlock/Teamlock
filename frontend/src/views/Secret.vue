@@ -1,7 +1,6 @@
 <template>
   <span v-if="selected_workspace" @click.stop>
     <v-data-table
-        :hide-default-footer="!showTrash"
         :headers="headers"
         :loading="loading"
         class="elevation-1"
@@ -9,20 +8,8 @@
         :items="secrets"
         item-key="_id"
         dense
-        :disable-pagination="!showTrash"
-        :items-per-page="10"
-        :server-items-length="total"
-        :sort-by="sortBy"
-        :sort-desc="sortDesc"
-        :footer-props="{'items-per-page-options':[5, 10, 20, 50, 100]}"
-        :options.sync="options"
     >
-      <template v-slot:no-results>
-        <span>Rien trouvé avec search</span>
-      </template>
       <template v-slot:no-data>
-        COCUCOU
-        {{secrets.length === 0 ? "pas de secrets" : "il ya des secrets"}}
         {{ $t('label.no_data_available') }}
       </template>
       <template v-slot:[`header.actions`]="{}">
@@ -42,19 +29,19 @@
               <span>{{ $t('help.empty_trash') }}</span>
             </v-tooltip>
           </template>
-        <v-card>
-          <v-card-title style="font-size: 16px">
-            <small>
-              <v-icon>mdi-alert</v-icon> 
-              {{$t("warning.confirm_empty_trash")}}
-            </small>
-          </v-card-title>
-          <v-card-actions>
-            <v-spacer></v-spacer>
-              <v-btn small text>{{ $t('button.cancel') }}</v-btn>
-              <v-btn small color="primary" text @click="emptyTrash">{{ $t('button.confirm') }}</v-btn>
-          </v-card-actions>
-        </v-card>
+          <v-card>
+            <v-card-title style="font-size: 16px">
+              <small>
+                <v-icon>mdi-alert</v-icon> 
+                {{$t("warning.confirm_empty_trash")}}
+              </small>
+            </v-card-title>
+            <v-card-actions>
+              <v-spacer></v-spacer>
+                <v-btn small text>{{ $t('button.cancel') }}</v-btn>
+                <v-btn small color="primary" text @click="emptyTrash">{{ $t('button.confirm') }}</v-btn>
+            </v-card-actions>
+          </v-card>
         </v-menu>
         
 
@@ -74,19 +61,19 @@
               <span>{{ $t('help.restore_trash') }}</span>
             </v-tooltip>
           </template>
-        <v-card >
-          <v-card-title style="font-size: 16px">
-            <small>
-              <v-icon>mdi-alert</v-icon> 
-              {{$t("warning.confirm_restore_trash")}}
-            </small>
-          </v-card-title>
-          <v-card-actions>
-            <v-spacer></v-spacer>
-              <v-btn small text>{{ $t('button.cancel') }}</v-btn>
-              <v-btn small color="primary" text @click="restoreTrash">{{ $t('button.confirm') }}</v-btn>
-          </v-card-actions>
-        </v-card>
+          <v-card >
+            <v-card-title style="font-size: 16px">
+              <small>
+                <v-icon>mdi-alert</v-icon> 
+                {{$t("warning.confirm_restore_trash")}}
+              </small>
+            </v-card-title>
+            <v-card-actions>
+              <v-spacer></v-spacer>
+                <v-btn small text>{{ $t('button.cancel') }}</v-btn>
+                <v-btn small color="primary" text @click="restoreTrash">{{ $t('button.confirm') }}</v-btn>
+            </v-card-actions>
+          </v-card>
         </v-menu>
 
 
@@ -106,7 +93,7 @@
         <td class="restore" colspan="12" v-if="index == 0 && showTrash">
           <v-icon small>mdi-alert</v-icon>
           {{$t("warning.restore")}}
-        </td>                                                                                                                                                                   
+        </td>
         <draggable
           :list="secrets"
           tag="tr"
@@ -197,12 +184,6 @@ export default defineComponent({
     headers: [],
     secrets: [],
     showTrash: false,
-    sortBy: "name",
-    sortDesc: false,
-    total: 0,
-    page: 1,
-    per_page: 10,
-    options : {}
   }),
 
   computed: {
@@ -218,14 +199,7 @@ export default defineComponent({
     }
   },
 
-  watch : {
-    options: {
-      handler () {
-          this.getSecrets()
-      },
-      deep: true
-    },
-  },
+  watch : {},
 
   beforeMount() {
     let middleHeader = null
@@ -356,38 +330,15 @@ export default defineComponent({
       let uri;
       if(this.showTrash){
         uri = `/api/v1/workspace/${sessionStorage.getItem("current_workspace")}/trash`;
-        const sort_order = this.options.sortDesc[0] ? "desc" : "asc";
-        let options = {
-          page: this.options.page,
-          per_page: this.options.itemsPerPage,
-          sort: `${this.options.sortBy[0]}|${sort_order}`
-        }
-
-        if (!this.options.sortBy[0]) 
-          delete options.sort
-
-        params = {
-          params: {
-            ...params.params,
-            ...options
-          }
-        }
-      }
-      else{
+      } else {
         uri = `/api/v1/folder/${this.current_folder}/secrets`
       }
       
       this.loading = true;
-      http.get(uri,params)
+      http.get(uri, params)
         .then((response) => {
-          if(this.showTrash){
-            this.secrets = response.data.data;
-            this.total = response.data.total;
-          }
-          else
-            this.secrets = response.data;
+          this.secrets = response.data;
           this.loading = false;
-          console.log(this.secrets);
         })
         .catch((error) => {
           if (error.response.status === 500) {

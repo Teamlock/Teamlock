@@ -26,7 +26,7 @@ class SecretUtils:
             workspace (Workspace): workspace where was the secret
         """
         #if there is no folders to put the secret in, we raise an Exception
-        folders = Folder.objects(workspace = workspace)
+        folders = Folder.objects(workspace=workspace)
         if (len(folders) == 0):
             raise HTTPException(status_code=400,detail="You can't restore that secret because there is no folders to put it in")
         

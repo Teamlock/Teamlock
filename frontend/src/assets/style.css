@@ -415,6 +415,7 @@ div.v-input__slot {
 }
 
 .trash{
+    text-align: left;
     position: absolute;
     right: 10px;
     bottom: 10px;

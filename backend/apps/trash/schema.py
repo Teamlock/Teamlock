@@ -21,23 +21,10 @@ __maintainer__ = "Teamlock Project"
 __email__ = "contact@teamlock.io"
 __doc__ = ''
 
-from pydantic import BaseModel, Field
-from toolkits.bson import PyObjectId
-from bson import ObjectId
-from datetime import datetime
-from apps.secret.schema import GlobalSecretSchema
-from toolkits.paginate import PaginationResponseSchema
+from pydantic import BaseModel
 
 class TrashStats(BaseModel):
     login: int = 0
     server: int = 0
     phone: int = 0
     bank: int = 0
-
-class TrashTableSchema(PaginationResponseSchema):
-    data: list[GlobalSecretSchema]
-    class Config:
-        arbitrary_types_allowed: bool = True
-        json_encoders: dict = {
-            ObjectId: str
-        }

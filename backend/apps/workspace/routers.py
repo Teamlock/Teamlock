@@ -24,7 +24,9 @@ __doc__ = ''
 from .schema import (EditShareSchema, EditWorkspaceSchema, ImportXMLFileSchema,
                      SharedWorkspaceSchema, UpdateShareSchema, UsersWorkspace, WorkspaceSchema)
 from fastapi import APIRouter, Depends, status, File, UploadFile, Form, BackgroundTasks
-from fastapi.responses import FileResponse
+from apps.secret.schema import BankSchema, LoginSchema, PhoneSchema, ServerSchema
+from apps.secret.models import Login, Secret, Server, Bank, Phone
+from apps.secret.schema import GlobalSecretSchema
 from mongoengine.errors import NotUniqueError
 from pymongo.errors import DuplicateKeyError
 from apps.config.models import PasswordPolicy
@@ -32,20 +34,17 @@ from toolkits.workspace import WorkspaceUtils
 from toolkits.import_utils import ImportUtils
 from fastapi.exceptions import HTTPException
 from apps.folder.schema import FolderSchema
-from apps.secret.models import Login, Secret, Server, Bank, Phone
-from apps.secret.schema import GlobalSecretSchema
+from fastapi.responses import FileResponse
 from apps.auth.tools import get_current_user
 from mongoengine.queryset.visitor import Q
-from toolkits.folder import FolderUtils
-from toolkits.crypto import CryptoUtils
+from apps.trash.schema import TrashStats
 from toolkits.secret import SecretUtils
-from toolkits.paginate import PaginationParamsSchema, get_order
 from apps.auth.schema import LoggedUser
 from fastapi.responses import Response
+from toolkits.crypto import CryptoUtils
 from .models import Workspace, Share
 from apps.folder.models import Folder
 from apps.secret.models import Secret
-from apps.trash.schema import TrashStats, TrashTableSchema
 from datetime import datetime
 from settings import settings
 from toolkits import const
@@ -414,55 +413,37 @@ async def export_workspace_file(
 @router.get(
     path="/{workspace_id}/trash",
     status_code=status.HTTP_200_OK,
-    response_model=TrashTableSchema | list[GlobalSecretSchema],
-    summary="Get the trash folder, and all its secrets depending on the category you want",
-    dependencies=[Depends(get_current_user)]
+    response_model=list[LoginSchema] | list[ServerSchema] | list[BankSchema] | list[PhoneSchema],
+    summary="Get the trash folder, and all its secrets depending on the category you want"
 )
 async def get_trash(
     workspace_id: str,
     category: str,
     all: bool = False,
-    paginate: PaginationParamsSchema = Depends()
-) -> TrashTableSchema: 
+    user: LoggedUser = Depends(get_current_user)
+): 
     model_ = const.MAPPING_SECRET[category]
     trash = WorkspaceUtils.get_trash_folder(workspace_id)       
     if all:
-        secrets: list = [GlobalSecretSchema(**obj.to_mongo()) for obj in model_.objects(folder=None,trash=trash)]
+        secrets: list = [GlobalSecretSchema(**obj.to_mongo()) for obj in model_.objects(folder=None, trash=trash)]
         return secrets
 
-    if not paginate.sort:
-        paginate.sort = "name|desc"
-    
-    aggs: list = []
-    match: dict = {"$match": {}}
-    if paginate.search:
-        match["$match"]["name"] = {
-            "$regex": paginate.search
-        }
+    tmp_secrets = model_.objects(folder=None, trash=trash)
+    secrets: list = []
 
-    if len(match["$match"].values()) > 0:
-        aggs.append(match)
+    _, sym_key = WorkspaceUtils.get_workspace(workspace_id, user)
 
-    aggs.append(get_order(paginate.sort))
-    skip: int = (paginate.page -1) * paginate.per_page
-    if paginate.per_page != -1:
-        aggs.append({"$skip": skip})
-        aggs.append({"$limit": paginate.per_page})
-
-    total_objects: int = model_.objects(folder=None,trash=trash).count()
-
-    objects = model_.objects(folder=None,trash=trash).aggregate(*aggs)
-    secrets: list = [GlobalSecretSchema(**tmp) for tmp in objects]
-
-    return TrashTableSchema(
-        start=skip,
-        data=secrets,
-        total=total_objects,
-        to=skip + len(secrets),
-        current_page=paginate.page,
-        per_page=paginate.per_page,
-        last_pages=math.ceil(total_objects / paginate.per_page),
+    decrypted_sym_key = CryptoUtils.rsa_decrypt(
+        sym_key,
+        user.in_db.private_key,
+        CryptoUtils.decrypt_password(user)
     )
+
+    for tmp in tmp_secrets:
+        schema = tmp.schema()
+        secrets.append(WorkspaceUtils.decrypt_secret(decrypted_sym_key, schema))
+
+    return secrets
 
 @router.delete(
     path="/{workspace_id}/trash",

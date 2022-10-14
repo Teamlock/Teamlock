@@ -16,9 +16,9 @@
             <workspace-list />
             <treeview />
  
-            <v-btn class="trash" @click="showTrash">
-                {{ $t('label.trash') }}
+            <v-btn class="trash" @click="showTrash" :color="activeTrash">
                 <v-icon>mdi-delete</v-icon>
+                {{ $t('label.trash') }}
             </v-btn>
         </v-navigation-drawer>
 
@@ -74,6 +74,7 @@ export default defineComponent({
     data: () => ({
         rightPanelComponent: null,
         rightPanelOpen: false,
+        trashShowed: false,
         search: "",
         navigation: {
             borderSize: 2,
@@ -84,6 +85,10 @@ export default defineComponent({
     computed: {
         key() {
            return this.$route.path
+        },
+
+        activeTrash() {
+            return this.trashShowed ? "primary" : "dark"
         }
     },
 
@@ -95,10 +100,15 @@ export default defineComponent({
     },
 
     mounted() {
+        this.trashShowed = localStorage.getItem("showTrash") === "true"
         setTimeout(() => {
             this.setBorderWidth();
             this.setEvents();
         }, 200);
+
+        EventBus.$on("showTrash", (val) => {
+            this.trashShowed = val
+        })
     },
 
     methods: {
