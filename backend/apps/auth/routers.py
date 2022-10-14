@@ -25,8 +25,7 @@ from .tools import (authenticate_user, create_access_token, get_current_user,
     create_temp_otp_key, invalid_authentication)
 from fastapi import (APIRouter, Depends, status, Header, Request, 
     UploadFile, File, Form, Header, BackgroundTasks)
-from toolkits.utils import (check_password_complexity, create_user_toolkits, 
-    fetch_config, create_user_session)
+from toolkits.utils import (create_user_toolkits, fetch_config, create_user_session)
 from apps.user.schema import EditUserSchema, UserSchema, UserProfileSchema
 from .schema import LoggedUser, Login, RegistrationSchema
 from fastapi.security import OAuth2PasswordRequestForm
@@ -63,8 +62,15 @@ async def login_for_access_token(
     request: Request,
     background_tasks: BackgroundTasks,
     x_teamlock_key: str | None = Header(None),
+    x_teamlock_app: str | None = Header(None),
     form_data: OAuth2PasswordRequestForm = Depends()
 ) -> Login:
+
+    if RedisTools.retreive(f"{form_data.username}_locked"):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Too many authentication failures"
+        )
 
     try:
         user: User = await authenticate_user(form_data)
@@ -76,7 +82,7 @@ async def login_for_access_token(
         )
 
     except AuthenticationError:
-        invalid_authentication(form_data.username)
+        invalid_authentication(form_data.username, background_tasks, request)
 
         log_message: str = f"[AUTH] Invalid authentication for Email {form_data.username}"
         logger.info(log_message)
@@ -95,13 +101,12 @@ async def login_for_access_token(
             detail="Account currently locked by administrator"
         )
 
-    if RedisTools.retreive(f"{user.email}_locked"):
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Too many authentication failures"
-        )
-
-    login: Login = create_access_token(user, form_data.password, x_teamlock_key)
+    login: Login = create_access_token(
+        user,
+        form_data.password,
+        x_teamlock_key,
+        x_teamlock_app
+    )
 
     # Check if user has TOTP Enabled
     if user.otp and user.otp.enabled:
@@ -214,6 +219,7 @@ async def register_user(registration_schema: RegistrationSchema) -> bool:
     status_code=status.HTTP_200_OK
 )
 async def recover_user(
+    request: Request,
     email: str = Form(...),
     new_password: str = Form(...),
     confirm_password: str = Form(...),
@@ -244,6 +250,21 @@ async def recover_user(
             log_message: str = f"[RECOVER] User {email} attempts to recover, but recovery mode not enabled"
             logger.info(log_message)
             logger_security.info(log_message)
+
+            try:
+                from teamlock_pro.toolkits.proNotif import create_notification
+
+                admins = User.objects(is_admin=True)
+                create_notification(
+                    request=request,
+                    secret_id=None,
+                    message="User recovery attempt",
+                    user=user,
+                    users=admins
+                )
+
+            except ImportError:
+                pass
 
             create_history(
                 user=email,

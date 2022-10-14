@@ -36,6 +36,7 @@ class Workspace(mongoengine.Document):
     password_policy = mongoengine.EmbeddedDocumentField(
         PasswordPolicy, null=True)
     import_in_progress = mongoengine.BooleanField(default=False)
+    import_error = mongoengine.StringField(default="")
     owner = mongoengine.ReferenceField(
         User,
         reverse_delete_rule=mongoengine.CASCADE

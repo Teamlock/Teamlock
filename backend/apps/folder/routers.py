@@ -23,7 +23,7 @@ __doc__ = ''
 
 from apps.secret.schema import BankSchema, LoginSchema, PhoneSchema, ServerSchema
 from .schema import EditFolderSchema, FolderSchema, FolderStats
-from apps.secret.models import Login, Secret, Server, Bank, Phone
+from apps.secret.models import Login, Server, Bank, Phone
 from fastapi import APIRouter, Depends, status, Body
 from apps.config.schema import PasswordPolicySchema
 from toolkits.workspace import WorkspaceUtils

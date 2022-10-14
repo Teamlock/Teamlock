@@ -137,24 +137,12 @@ export default defineComponent({
                 }
 
                 this.imported = true
-                this.$toast.success(this.$t("success.users_created"), {
-                    closeOnClick: true,
-                    timeout: 3000,
-                    icon: true
-                })
+                this.$toast.success(this.$t("success.users_created"))
             }).catch((error) => {
                 if (error.response.data.detail === "MAX USERS LIMIT") {
-                    this.$toast.error(this.$t("error.max_users_limit"), {
-                        closeOnClick: true,
-                        timeout: 5000,
-                        icon: true
-                    })
+                    this.$toast.error(this.$t("error.max_users_limit"))
                 } else {
-                    this.$toast.error(this.$t("error.unknown"), {
-                        closeOnClick: true,
-                        timeout: 5000,
-                        icon: true
-                    })
+                    this.$toast.error(this.$t("error.unknown"))
                 }
             }).then(() => {
                 this.is_loading = false

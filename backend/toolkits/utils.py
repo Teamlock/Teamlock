@@ -26,13 +26,13 @@ from mongoengine.errors import NotUniqueError
 from fastapi.exceptions import HTTPException
 from apps.user.schema import EditUserSchema
 from toolkits.redis_tools import RedisTools
+from fastapi import status, BackgroundTasks
 from .exceptions import UserExistException
 from apps.user.models import UserSession
 from apps.config.models import Config
 from apps.user.models import User
 from toolkits.mail import MailUtils
 from settings import settings
-from fastapi import status
 import logging.config
 import geocoder
 import datetime
@@ -74,7 +74,7 @@ def check_password_complexity(policy: PasswordPolicySchema, secret_def):
         )
 
 
-def create_user_toolkits(user_def: EditUserSchema) -> str:
+def create_user_toolkits(user_def: EditUserSchema, background_task: BackgroundTasks) -> str:
     try:
         # Create User
         user: User = User(
@@ -93,7 +93,12 @@ def create_user_toolkits(user_def: EditUserSchema) -> str:
         # Send mail to new user
         url: str = f"#/configure/{str(user.pk)}"
         if settings.SMTP_HOST:
-            MailUtils.send_mail([user.email], url, "registration")
+            background_task.add_task(
+                MailUtils.send_mail,
+                [user.email],
+                url,
+                "registration"
+            )
 
         return str(user.pk)
 
@@ -106,11 +111,7 @@ def create_user_toolkits(user_def: EditUserSchema) -> str:
         raise
 
 
-def create_user_session(user, request) -> None | dict:
-    # Return true if a security alert email need to be sent
-    send_security_alert_email: bool = False
-
-    # Create user session
+def get_client_information(request):
     os = request.headers.get("sec-ch-ua-platform", "").replace('"', '')
     user_agent = request.headers.get("user-agent", "")
 
@@ -120,6 +121,17 @@ def create_user_session(user, request) -> None | dict:
         geo = geocoder.ip(client_ip)
     except Exception:
         geo = None
+
+    return os, user_agent, client_ip, geo
+
+
+
+def create_user_session(user, request) -> None | dict:
+    # Return true if a security alert email need to be sent
+    send_security_alert_email: bool = False
+
+    # Create user session
+    os, user_agent, client_ip, geo = get_client_information(request)
 
     UserSession.objects.create(
         user=user,
@@ -139,7 +151,7 @@ def create_user_session(user, request) -> None | dict:
 
     # Keep only the last 30 days informations
     last_month = datetime.datetime.utcnow() - datetime.timedelta(days=30)
-    UserSession.objects(date__lte=last_month).delete()
+    UserSession.objects(date__lte=last_month, user=user).delete()
 
     user.last_seen = datetime.datetime.utcnow()
     user.save()

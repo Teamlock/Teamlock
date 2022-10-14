@@ -58,7 +58,7 @@ logger = logging.getLogger("api")
 
 log_config = uvicorn.config.LOGGING_CONFIG
 log_config["formatters"]["access"]["fmt"] = '{"date": "%(asctime)s", "level": "%(levelname)s", "message": "%(message)s"}'
-log_config["formatters"]["default"]["fmt"] = '{"date": "%(asctime)s", "level": "%(levelname)s", "message": "%(message)s"}'
+# log_config["formatters"]["default"]["fmt"] = '{"date": "%(asctime)s", "level": "%(levelname)s", "message": "%(message)s"}'
 
 templates = Jinja2Templates(directory="templates")
 
@@ -113,11 +113,6 @@ if not settings.DEV_MODE:
     async def main(request: Request):
         return templates.TemplateResponse("index.html", {"request": request})
 
-
-@app.middleware("http")
-async def add_process_time_header(request: Request, call_next):
-    response = await call_next(request)
-    return response
 
 
 @app.get("/ping", tags=["Supervision"])

@@ -13,7 +13,7 @@
             {{ $t('label.users') }}
         </span>
         <span v-else-if="currentRouteName === 'Profile'" class="text_label_app_bar">
-            <v-icon>mdi-account-circle</v-icon>&nbsp;
+            <v-icon>mdi-account-box</v-icon>&nbsp;
             {{ $t('label.profile') }}
         </span>
         <span v-else-if="currentRouteName === 'Sessions'" class="text_label_app_bar">
@@ -87,7 +87,7 @@
                     text
                     v-bind="attrs"
                     v-on="on"
-                    class="mr-2 ml-2"
+                    class=""
                 >
                     <v-img :src="flags[$vuetify.lang.current]" width="20" />
                 </v-btn>
@@ -104,6 +104,10 @@
             </v-list>
         </v-menu>
 
+        <span v-if="isPro">
+            <notification/>
+        </span>
+
         <v-menu
             v-if="user"
             left
@@ -118,7 +122,8 @@
                     v-on="on"
                     class="mr-0 ml-2"
                 >
-                    <v-img :src="image" max-width="45" ></v-img>
+                    <!-- <v-img :src="image" max-width="45" ></v-img> -->
+                    <v-icon color="primary" large>mdi-account-box</v-icon>
                 </v-btn>
             </template>
 
@@ -142,12 +147,13 @@
 
 <script>
 import { defineComponent } from '@vue/composition-api'
+import Notification from './Notification.vue';
 import { mapGetters } from 'vuex'
 import EventBus from "@/event"
 import http from "@/utils/http"
 
 export default defineComponent({
-    components: {},
+    components: {Notification},
 
     props: {
         searchBar: {
@@ -159,6 +165,7 @@ export default defineComponent({
     computed: {
         ...mapGetters({
             user: 'getUser',
+            isPro: 'getPro'
         }),
         currentRouteName() {
             return this.$route.name;
@@ -190,6 +197,11 @@ export default defineComponent({
             fr: require("@/assets/img/flags/fr.svg"),
         }
     }),
+
+    beforeMount() {
+        const userAgent = navigator.userAgent.toLowerCase();
+        this.electron = userAgent.indexOf(' electron/') > -1
+    },
 
     mounted() {
         window.addEventListener("keydown", (e) => {
@@ -228,7 +240,12 @@ export default defineComponent({
         logout() {
             EventBus.$emit("stopKeepAlive")
             sessionStorage.clear()
-            this.$router.push("/login")
+
+            if (!this.electron) {
+                this.$router.push("/login")
+            } else {
+                window.ipc.send("LOGOUT")
+            }
         },
 
         setTheme() {

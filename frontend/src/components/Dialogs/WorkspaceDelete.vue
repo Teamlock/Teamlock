@@ -12,24 +12,24 @@
                 {{ $t('warning.alert_delete_workspace') }}
             </v-card-text>
             <v-card-actions>
-            <v-spacer></v-spacer>
-            <v-btn
-                text
-                height="25"
-                small
-                @click="open = false"
-            >
-                {{ $t('button.cancel') }}
-            </v-btn>
-            <v-btn
-                color="primary"
-                text
-                height="25"
-                small
-                @click="deleteWorkspace"
-            >
-                {{ $t('button.confirm') }}
-            </v-btn>
+                <v-spacer></v-spacer>
+                <v-btn
+                    text
+                    height="25"
+                    small
+                    @click="open = false"
+                >
+                    {{ $t('button.cancel') }}
+                </v-btn>
+                <v-btn
+                    color="primary"
+                    text
+                    height="25"
+                    small
+                    @click="deleteWorkspace"
+                >
+                    {{ $t('button.confirm') }}
+                </v-btn>
             </v-card-actions>
         </v-card>
     </v-dialog>
@@ -47,9 +47,9 @@ export default defineComponent({
     }),
 
     mounted() {
-        EventBus.$on("deleteWorkspace", (workspace) => {
+        EventBus.$on("deleteWorkspace", (workspace_id) => {
             this.open = true
-            this.workspace_id = workspace._id
+            this.workspace_id = workspace_id
         })
     },
 
@@ -58,11 +58,7 @@ export default defineComponent({
             const uri = `/api/v1/workspace/${this.workspace_id}`
             http.delete(uri).then(() => {
                 this.open = false
-                this.$toast.success(this.$t('success.workspace_deleted'), {
-                    closeOnClick: true,
-                    timeout: 3000,
-                    icon: true
-                })
+                this.$toast.success(this.$t('success.workspace_deleted'))
 
                 localStorage.removeItem("current_workspace")
                 this.$emit("workspaceDeleted")

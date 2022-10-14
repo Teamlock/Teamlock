@@ -69,33 +69,17 @@ export default defineComponent({
       http.post("/api/v1/user", this.form).then(() => {
         this.form.email = ""
         this.form.is_admin = false
-        this.$toast.success(this.$t("success.user_created"), {
-          closeOnClick: true,
-          timeout: 3000,
-          icon: true
-        })
+        this.$toast.success(this.$t("success.user_created"))
 
         this.$emit("reload")
       }).catch((error) => {
         if (error.response.status === 409) {
-          this.$toast.error(this.$t("error.unique_user"), {
-              closeOnClick: true,
-              timeout: 3000,
-              icon: true
-          })
+          this.$toast.error(this.$t("error.unique_user"))
         } else {
           if (error.response.data.detail === "MAX USERS LIMIT") {
-            this.$toast.error(this.$t("error.max_users_limit"), {
-                closeOnClick: true,
-                timeout: 5000,
-                icon: true
-            })
+            this.$toast.error(this.$t("error.max_users_limit"))
           } else {
-            this.$toast.error(this.$t("error.unknown"), {
-                closeOnClick: true,
-                timeout: 3000,
-                icon: true
-            })
+            this.$toast.error(this.$t("error.unknown"))
           }
         }
       }).then(() => {

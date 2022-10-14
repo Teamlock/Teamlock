@@ -21,12 +21,15 @@ __maintainer__ = "Teamlock Project"
 __email__ = "contact@teamlock.io"
 __doc__ = ''
 
+from apps.secret.schema import BankSchema, LoginSchema, PhoneSchema, ServerSchema
 from .schema import (EditShareSchema, EditWorkspaceSchema, ImportXMLFileSchema,
                      SharedWorkspaceSchema, UpdateShareSchema, UsersWorkspace, WorkspaceSchema)
 from fastapi import APIRouter, Depends, status, File, UploadFile, Form, BackgroundTasks
 from apps.secret.schema import BankSchema, LoginSchema, PhoneSchema, ServerSchema
 from apps.secret.models import Login, Secret, Server, Bank, Phone
 from apps.secret.schema import GlobalSecretSchema
+from fastapi import APIRouter, Depends, status, File, UploadFile, Form, Body, BackgroundTasks
+from fastapi.responses import FileResponse
 from mongoengine.errors import NotUniqueError
 from pymongo.errors import DuplicateKeyError
 from apps.config.models import PasswordPolicy
@@ -66,7 +69,7 @@ router: APIRouter = APIRouter()
 )
 async def get_workspaces(user: LoggedUser = Depends(get_current_user)) -> list[WorkspaceSchema]:
     workspaces = [SharedWorkspaceSchema(
-        **data.to_mongo()) for data in Workspace.objects(owner=user.id)]
+        **data.to_mongo()) for data in Workspace.objects(owner=user.id).order_by("name")]
 
     shared_query: Q = Q(user=user.id) & (
         Q(expire_at=None) | Q(expire_at__lte=datetime.utcnow()))
@@ -262,6 +265,7 @@ Only an user with the correct rights will be able to add an user.
 async def share_workspace(
     workspace_id: str,
     share_def: EditShareSchema,
+    background_task: BackgroundTasks,
     user: LoggedUser = Depends(get_current_user)
 ) -> None:
     workspace, _ = WorkspaceUtils.get_workspace(workspace_id, user)
@@ -269,7 +273,8 @@ async def share_workspace(
     WorkspaceUtils.share_workspace(
         user,
         workspace,
-        share_def
+        share_def,
+        background_task
     )
 
 
@@ -365,19 +370,27 @@ async def import_keepass_file(
     func_mapping: dict = {
         "keepass": ImportUtils.import_xml_keepass,
         "teamlock_v1": ImportUtils.import_teamlock_backup,
-        "bitwarden": ImportUtils.import_json_bitwarden
+        "bitwarden": ImportUtils.import_json_bitwarden,
+        "googlechrome": ImportUtils.import_csv_googlechrome
     }
 
-    background_task.add_task(
-        func_mapping[import_type],
-        user,
-        workspace,
-        sym_key,
-        import_schema,
-        content_file.decode("utf-8")
-    )
-
-    return Response(status_code=status.HTTP_200_OK)
+    if not settings.DEV_MODE:
+        background_task.add_task(
+            func_mapping[import_type],
+            user,
+            workspace,
+            sym_key,
+            import_schema,
+            content_file.decode("utf-8")
+        )
+    else:
+        func_mapping[import_type](
+            user,
+            workspace,
+            sym_key,
+            import_schema,
+            content_file.decode("utf-8")
+        )
 
 
 @router.get(
@@ -392,6 +405,21 @@ async def get_workspace_folders(
     return WorkspaceUtils.get_folders(workspace_id, user)
 
 
+@router.get(
+    path="/{workspace_id}/secrets",
+    summary="Get all keys in a workspace",
+    response_model=list[LoginSchema] | list[ServerSchema] | list[BankSchema] | list[PhoneSchema]
+)
+async def get_workspace_keys(
+    workspace_id: str,
+    search: str = "",
+    category: str = "login",
+    user: LoggedUser = Depends(get_current_user)
+):
+    secrets: list = WorkspaceUtils.search(workspace_id, search, user, category)
+    return secrets
+
+
 @router.post(
     path="/{workspace_id}/export",
     summary="Export a workspace in keypass format"
@@ -399,15 +427,16 @@ async def get_workspace_folders(
 async def export_workspace_file(
     background_tasks: BackgroundTasks,
     workspace_id: str,
+    password: str = Body(..., embed=True),
     user: LoggedUser = Depends(get_current_user)
 ):
-
     workspace, _ = WorkspaceUtils.get_workspace(workspace_id,user)
     WorkspaceUtils.have_rights(workspace,user,"can_export")
     WorkspaceUtils.export_workspace(workspace_id, user)
-    background_tasks.add_task(WorkspaceUtils.delete_tmp_file,f"/var/tmp/{workspace.name}.kdbx")
+    background_tasks.add_task(WorkspaceUtils.delete_tmp_file,f"/var/tmp/{workspace.pk}.xml")
     
-    return FileResponse(f"/var/tmp/{workspace.name}.kdbx")
+    return FileResponse(f"/var/tmp/{workspace.pk}.xml")
+
 
 
 @router.get(

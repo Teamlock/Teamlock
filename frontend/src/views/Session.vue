@@ -34,9 +34,9 @@ export default defineComponent({
 
     data: (vm) => ({
         headersSessions: [
-            { text: vm.$t('label.date'), value: 'date' },
-            { text: vm.$t('label.ip'), value: 'ip_address' },
-            { text: vm.$t('label.os'), value: 'os' },
+            { text: vm.$t('label.date'), value: 'date', width: 200 },
+            { text: vm.$t('label.ip'), value: 'ip_address', width: 150 },
+            { text: vm.$t('label.os'), value: 'os', width: 100 },
             { text: vm.$t('label.user_agent'), value: 'user_agent' },
             { text: vm.$t('label.country'), value: 'country' },
             { text: vm.$t('label.city'), value: 'city' },

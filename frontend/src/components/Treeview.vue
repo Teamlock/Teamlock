@@ -206,6 +206,10 @@ export default defineComponent({
 
         dropEnd(node_dragged, node_dest) {
             const folder_to_move = node_dragged[0].data
+            if (folder_to_move.is_trash) {
+                this.$toast.error(this.$t('error.trash_cant_be_moved'))
+                return
+            }
 
             this.loading = true
             let folder_dest = node_dest.node.data
@@ -222,11 +226,7 @@ export default defineComponent({
 
             const uri = `/api/v1/folder/${folder_to_move._id}`
             http.put(uri, folder_to_move).then(() => {
-                this.$toast.success(`Folder ${folder_to_move.name} successfully updated`, {
-                    closeOnClick: true,
-                    timeout: 3000,
-                    icon: true
-                })
+                this.$toast.success(`Folder ${folder_to_move.name} successfully updated`)
                 this.fetchFolders(folder_to_move._id)
             }).then(() => {
                 this.loading = false;
@@ -242,11 +242,7 @@ export default defineComponent({
 
                 const uri = `/api/v1/secret/${secret_id}/move`
                 http.post(uri, folder_id).then(() => {
-                    this.$toast.success(this.$t("success.key_moved"), {
-                        closeOnClick: true,
-                        timeout: 3000,
-                        icon: true
-                    })
+                    this.$toast.success(this.$t("success.key_moved"))
                     this.fetchFolders(folder_id)
                 })
             }

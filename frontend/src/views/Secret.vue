@@ -126,6 +126,7 @@
               <action-cell
                 :can_share_external="can_share_external"
                 :category="category"
+                :notif="configuredNotifs.includes(item._id)"
                 :item="item"
                 @delete="deleteItem"
                 @restore="restoreItem"
@@ -178,8 +179,10 @@ export default defineComponent({
 
   data: () => ({
     can_share_external: false,
-    loading: false,
+    configuredNotifs: [],
     loader_secrets: {},
+    electron: false,
+    loading: false,
     is_pro: false,
     headers: [],
     secrets: [],
@@ -201,8 +204,10 @@ export default defineComponent({
 
   watch : {},
 
-  beforeMount() {
+  async beforeMount() {
     let middleHeader = null
+    await this.fetchNotifConfigured()
+
     switch(this.category) {
       case "login":
         middleHeader = this.login.headers;
@@ -240,6 +245,12 @@ export default defineComponent({
   },
 
   methods: {
+    async fetchNotifConfigured() {
+      if (!this.is_pro) return;
+      const { data } = await http.get("/pro/api/v1/user/notif")
+      this.configuredNotifs = data
+    },
+
     addSecret(secret_type, folder) {
       EventBus.$emit(`edit_${secret_type}`, null, folder)
     },
@@ -249,20 +260,12 @@ export default defineComponent({
       const uri = `/api/v1/workspace/${sessionStorage.getItem("current_workspace")}/trash`;
       http.delete(uri).then(() =>{
         this.secrets = [];
-        this.$toast.success(this.$t("success.trash_emptied"), {
-          closeOnClick: true,
-          timeout: 3000,
-          icon: true
-        })
+        this.$toast.success(this.$t("success.trash_emptied"))
         this.loading = false;
         EventBus.$emit("refreshTrashStats");
         }).catch((error) => {
         if (error.response.status === 500) {
-          this.$toast.error(this.$t("error.occurred"), {
-            closeOnClick: true,
-            timeout: 5000,
-            icon: true
-          })
+          this.$toast.error(this.$t("error.occurred"))
         }
       })
     },

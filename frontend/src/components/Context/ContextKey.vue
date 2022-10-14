@@ -101,6 +101,5 @@ export default defineComponent({
 
 .v-list-item--link:hover {
     background-color: #fccb58;
-    color: #fff !important;
 }
 </style>

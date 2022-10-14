@@ -76,20 +76,12 @@ export default defineComponent({
             this.is_loading = true
             http.post(`/pro/api/v1/secret/${this.secret_id}/send/sms`, this.form)
                 .then(() => {
-                    this.$toast.success(this.$t('success.secret_shared'), {
-                        closeOnClick: true,
-                        timeout: 3000,
-                        icon: true
-                    })
+                    this.$toast.success(this.$t('success.secret_shared'))
                     this.form.sms_to = ""
                     this.open = false
                 })
                 .catch((error) => {
-                    this.$toast.error(error.response.data.detail, {
-                        closeOnClick: true,
-                        timeout: 3000,
-                        icon: true
-                    })
+                    this.$toast.error(error.response.data.detail)
                 })
                 .then(() => {
                     this.is_loading = false

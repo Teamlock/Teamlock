@@ -11,136 +11,53 @@
     <span v-if="$store.state.selected_workspace && $store.state.user">
       <div v-for="workspace in workspaces" :key="workspace._id">
         <workspace-icon
-          @showMenu="show"
-          @selectWorkspace="selectWorkspace"
           :workspace="workspace"
+          @selectWorkspace="selectWorkspace"
           :owner="workspace.owner === $store.state.user._id"
           :selected="workspace._id === $store.state.selected_workspace._id"
         />
       </div>
     </span>
 
-    <v-menu
-      v-model="showMenu"
-      v-if="workspace_to_edit"
-      :position-x="x"
-      :position-y="y"
-      absolute
-      offset-x
-    >
-      <v-card class="mx-auto text-left" width="300" flat>
-        <v-app-bar flat dense class="edit_workspace_bar">
-          <v-app-bar-nav-icon v-if="workspace_to_edit.icon">
-            <v-icon>{{ workspace_to_edit.icon }}</v-icon>
-          </v-app-bar-nav-icon>
-          <v-toolbar-title class="pl-0">
-            {{ workspace_to_edit.name }}
-          </v-toolbar-title>
-
-          <v-spacer />
-          <v-tooltip
-            v-model="tooltip_copy"
-            bottom
-          >
-            <template v-slot:activator="{ on, attrs }">
-              <v-btn
-                v-bind="attrs"
-                v-on="on"
-                @click.stop="copyWorkspaceID(workspace_to_edit._id)"
-                small
-                icon
-                tile
-              >
-                <v-icon small>mdi-content-copy</v-icon>
-              </v-btn>
-            </template>
-            <span v-html="tooltipWorkspaceId" />
-          </v-tooltip>
-          <span v-if="workspace_to_edit.owner === $store.state.user._id">
-            <v-tooltip bottom>
-              <template v-slot:activator="{ on, attrs }">
-                <v-btn
-                  v-on="on"
-                  v-bind="attrs"
-                  icon
-                  tile
-                  small
-                >
-                  <v-icon
-                    style="float: right"
-                    color="primary"
-                    small
-                  >
-                    mdi-star
-                  </v-icon>
-                </v-btn>
-              </template>
-              <span>{{ $t("label.workspace_owner") }}</span>
-            </v-tooltip>
-          </span>
-        </v-app-bar>
-        <v-card-text>
-          <v-row dense>
-            <v-col v-if="workspace_to_edit.owner === $store.state.user._id">
-              <edit-workspace-button :workspace="workspace_to_edit" />
-            </v-col>
-            <v-col v-if="workspace_to_edit.owner === $store.state.user._id || workspace_to_edit.can_share">
-              <share-button :workspace="workspace_to_edit" />
-            </v-col>
-          </v-row>
-
-          <v-row dense>
-            <v-col v-if="workspace_to_edit.owner === $store.state.user._id || workspace_to_edit.can_write">
-              <import-button :workspace="workspace_to_edit" />
-            </v-col>
-            <v-col v-if="workspace_to_edit.owner === $store.state.user._id">
-              <delete-button :workspace="workspace_to_edit" />
-            </v-col>
-          </v-row>
-        </v-card-text>
-      </v-card>
-    </v-menu>
-
+    <!-- <export-workspace /> -->
     <workspace-delete @workspaceDeleted="fetchWorkspaces" />
 
   </v-navigation-drawer>
 </template>
 
 <script>
-import EditWorkspaceButton from "./Buttons/EditWorkspaceButton.vue"
 import WorkspaceDelete from "./Dialogs/WorkspaceDelete.vue"
+// import ExportWorkspace from "./Dialogs/ExportWorkspace.vue"
 import { defineComponent } from '@vue/composition-api'
 import EditWorkspace from './Forms/EditWorkspace.vue'
-import ImportButton from './Buttons/ImportButton.vue'
-import DeleteButton from './Buttons/DeleteButton.vue'
-import ShareButton from "./Buttons/ShareButton.vue"
 import WorkspaceIcon from './WorkspaceIcon.vue'
 import EventBus from "@/event"
 import http from "@/utils/http"
 
 export default defineComponent({
   components: { 
-    EditWorkspaceButton,
+    // ExportWorkspace,
     WorkspaceDelete,
     EditWorkspace,
     WorkspaceIcon,
-    ImportButton,
-    DeleteButton,
-    ShareButton,
   },
 
   data: (vm) => ({
     workspaces: [],
-    workspace_edit: null,
-    workspaceEditOpen: false,
     dialogWorkspaceDelete: false,
     tooltip_copy: false,
-    showMenu: false,
+    interval: null,
     tooltipWorkspaceId: vm.$t('tooltip.copy_id'),
     workspace_to_edit: null,
     x: 0,
     y: 0
   }),
+  
+  destroyed() {
+    if (this.interval) {
+      clearInterval(this.interval)
+    }
+  },
 
   mounted() {
     setTimeout(() => {
@@ -149,20 +66,40 @@ export default defineComponent({
     EventBus.$on("reloadWorkspaces", () => {
       this.fetchWorkspaces()
     })
+
+    EventBus.$on("importStarted", (workspace_id) => {
+      for (const i in this.workspaces) {
+        if (this.workspaces[i]._id === workspace_id) {
+          this.workspaces[i].import_in_progress = true
+
+          this.interval = setInterval(async () => {
+            const uri = `/api/v1/workspace/${workspace_id}`
+            const { data } = await http.get(uri)
+            if (!data.import_in_progress) {
+              this.workspaces[i].import_in_progress = false
+              clearInterval(this.interval)
+
+              this.$toast.success("Import successfully ended", {
+                closeOnClick: true,
+                timeout: 3000,
+                icon: true
+              })
+            }
+          }, 5000);
+        }
+      }
+    })
+
+    EventBus.$on("importFinished", (workspace_id) => {
+      for (const i in this.workspaces) {
+        if (this.workspaces[i]._id == workspace_id) {
+          this.workspaces[i].import_in_progress = false
+        }
+      }
+    })
   },
 
   methods: {
-    show (e, workspace) {
-      e.preventDefault()
-      this.workspace_to_edit = workspace
-      this.showMenu = false
-      this.x = e.clientX
-      this.y = e.clientY
-      this.$nextTick(() => {
-        this.showMenu = true
-      })
-    },
-
     selectWorkspace(workspace_id, manual) {
       if (manual ){
         localStorage.removeItem("selected_folder")
@@ -203,22 +140,20 @@ export default defineComponent({
       }
     },
   
-    fetchWorkspaces() {
+    async fetchWorkspaces() {
       this.workspaces = []
+      
+      const response = await http.get("/api/v1/workspace/")
+      this.workspaces = response.data
 
-      http.get("/api/v1/workspace/")
-        .then((response) => {
-          this.workspaces = response.data
+      if (this.workspaces.length === 0) {
+        localStorage.removeItem("current_workspace")
+      }
 
-          if (this.workspaces.length === 0) {
-            localStorage.removeItem("current_workspace")
-          }
-
-          const current_workspace = this.getCurrentWorkspace()
-          if (current_workspace) {
-            this.selectWorkspace(current_workspace)
-          }
-        })
+      const current_workspace = this.getCurrentWorkspace()
+      if (current_workspace) {
+        this.selectWorkspace(current_workspace)
+      }
     },
 
     copyWorkspaceID(workspace_id) {

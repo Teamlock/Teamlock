@@ -35,6 +35,7 @@
 
 <script>
 import { defineComponent } from '@vue/composition-api'
+import EventBus from "@/event"
 import http from "@/utils/http"
 
 export default defineComponent({
@@ -66,20 +67,30 @@ export default defineComponent({
     methods: {
         deleteFolder() {
             this.is_loading = true
-            let uri = `/api/v1/folder/${this.folder_id}/trash`;
-            let msgKey = "success.folder_deleted"
-            http.delete(uri).then(() => {
-                    this.$toast.success(this.$t(msgKey), {
-                        closeOnClick: true,
-                        timeout: 3000,
-                        icon: true
-                    })
+            if (this.is_trash) {
+                EventBus.$emit("empty_trash");
+                this.open = false;
+                this.$emit("folderDeleted", this.parent_id);
+                this.is_loading = false
+            } else {
+                let uri = `/api/v1/folder/${this.folder_id}`;
+                let msgKey = "success.folder_deleted"
+                if(!this.is_trash && !this.in_trash){
+                    uri += "/trash";
+                    msgKey = "success.folder_moved_to_trash";
+                }
+                http.delete(uri).then(() => {
+                    this.$toast.success(this.$t(msgKey))
                     this.open = false
                     this.$emit("folderDeleted", this.parent_id)
                 }).then(() => {
                     this.is_loading = false
                 })
-        },
+
+                this.open = false
+                this.$emit("folderDeleted", this.parent_id)
+            }
+        }
     }
 })
 </script>
