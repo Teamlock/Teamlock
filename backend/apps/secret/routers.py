@@ -175,7 +175,10 @@ async def get_secret(
             )
 
         logger.info(f"[SECRET][{str(workspace.pk)}][{workspace.name}] {user.in_db.email} retreive secret {decrypted_secret.name.value}")
-        decrypted_secret.folder_name = Folder.objects(pk=decrypted_secret.folder).get().name
+        if decrypted_secret.folder is not None:
+            decrypted_secret.folder_name = Folder.objects(pk=decrypted_secret.folder).get().name
+        else:
+            decrypted_secret.folder_name = ""
         decrypted_secret.workspace_name = workspace.name
         return decrypted_secret
 
