@@ -21,7 +21,6 @@ __maintainer__ = "Teamlock Project"
 __email__ = "contact@teamlock.io"
 __doc__ = ''
 
-from copyreg import constructor
 from toolkits.mongo import connect_to_database
 from apps.secret.models import Login
 from datetime import datetime
@@ -84,13 +83,20 @@ def migrate_1_15(db):
 
     # Add a trash for each workspace
     for workspace in db.workspace.find():
-        trash = db.trash.insert_one({
-            "workspace": workspace["_id"],
-            "created_at": datetime.utcnow()
-        })
+        trash = db.trash.find_one({"workspace": workspace["_id"]})
+        if not trash:
+            trash = db.trash.insert_one({
+                "workspace": workspace["_id"],
+                "created_at": datetime.utcnow()
+            })
+        
+            trash_id = trash.inserted_id
+        else:
+            trash_id = trash["_id"]
+
         # Put all the secrets that were in the previous trash into the new one
         for folder in db.folder.find({"$or" : [{"in_trash": True},{"is_trash": True}]}):
-            db.secret.update_many({"folder": folder["_id"]},{"$set":{"trash":trash.inserted_id,"folder":None}})
+            db.secret.update_many({"folder": folder["_id"]},{"$set":{"trash":trash_id,"folder":None}})
         
         # Delete the trash and all the folders which were in the trash
         db.folder.delete_many({"$or" : [{"in_trash": True},{"is_trash": True}]})
