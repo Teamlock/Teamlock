@@ -164,7 +164,7 @@ export default defineComponent({
                         if (!selected_folder) {
                             selected_folder = localStorage.getItem("selected_folder")
                         }
-
+                        localStorage.setItem("nbFolders", response.data.length)
                         this.folders = this.construct_tree(response.data, selected_folder)
                         this.loading = false
                     })
@@ -178,10 +178,9 @@ export default defineComponent({
                 name: selected[0].data.name,
                 icon: selected[0].data.icon,
             })
-            EventBus.$emit("folder_trash",{
-                in_trash:selected[0].data.in_trash,
-                is_trash:selected[0].data.is_trash
-            });
+            EventBus.$emit("showTrash",false)
+            localStorage.setItem("showTrash", false)
+            
             localStorage.setItem("selected_folder", folder_id)
             this.$store.dispatch("set_current_folder", folder_id)
         },
@@ -208,11 +207,7 @@ export default defineComponent({
         dropEnd(node_dragged, node_dest) {
             const folder_to_move = node_dragged[0].data
             if (folder_to_move.is_trash) {
-                this.$toast.error(this.$t('error.trash_cant_be_moved'), {
-                    closeOnClick: true,
-                    timeout: 3000,
-                    icon: true
-                })
+                this.$toast.error(this.$t('error.trash_cant_be_moved'))
                 return
             }
 
@@ -231,11 +226,7 @@ export default defineComponent({
 
             const uri = `/api/v1/folder/${folder_to_move._id}`
             http.put(uri, folder_to_move).then(() => {
-                this.$toast.success(`Folder ${folder_to_move.name} successfully updated`, {
-                    closeOnClick: true,
-                    timeout: 3000,
-                    icon: true
-                })
+                this.$toast.success(`Folder ${folder_to_move.name} successfully updated`)
                 this.fetchFolders(folder_to_move._id)
             }).then(() => {
                 this.loading = false;
@@ -251,11 +242,7 @@ export default defineComponent({
 
                 const uri = `/api/v1/secret/${secret_id}/move`
                 http.post(uri, folder_id).then(() => {
-                    this.$toast.success(this.$t("success.key_moved"), {
-                        closeOnClick: true,
-                        timeout: 3000,
-                        icon: true
-                    })
+                    this.$toast.success(this.$t("success.key_moved"))
                     this.fetchFolders(folder_id)
                 })
             }

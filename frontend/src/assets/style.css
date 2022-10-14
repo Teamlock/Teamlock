@@ -130,7 +130,7 @@ div.mx-auto.v-card.v-sheet.theme--light.rounded-0 {
     margin: auto;
     font-family: 'Hubballi';
     font-weight: 700;
-    font-size: 1.2em;
+    font-size: 1.8em;
 }
 
 .pict_profile {
@@ -147,7 +147,7 @@ div.mx-auto.v-card.v-sheet.theme--light.rounded-0 {
     margin: auto;
     font-family: 'Hubballi';
     font-weight: 700;
-    font-size: 1.1em;
+    font-size: 2em;
 }
 
 .app_bar_change_password_profile {
@@ -404,13 +404,21 @@ div.v-input__slot {
 }
 
 #version {
-    position: absolute;
-    right: 5px;
-    bottom: 5px;
     z-index: 100;
+    right:20px;
+    position: relative;
 }
 
 .card-actions {
     position: absolute;
     bottom: 0;
+}
+
+.trash{
+    text-align: left;
+    position: absolute;
+    right: 10px;
+    bottom: 10px;
+    width: 220px;
+    z-index: 100;
 }

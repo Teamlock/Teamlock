@@ -33,16 +33,25 @@ class SecretValueSchema(BaseModel):
     value: str = ""
 
 
+class SecretListValueSchema(BaseModel):
+    encrypted: bool = True
+    value: list[str] = []
+
+
 class BaseSecretSchema(BaseModel):
     name: SecretValueSchema = SecretValueSchema()
     informations: SecretValueSchema = SecretValueSchema()
-    folder: PyObjectId = Field(default_factory=PyObjectId)
+    folder: PyObjectId | None = Field(default_factory=PyObjectId)
+    trash: PyObjectId | None = None
 
 
 class GlobalSecretSchema(BaseSecretSchema):
     id: PyObjectId = Field(default_factory=PyObjectId, alias="_id")
     created_at: datetime
     updated_at: datetime
+    created_by: str|None
+    updated_by: str|None
+    password_last_change: datetime
     folder_name: str = ""
     workspace_name: str = ""
 
@@ -55,7 +64,7 @@ class GlobalSecretSchema(BaseSecretSchema):
 
 
 class BaseLoginSchema(BaseModel):
-    url: SecretValueSchema = SecretValueSchema()
+    urls: SecretListValueSchema = SecretListValueSchema()
     ip: SecretValueSchema = SecretValueSchema()
     login: SecretValueSchema = SecretValueSchema()
     password: SecretValueSchema = SecretValueSchema()
@@ -133,6 +142,7 @@ class CreatePhoneSchema(BaseSecretSchema, BasePhoneSchema):
 
 
 class CreateSecretSchema(BaseModel):
+    package_name: str = ""
     secret: Union[
         CreateLoginSchema,
         CreateServerSchema,

@@ -22,7 +22,6 @@ __email__ = "contact@teamlock.io"
 __doc__ = ''
 
 from email.mime.multipart import MIMEMultipart
-from email.mime.image import MIMEImage
 from email.mime.text import MIMEText
 from email.utils import formataddr
 from email.header import Header
@@ -65,13 +64,15 @@ If this connection is not coming from you, please alert your IT Administrator to
                 "text": """
 Hello,<br/><br/>Your Teamlock account is locked for 10 minutes after 3 invalids authentications.<br><br>
 If these connections are not coming from you, please alert your IT Administrator to lock up your account.""", 
-                "link": False
+                "link": False,
+                "link_text": ""
             }
         },
         "password_change": {
             "subject": "[TEAMLOCK] Password change notification",
             "context": {
                 "link": False,
+                "link_text": "",
                 "text": """
 Hello,<br/><br/>Your Teamlock password has been changed.<br/>
 If you did not make this change, please alert your IT Administrator to lock up your account"""
@@ -106,7 +107,7 @@ Hello,<br/><br/>The workspace <b>{{ workspace_name }}</b> has been shared with y
             server.ehlo()
 
         return server
-    
+       
     @classmethod
     def construct_mail(cls, to: str, url: str, content_type: str, context: dict) -> MIMEMultipart:        
         mail_content = deepcopy(cls.MAIL_CONTENT)
@@ -117,16 +118,6 @@ Hello,<br/><br/>The workspace <b>{{ workspace_name }}</b> has been shared with y
         msg["Subject"] = mail_content[content_type]["subject"]
 
         path = pathlib.Path(__file__).parent.resolve()
-
-        with open(f"{path}/templates/mails/assets/img/TLAppLogo.png", 'rb') as fp:
-            # Create a MIMEImage object with the above file object.
-            msgLogo = MIMEImage(fp.read())
-            msgLogo.add_header("Content-ID", "<logo>")
-
-        with open(f"{path}/templates/mails/assets/img/bg_mail.png", 'rb') as fp:
-            # Create a MIMEImage object with the above file object.
-            msgBackground = MIMEImage(fp.read())
-            msgBackground.add_header("Content-ID", "<background>")
 
         if mail_content[content_type]["context"]["link"]:
             mail_content[content_type]["context"]["link"] += url
@@ -141,14 +132,13 @@ Hello,<br/><br/>The workspace <b>{{ workspace_name }}</b> has been shared with y
         mail_content = jinja2.Template(template).render(mail_content)
         body = MIMEText(mail_content, "html")
         msg.attach(body)
-        msg.attach(msgLogo)
-        msg.attach(msgBackground)
         return msg
-    
+
     @classmethod
     def send_mail(cls, to: list[str], url: str, content_type: str, context: dict = {}) -> None:
-        server: smtplib.SMTP = cls.get_smtp_client()
-        message: MIMEMultipart = cls.construct_mail(to, url, content_type, context)
-        server.sendmail(settings.SMTP_EMAIL, to, message.as_string())
-        server.quit()
-    
+        if not settings.DEV_MODE:
+            server: smtplib.SMTP = cls.get_smtp_client()
+            message: MIMEMultipart = cls.construct_mail(to, url, content_type, context)
+            server.sendmail(settings.SMTP_EMAIL, to, message.as_string())
+            server.quit()
+        

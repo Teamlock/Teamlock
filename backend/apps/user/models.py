@@ -25,6 +25,7 @@ from datetime import datetime
 import mongoengine
 import json
 
+
 class OTP(mongoengine.EmbeddedDocument):
     enabled = mongoengine.BooleanField(default=False)
     secret = mongoengine.StringField(default="")

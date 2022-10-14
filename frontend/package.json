@@ -20,9 +20,10 @@
     "@vue/composition-api": "^1.6.2",
     "axios": "^0.27.2",
     "core-js": "^3.22.7",
-    "electron-builder": "^23.0.3",
+    "electron-builder": "^23.3.3",
     "electron-settings": "^4.0.2",
     "electron-squirrel-startup": "^1.0.0",
+    "humanize-duration": "^3.27.3",
     "moment": "^2.29.4",
     "portal-vue": "^2.1.7",
     "sl-vue-tree": "^1.8.5",
@@ -71,13 +72,14 @@
     "parserOptions": {
       "parser": "babel-eslint"
     },
-    "rules": {}
+    "rules": {
+      "no-unreachable": 0
+    }
   },
   "browserslist": [
     "> 1%",
     "last 2 versions",
     "not dead"
   ],
-  "productName": "TeamLock",
-  "config": {}
+  "productName": "TeamLock"
 }

@@ -1,4 +1,4 @@
-from apps.secret.schema import CreateLoginSchema, SecretValueSchema
+from apps.secret.schema import CreateLoginSchema, SecretListValueSchema, SecretValueSchema
 from apps.workspace.schema import ImportXMLFileSchema
 from toolkits.workspace import WorkspaceUtils
 from apps.workspace.models import Workspace
@@ -11,7 +11,7 @@ import logging.config
 import traceback
 import logging
 import json
-import time
+import csv
 
 logging.config.dictConfig(settings.LOGGING)
 logger = logging.getLogger("api")
@@ -23,7 +23,7 @@ class ImportUtils(WorkspaceUtils):
         cls,
         import_schema: ImportXMLFileSchema,
         name: str,
-        url: str,
+        urls: str,
         login: str,
         password: str,
         informations: str,
@@ -36,9 +36,9 @@ class ImportUtils(WorkspaceUtils):
                 encrypted=import_schema.encrypt_name,
                 value=name
             ),
-            url=SecretValueSchema(
+            urls=SecretListValueSchema(
                 encrypted=import_schema.encrypt_url,
-                value=url
+                value=urls
             ),
             login=SecretValueSchema(
                 encrypted=import_schema.encrypt_login,
@@ -74,19 +74,23 @@ class ImportUtils(WorkspaceUtils):
 
         def save_folders(user, folders, parent=None):
             for tmp_folder in folders:
-                folder = Folder.objects.create(
-                    workspace=workspace,
-                    name=tmp_folder["name"],
-                    icon="mdi-folder",
-                    created_by=user.in_db.pk,
-                    parent=parent
-                )
+                try:
+                    folder = Folder.objects(name=tmp_folder['name'], parent=parent, workspace=workspace)[0]
+                except IndexError:
+                    folder = Folder.objects.create(
+                        workspace=workspace,
+                        name=tmp_folder["name"],
+                        icon="mdi-folder",
+                        created_by=user.in_db.pk,
+                        parent=parent
+                    )                
 
                 keys: list = []
                 for tmp_key in tmp_folder['keys']:
-                    url = tmp_key.get("uri", "") or tmp_key.get("ipv4", "") or tmp_key.get("ipv6", "")
-                    if url is None:
-                        url = ""
+                    url = []
+                    tmp_url = tmp_key.get("uri", "") or tmp_key.get("ipv4", "") or tmp_key.get("ipv6", "")
+                    if tmp_url:
+                        url = [tmp_url]
 
                     keys.append(cls.create_secret_import(
                         import_schema,
@@ -141,14 +145,17 @@ class ImportUtils(WorkspaceUtils):
         def save_xml_folder(user, group, parent=None):
             for subgroup in group.findall("Group"):
                 group_name = subgroup.find("Name").text
-
-                folder = Folder.objects.create(
-                    workspace=workspace,
-                    name=group_name,
-                    icon="mdi-folder",
-                    created_by=user.in_db.pk,
-                    parent=parent
-                )
+                
+                try:
+                    folder = Folder.objects(name=group_name, parent=parent, workspace=workspace)[0]
+                except IndexError:
+                    folder = Folder.objects.create(
+                        workspace=workspace,
+                        name=group_name,
+                        icon="mdi-folder",
+                        created_by=user.in_db.pk,
+                        parent=parent
+                    )
 
                 secrets: list = []
                 for entry in subgroup.findall("Entry"):
@@ -163,13 +170,18 @@ class ImportUtils(WorkspaceUtils):
                             else:
                                 tmp[secret_mapping[key]] = ""
 
+
+                    url = [tmp["url"]]
+                    if not url[0]:
+                        url = []
+
                     secrets.append(cls.create_secret_import(
                         import_schema,
-                        tmp.get("name", ""),
-                        tmp.get("url", ""),
-                        tmp.get("login", ""),
-                        tmp.get("password", ""),
-                        tmp.get("informations", ""),
+                        tmp["name"],
+                        url,
+                        tmp["login"],
+                        tmp["password"],
+                        tmp["informations"],
                         sym_key,
                         folder,
                         user
@@ -195,7 +207,64 @@ class ImportUtils(WorkspaceUtils):
 
         except Exception as error:
             tb = traceback.format_exc()
-            logger.critical(error)
+            logger.critical(error, exc_info=1)
+            workspace.import_in_progress = False
+            workspace.import_error = tb
+            workspace.save()
+    
+    @classmethod
+    def import_csv_googlechrome(
+        cls,
+        user: User,
+        workspace: Workspace,
+        sym_key: str,
+        import_schema: ImportXMLFileSchema,
+        file: str
+    ):
+        try:
+            # Create Google Folder
+            try:
+                folder = Folder.objects(name="Google", parent=None, workspace=workspace)[0]
+            except IndexError:
+                folder = Folder.objects.create(
+                    name="Google",
+                    parent=None,
+                    workspace=workspace,
+                    icon="mdi-google",
+                    created_by=user.in_db.pk
+                )
+
+            secrets: list = []
+            file = file.splitlines()
+            csv_reader = csv.reader(file[1:], delimiter=",")
+            for row in csv_reader:
+                name, url, username, password = row
+
+                secrets.append(cls.create_secret_import(
+                    import_schema,
+                    name,
+                    [url],
+                    username,
+                    password,
+                    "",
+                    sym_key,
+                    folder,
+                    user
+                ))
+            
+            if len(secrets) > 0:
+                Login.objects.insert(secrets)
+            
+            workspace.import_in_progress = False
+            workspace.import_error = ""
+            workspace.save()
+
+            logger.info(
+                f"[IMPORT][{str(workspace.pk)}] Import finished"
+            )
+        except Exception as error:
+            tb = traceback.format_exc()
+            logger.critical(error, exc_info=1)
             workspace.import_in_progress = False
             workspace.import_error = tb
             workspace.save()
@@ -223,15 +292,19 @@ class ImportUtils(WorkspaceUtils):
         )
 
         def save_folder(bitwarden_pk: str, folder_name: str, parent=None):
-            folder = Folder(
-                workspace=workspace,
-                created_by=user.in_db,
-                icon="mdi-folder",
-                name=folder_name,
-                parent=parent
-            )
+            try:
+                folder = Folder.objects(name=folder_name, parent=parent)[0]
+            except IndexError:
+                folder = Folder(
+                    workspace=workspace,
+                    created_by=user.in_db,
+                    icon="mdi-folder",
+                    name=folder_name,
+                    parent=parent
+                )
 
-            folder.save()
+                folder.save()
+
             folders[bitwarden_pk] = folder.pk
             folders_mapping[folder_name] = folder.pk
 
@@ -247,17 +320,21 @@ class ImportUtils(WorkspaceUtils):
 
             keys: list = []
             for item in file["items"]:
+                urls: list[str] = []
+                for tmp in item['login'].get("uris", []):
+                    urls.append(tmp['uri'])
+
                 folder = folders.get(item["folderId"], root_folder)
                 login = item["login"]["username"] or ""
                 secret = item["login"]["password"] or ""
                 name = item["name"] or ""
                 informations = item["notes"] or ""
-                url = item["login"].get("uris", [{}])[0].get("uri", "")
+                urls = urls
 
                 keys.append(cls.create_secret_import(
                     import_schema,
                     name,
-                    url,
+                    urls,
                     login,
                     secret,
                     informations,

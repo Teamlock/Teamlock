@@ -41,8 +41,6 @@ class FolderSchema(BaseModel):
     id: PyObjectId = Field(default_factory=PyObjectId, alias="_id")
     name: str
     icon: str
-    is_trash: bool
-    in_trash: bool
     parent: PyObjectId | None = None
     created_at: datetime
     created_by: PyObjectId = Field(default_factory=PyObjectId)

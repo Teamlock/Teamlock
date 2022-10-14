@@ -332,11 +332,7 @@ export default defineComponent({
             const uri = `/api/v1/user/${user._id}`
 
             http.put(uri, {is_admin: user.is_admin}).then(() => {
-                this.$toast.success(this.$t("success.user_updated"), {
-                    closeOnClick: true,
-                    timeout: 3000,
-                    icon: true
-                })
+                this.$toast.success(this.$t("success.user_updated"))
                 this.getUsers()
             })
         },
@@ -346,11 +342,7 @@ export default defineComponent({
             const uri = `/api/v1/user/recover/${user._id}`
 
             http.post(uri, {enabled: user.recovery_enabled}).then(() => {
-                this.$toast.success(this.$t("success.user_updated"), {
-                    closeOnClick: true,
-                    timeout: 3000,
-                    icon: true
-                })
+                this.$toast.success(this.$t("success.user_updated"))
                 this.getUsers()
             })
         },
@@ -360,11 +352,7 @@ export default defineComponent({
             const uri = `/api/v1/user/lock/${user._id}`
 
             http.post(uri, {is_locked: user.is_locked}).then(() => {
-                this.$toast.success(this.$t("success.user_updated"), {
-                    closeOnClick: true,
-                    timeout: 3000,
-                    icon: true
-                })
+                this.$toast.success(this.$t("success.user_updated"))
                 this.getUsers()
             })
         },
@@ -407,11 +395,7 @@ export default defineComponent({
         deleteUser(user) {
             const uri = `/api/v1/user/${user._id}`
             http.delete(uri).then(() => {
-                this.$toast.success(this.$t("success.user_deleted"), {
-                    closeOnClick: true,
-                    timeout: 3000,
-                    icon: true
-                })
+                this.$toast.success(this.$t("success.user_deleted"))
                 this.getUsers()
             })
         }

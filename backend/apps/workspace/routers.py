@@ -21,9 +21,14 @@ __maintainer__ = "Teamlock Project"
 __email__ = "contact@teamlock.io"
 __doc__ = ''
 
+from apps.secret.schema import BankSchema, LoginSchema, PhoneSchema, ServerSchema
 from .schema import (EditShareSchema, EditWorkspaceSchema, ImportXMLFileSchema,
                      SharedWorkspaceSchema, UpdateShareSchema, UsersWorkspace, WorkspaceSchema)
 from fastapi import APIRouter, Depends, status, File, UploadFile, Form, BackgroundTasks
+from apps.secret.schema import BankSchema, LoginSchema, PhoneSchema, ServerSchema
+from apps.secret.models import Login, Secret, Server, Bank, Phone
+from apps.secret.schema import GlobalSecretSchema
+from fastapi import APIRouter, Depends, status, File, UploadFile, Form, Body, BackgroundTasks
 from fastapi.responses import FileResponse
 from mongoengine.errors import NotUniqueError
 from pymongo.errors import DuplicateKeyError
@@ -32,19 +37,23 @@ from toolkits.workspace import WorkspaceUtils
 from toolkits.import_utils import ImportUtils
 from fastapi.exceptions import HTTPException
 from apps.folder.schema import FolderSchema
+from fastapi.responses import FileResponse
 from apps.auth.tools import get_current_user
 from mongoengine.queryset.visitor import Q
-from toolkits.folder import FolderUtils
-from toolkits.crypto import CryptoUtils
+from apps.trash.schema import TrashStats
+from toolkits.secret import SecretUtils
 from apps.auth.schema import LoggedUser
 from fastapi.responses import Response
+from toolkits.crypto import CryptoUtils
 from .models import Workspace, Share
 from apps.folder.models import Folder
+from apps.secret.models import Secret
 from datetime import datetime
 from settings import settings
 from toolkits import const
 import logging.config
 import logging
+import math
 
 
 logging.config.dictConfig(settings.LOGGING)
@@ -60,7 +69,7 @@ router: APIRouter = APIRouter()
 )
 async def get_workspaces(user: LoggedUser = Depends(get_current_user)) -> list[WorkspaceSchema]:
     workspaces = [SharedWorkspaceSchema(
-        **data.to_mongo()) for data in Workspace.objects(owner=user.id)]
+        **data.to_mongo()) for data in Workspace.objects(owner=user.id).order_by("name")]
 
     shared_query: Q = Q(user=user.id) & (
         Q(expire_at=None) | Q(expire_at__lte=datetime.utcnow()))
@@ -256,6 +265,7 @@ Only an user with the correct rights will be able to add an user.
 async def share_workspace(
     workspace_id: str,
     share_def: EditShareSchema,
+    background_task: BackgroundTasks,
     user: LoggedUser = Depends(get_current_user)
 ) -> None:
     workspace, _ = WorkspaceUtils.get_workspace(workspace_id, user)
@@ -263,7 +273,8 @@ async def share_workspace(
     WorkspaceUtils.share_workspace(
         user,
         workspace,
-        share_def
+        share_def,
+        background_task
     )
 
 
@@ -359,17 +370,27 @@ async def import_keepass_file(
     func_mapping: dict = {
         "keepass": ImportUtils.import_xml_keepass,
         "teamlock_v1": ImportUtils.import_teamlock_backup,
-        "bitwarden": ImportUtils.import_json_bitwarden
+        "bitwarden": ImportUtils.import_json_bitwarden,
+        "googlechrome": ImportUtils.import_csv_googlechrome
     }
 
-    background_task.add_task(
-        func_mapping[import_type],
-        user,
-        workspace,
-        sym_key,
-        import_schema,
-        content_file.decode("utf-8")
-    )
+    if not settings.DEV_MODE:
+        background_task.add_task(
+            func_mapping[import_type],
+            user,
+            workspace,
+            sym_key,
+            import_schema,
+            content_file.decode("utf-8")
+        )
+    else:
+        func_mapping[import_type](
+            user,
+            workspace,
+            sym_key,
+            import_schema,
+            content_file.decode("utf-8")
+        )
 
 
 @router.get(
@@ -384,6 +405,21 @@ async def get_workspace_folders(
     return WorkspaceUtils.get_folders(workspace_id, user)
 
 
+@router.get(
+    path="/{workspace_id}/secrets",
+    summary="Get all keys in a workspace",
+    response_model=list[LoginSchema] | list[ServerSchema] | list[BankSchema] | list[PhoneSchema]
+)
+async def get_workspace_keys(
+    workspace_id: str,
+    search: str = "",
+    category: str = "login",
+    user: LoggedUser = Depends(get_current_user)
+):
+    secrets: list = WorkspaceUtils.search(workspace_id, search, user, category)
+    return secrets
+
+
 @router.post(
     path="/{workspace_id}/export",
     summary="Export a workspace in keypass format"
@@ -391,41 +427,52 @@ async def get_workspace_folders(
 async def export_workspace_file(
     background_tasks: BackgroundTasks,
     workspace_id: str,
+    password: str = Body(..., embed=True),
     user: LoggedUser = Depends(get_current_user)
 ):
-
     workspace, _ = WorkspaceUtils.get_workspace(workspace_id,user)
     WorkspaceUtils.have_rights(workspace,user,"can_export")
     WorkspaceUtils.export_workspace(workspace_id, user)
-    background_tasks.add_task(WorkspaceUtils.delete_tmp_file,f"/var/tmp/{workspace.name}.kdbx")
+    background_tasks.add_task(WorkspaceUtils.delete_tmp_file,f"/var/tmp/{workspace.pk}.xml")
     
-    return FileResponse(f"/var/tmp/{workspace.name}.kdbx")
+    return FileResponse(f"/var/tmp/{workspace.pk}.xml")
+
 
 
 @router.get(
     path="/{workspace_id}/trash",
-    summary="Get the trash folder"
+    status_code=status.HTTP_200_OK,
+    response_model=list[LoginSchema] | list[ServerSchema] | list[BankSchema] | list[PhoneSchema],
+    summary="Get the trash folder, and all its secrets depending on the category you want"
 )
 async def get_trash(
     workspace_id: str,
+    category: str,
+    all: bool = False,
     user: LoggedUser = Depends(get_current_user)
-) -> FolderSchema:
-    trash = WorkspaceUtils.get_trash_folder(workspace_id)
-    WorkspaceUtils.have_rights(workspace_id, user)
+): 
+    model_ = const.MAPPING_SECRET[category]
+    trash = WorkspaceUtils.get_trash_folder(workspace_id)       
+    if all:
+        secrets: list = [GlobalSecretSchema(**obj.to_mongo()) for obj in model_.objects(folder=None, trash=trash)]
+        return secrets
 
-    logger.info(f"[FOLDER][{str(trash.workspace.pk)}][{trash.workspace.name}] {user.in_db.email} retreive folder {trash.name}")
-    return FolderSchema(
-        id=trash.pk,
-        name=trash.name,
-        icon=trash.icon,
-        is_trash=True,
-        in_trash=False,
-        password_policy=None,
-        workspace=trash.workspace.pk,
-        created_at=trash.created_at,
-        created_by=trash.created_by.pk,
-        parent=None
+    tmp_secrets = model_.objects(folder=None, trash=trash).order_by("name__value")
+    secrets: list = []
+
+    _, sym_key = WorkspaceUtils.get_workspace(workspace_id, user)
+
+    decrypted_sym_key = CryptoUtils.rsa_decrypt(
+        sym_key,
+        user.in_db.private_key,
+        CryptoUtils.decrypt_password(user)
     )
+
+    for tmp in tmp_secrets:
+        schema = tmp.schema()
+        secrets.append(WorkspaceUtils.decrypt_secret(decrypted_sym_key, schema))
+
+    return secrets
 
 @router.delete(
     path="/{workspace_id}/trash",
@@ -436,16 +483,46 @@ async def delete_trash_content(
     workspace_id: str,
     user: LoggedUser = Depends(get_current_user)
 ):
+    workspace, _ = WorkspaceUtils.get_workspace(workspace_id,user)
     trash = WorkspaceUtils.get_trash_folder(workspace_id)
     WorkspaceUtils.have_rights(workspace_id, user)
-    #delete all the folder within the trash
-    children: list[Folder] = FolderUtils.get_root_children(trash.pk)
-    for child in children:
-        child.delete()
-    #delete keys in th trash
-
-    for model_ in const.MAPPING_SECRET.values():
-        model_.objects(folder=trash).delete()
+    
+    [secret.delete() for secret in Secret.objects(trash = trash)]
 
     return Response(status_code=status.HTTP_204_NO_CONTENT)
     
+
+@router.get(
+    path="/{workspace_id}/trash/stats",
+    summary="Get stats of a trash",
+    response_model=TrashStats,
+    dependencies=[Depends(get_current_user)]
+)
+async def get_trash_stats(
+    workspace_id: str
+) -> TrashStats:
+    trash = WorkspaceUtils.get_trash_folder(workspace_id)
+
+    stats: TrashStats = TrashStats(
+        login=Login.objects(folder=None, trash = trash).count(),
+        server=Server.objects(folder=None, trash = trash).count(),
+        bank=Bank.objects(folder=None, trash = trash).count(),
+        phone=Phone.objects(folder=None, trash = trash).count()
+    )
+
+    return stats
+
+@router.patch(
+    path="/{workspace_id}/trash/restore",
+    summary="Restore the trash entirely",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+async def restore_trash(
+    workspace_id: str,
+    user: LoggedUser = Depends(get_current_user)
+) -> None:
+    trash = WorkspaceUtils.get_trash_folder(workspace_id)
+
+    [SecretUtils.restore(secret,trash.workspace,user) for secret in Secret.objects(trash = trash)]
+
+    return Response(status_code=status.HTTP_204_NO_CONTENT)

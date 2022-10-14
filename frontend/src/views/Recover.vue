@@ -85,14 +85,14 @@
 
                                         <br/><br/>
 
-                                        <router-link
-                                            text
-                                            class="mb-0"
-                                            :to="{name: 'Login'}"
-                                        >
-                                            {{ $t("button.login") }}
-                                        </router-link>
                                     </v-form>
+                                    <router-link
+                                        text
+                                        class="mb-0"
+                                        :to="{name: 'Login'}"
+                                    >
+                                        {{ $t("button.login") }}
+                                    </router-link>
                                 </v-col>
                             </v-row>
                         </v-card-text>
@@ -134,11 +134,7 @@ export default defineComponent({
             if (!this.confirm_password) return
 
             if (this.new_password !== this.confirm_password) {
-                this.$toast.error(this.$t("error.passwords_mismatch"), {
-                    closeOnClick: true,
-                    timeout: 5000,
-                    icon: true
-                })
+                this.$toast.error(this.$t("error.passwords_mismatch"))
                 return
             }
 
@@ -176,17 +172,9 @@ export default defineComponent({
 
                 if (error.response.status === 400) {
                     if (error.response.data.detail === "Passwords mismatch") {
-                        this.$toast.error(this.$t("error.passwords_mismatch"), {
-                            closeOnClick: true,
-                            timeout: 5000,
-                            icon: true
-                        })
+                        this.$toast.error(this.$t("error.passwords_mismatch"))
                     } else if (error.response.data.detail === "Invalid Recovery Key") {
-                        this.$toast.error(this.$t("error.invalid_recovery_key"), {
-                            closeOnClick: true,
-                            timeout: 5000,
-                            icon: true
-                        })
+                        this.$toast.error(this.$t("error.invalid_recovery_key"))
                     } else {
                         let detail = [error.response.data.detail.error]
                         for (const {type, min} of error.response.data.detail.details) {
@@ -198,9 +186,7 @@ export default defineComponent({
                     }
                 } else if (error.response.status === 403) {
                     this.$toast.error(this.$t("error.not_allowed"), {
-                        closeOnClick: true,
-                        timeout: 5000,
-                        icon: true
+                        timeout: 5000
                     })
                 }
             }).then(() => {

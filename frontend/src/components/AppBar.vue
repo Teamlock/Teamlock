@@ -13,7 +13,7 @@
             {{ $t('label.users') }}
         </span>
         <span v-else-if="currentRouteName === 'Profile'" class="text_label_app_bar">
-            <v-icon>mdi-account-circle</v-icon>&nbsp;
+            <v-icon>mdi-account-box</v-icon>&nbsp;
             {{ $t('label.profile') }}
         </span>
         <span v-else-if="currentRouteName === 'Sessions'" class="text_label_app_bar">
@@ -23,6 +23,10 @@
         <span v-else-if="currentRouteName === 'History'" class="text_label_app_bar">
             <v-icon>mdi-clock</v-icon>&nbsp;
             {{ $t('label.history') }}
+        </span>
+        <span v-else-if="showTrash" class="text_label_app_bar">
+            <v-icon>mdi-delete</v-icon>&nbsp;
+            {{ $t('label.trash') }}
         </span>
         <span v-else-if="selectedFolder" class="text_label_app_bar">
             <v-icon>{{selectedFolder.icon}}</v-icon>
@@ -48,6 +52,10 @@
             </v-tooltip>
         </span>
         <v-spacer></v-spacer>
+        
+        <small id="version">
+            v{{version}}
+        </small>
 
          <v-text-field
             v-if="searchBar"
@@ -79,7 +87,7 @@
                     text
                     v-bind="attrs"
                     v-on="on"
-                    class="mr-2 ml-2"
+                    class=""
                 >
                     <v-img :src="flags[$vuetify.lang.current]" width="20" />
                 </v-btn>
@@ -96,6 +104,10 @@
             </v-list>
         </v-menu>
 
+        <span v-if="isPro">
+            <notification/>
+        </span>
+
         <v-menu
             v-if="user"
             left
@@ -110,7 +122,8 @@
                     v-on="on"
                     class="mr-0 ml-2"
                 >
-                    <v-img :src="image" max-width="45" ></v-img>
+                    <!-- <v-img :src="image" max-width="45" ></v-img> -->
+                    <v-icon color="primary" large>mdi-account-box</v-icon>
                 </v-btn>
             </template>
 
@@ -134,11 +147,13 @@
 
 <script>
 import { defineComponent } from '@vue/composition-api'
+import Notification from './Notification.vue';
 import { mapGetters } from 'vuex'
 import EventBus from "@/event"
+import http from "@/utils/http"
 
 export default defineComponent({
-    components: {},
+    components: {Notification},
 
     props: {
         searchBar: {
@@ -150,6 +165,7 @@ export default defineComponent({
     computed: {
         ...mapGetters({
             user: 'getUser',
+            isPro: 'getPro'
         }),
         currentRouteName() {
             return this.$route.name;
@@ -160,7 +176,7 @@ export default defineComponent({
             } else {
                 return "mdi-white-balance-sunny"
             }
-        }
+        },
     },
 
     data: (vm) => ({
@@ -171,14 +187,21 @@ export default defineComponent({
             "en": "gb",
             "fr": "fr"
         },
+        version : null,
         langs: ["en", "fr"],
         selectedFolder: null,
+        showTrash: false,
         image: require("@/assets/img/man.svg"),
         flags: {
             en: require("@/assets/img/flags/en.svg"),
             fr: require("@/assets/img/flags/fr.svg"),
         }
     }),
+
+    beforeMount() {
+        const userAgent = navigator.userAgent.toLowerCase();
+        this.electron = userAgent.indexOf(' electron/') > -1
+    },
 
     mounted() {
         window.addEventListener("keydown", (e) => {
@@ -190,6 +213,10 @@ export default defineComponent({
         EventBus.$on("selectedFolder", (folder) => {
             this.selectedFolder = folder
         })
+
+        EventBus.$on("showTrash",(val) => this.showTrash = val)
+        this.showTrash = localStorage.getItem("showTrash") === "true"
+        this.getVersion()
     },
 
     methods: {
@@ -213,7 +240,12 @@ export default defineComponent({
         logout() {
             EventBus.$emit("stopKeepAlive")
             sessionStorage.clear()
-            this.$router.push("/login")
+
+            if (!this.electron) {
+                this.$router.push("/login")
+            } else {
+                window.ipc.send("LOGOUT")
+            }
         },
 
         setTheme() {
@@ -237,6 +269,12 @@ export default defineComponent({
                 }, 1000);
             }, 50);
         },
+        getVersion(){
+            http.get("/api/v1/version")
+                .then(response => {
+                    this.version = response.data
+                })
+        }
     }
 })
 </script>

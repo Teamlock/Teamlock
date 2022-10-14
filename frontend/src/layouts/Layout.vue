@@ -3,10 +3,8 @@
         <app-bar searchBar />
 
         <v-navigation-drawer ref="drawer" class="drawer-right" app :width="navigation.width" permanent>
+            
             <router-link to="/">
-                <small id="version" v-if="version">
-                    v{{ version }}
-                </small>
                 <v-img 
                     :class="logoClass"
                     :src="logo"
@@ -17,6 +15,11 @@
             </router-link>
             <workspace-list />
             <treeview />
+ 
+            <v-btn class="trash" @click="showTrash" :color="activeTrash">
+                <v-icon>mdi-delete</v-icon>
+                {{ $t('label.trash') }}
+            </v-btn>
         </v-navigation-drawer>
 
         <add-login />
@@ -50,7 +53,7 @@ import Treeview from "../components/Treeview.vue"
 import AppBar from '../components/AppBar.vue'
 import designMixin from "@/mixins/design"
 import renderMixin from "@/mixins/render"
-import http from "@/utils/http"
+import EventBus from "@/event"
 
 export default defineComponent({
     components: {
@@ -71,17 +74,21 @@ export default defineComponent({
     data: () => ({
         rightPanelComponent: null,
         rightPanelOpen: false,
+        trashShowed: false,
         search: "",
         navigation: {
             borderSize: 2,
             width: 300
         },
-        version: null
     }),
 
     computed: {
         key() {
            return this.$route.path
+        },
+
+        activeTrash() {
+            return this.trashShowed ? "primary" : "dark"
         }
     },
 
@@ -90,17 +97,18 @@ export default defineComponent({
         if (size) {
             this.navigation.width = size
         }
-
-        http.get("/api/v1/version").then((response) => {
-            this.version = response.data
-        })
     },
 
     mounted() {
+        this.trashShowed = localStorage.getItem("showTrash") === "true"
         setTimeout(() => {
             this.setBorderWidth();
             this.setEvents();
         }, 200);
+
+        EventBus.$on("showTrash", (val) => {
+            this.trashShowed = val
+        })
     },
 
     methods: {
@@ -150,6 +158,11 @@ export default defineComponent({
         logout() {
             sessionStorage.clear()
             this.$router.push("/login")
+        },
+
+        showTrash(){
+            EventBus.$emit("showTrash", true)
+            localStorage.setItem("showTrash", true)
         }
   },
 })

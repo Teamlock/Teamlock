@@ -1,11 +1,13 @@
 name: Docker Dev Image
 
 on:
+  workflow_dispatch:
   push:
-    branches: [dev]
+    branches:
+      - dev
 
 env:
-  VERSION: "1.141"
+  VERSION: "1.15"
 
 jobs:
   build:

@@ -21,6 +21,7 @@ __maintainer__ = "Teamlock Project"
 __email__ = "contact@teamlock.io"
 __doc__ = ''
 
+from copyreg import constructor
 from toolkits.mongo import connect_to_database
 from apps.secret.models import Login
 from datetime import datetime
@@ -60,11 +61,50 @@ def migrate_1_12(db):
     db.secret.update({}, {'$set': {'_cls': 'Secret.Login'}}, multi=True)
 
 
+def migrate_1_15(db):
+    secrets = db.secret.find({'_cls': 'Secret.Login'})
+    for secret in secrets:
+        url = secret["url"]
+        value = []
+        if url["value"]:
+            value.append(url['value'])
+
+        db.secret.update({
+            "_id": secret["_id"]
+        }, {
+            "$set": {
+                "urls": {
+                    "encrypted": url["encrypted"],
+                    "value": value
+                }
+            }
+        })
+    
+    db.secret.update({'_cls': 'Secret.Login'}, {"$unset": {'url': 1}}, multi=True)
+
+    # Add a trash for each workspace
+    for workspace in db.workspace.find():
+        trash = db.trash.insert_one({
+            "workspace": workspace["_id"],
+            "created_at": datetime.utcnow()
+        })
+        # Put all the secrets that were in the previous trash into the new one
+        for folder in db.folder.find({"$or" : [{"in_trash": True},{"is_trash": True}]}):
+            db.secret.update_many({"folder": folder["_id"]},{"$set":{"trash":trash.inserted_id,"folder":None}})
+        
+        # Delete the trash and all the folders which were in the trash
+        db.folder.delete_many({"$or" : [{"in_trash": True},{"is_trash": True}]})
+
+    # We remove the is_trash & in_trash fields in each folder
+    db.folder.update_many({},{"$unset":{"is_trash":"","in_trash":""}})
+
+
 class Migrations:
     MIGRATIONS_DICT: dict = {
         1.0: migrate_1_0,
         1.1: migrate_1_1,
-        1.12: migrate_1_12
+        1.12: migrate_1_12,
+        1.15: migrate_1_15
     }
 
     def __init__(self):

@@ -28,16 +28,16 @@ import os
 
 dotenv.load_dotenv()
 
-path = pathlib.Path(__file__).parent.resolve()
 
 class AppSettings(BaseSettings):
-    BASE_DIR: str = os.path.dirname(os.path.abspath(__file__))
+    BASE_DIR: str = str(pathlib.Path(__file__).parent.resolve())
     APP_URL: str = os.environ["APP_URL"]
     HOST: str = os.environ.get("HOST", "0.0.0.0")
     PORT: int = os.environ.get("PORT", 8000)
     DEBUG: bool = os.environ.get("DEBUG", False)
     DEV_MODE: bool = os.environ.get("DEV_MODE") == True
     TOKEN_EXPIRE: int = os.environ.get("TOKEN_EXPIRE", 7200) # Default: 2 hours
+    TOKEN_EXPIRE_BROWSER_EXT: int = os.environ.get("TOKEN_EXPIRE_BROWSER_EXT", 86400) # Default: 1 day
     SECRET_KEY: str = os.environ["SECRET_KEY"]
     MAX_USERS: int = os.environ.get("MAX_USERS", 0)
     VERSION: float = float(os.environ["VERSION"])

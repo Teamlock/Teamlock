@@ -163,11 +163,7 @@ export default defineComponent({
             this.errorPassword = []
 
             if (this.captcha !== "" && !this.form.otp_value) {
-                this.$toast.error(this.$t("error.otp_need_config"), {
-                    closeOnClick: true,
-                    timeout: 3000,
-                    icon: true
-                })
+                this.$toast.error(this.$t("error.otp_need_config"))
             }
 
             const form = {
@@ -184,11 +180,7 @@ export default defineComponent({
             http.post(this.uri, form).then(() => {
                 this.$toast.dismiss(toastid)
 
-                this.$toast.success(this.$t("success.user_configured"), {
-                    closeOnClick: true,
-                    timeout: 3000,
-                    icon: true
-                })
+                this.$toast.success(this.$t("success.user_configured"))
 
                 setTimeout(() => {
                     this.$router.push({name: "Login"})

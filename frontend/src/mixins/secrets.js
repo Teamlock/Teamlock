@@ -1,8 +1,6 @@
 const secretMixin = {
   data: (vm) => ({
     trash: {},
-    in_trash: false,
-    is_trash: false,
     electron: false,
     tooltip_copy_password: {},
     tooltipSecretId: vm.$t("tooltip.copy_id"),
@@ -16,7 +14,7 @@ const secretMixin = {
       align: 'start',
       value: 'actions',
       sortable: false,
-      width: "150px",
+      width: "200px",
       component: "ActionCell"
     },
     login: {
@@ -30,13 +28,15 @@ const secretMixin = {
           text: vm.$t('label.password'),
           align: 'start',
           value: 'password',
+          width: 300,
           sortable: false,
           component: "SecretCell"
         },
         {
-          text: vm.$t('label.url'),
+          text: vm.$t('label.urls'),
           align: 'start',
-          value: 'url',
+          value: 'urls',
+          width: 300,
           component: "UrlCell"
         },
         {
@@ -58,6 +58,7 @@ const secretMixin = {
           text: vm.$t('label.password'),
           align: 'start',
           value: 'password',
+          width: 200,
           sortable: false,
           component: "SecretCell"
         },
@@ -156,11 +157,7 @@ const secretMixin = {
 
   methods: {
     copySuccess(message) {
-      this.$toast.success(message, {
-        closeOnClick: true,
-        timeout: 3000,
-        icon: true
-      })
+      this.$toast.success(message)
 
       if (this.electron) {
         setTimeout(() => {

@@ -1,5 +1,15 @@
 {
     "label": {
+        "edit_workspace": "Edit workspace",
+        "share_workspace": "Share workspace",
+        "export_workspace": "Export workspace",
+        "use_biometric": "Use biometric",
+        "general": "General",
+        "updated_by": "Updated by",
+        "created_by": "Created by",
+        "no_notifications": "No notifications",
+        "urls": "URLs",
+        "remove": "Remove",
         "recovery_configuration": "Recovery External Storage",
         "send_recovery_enabled": "Send user's recovery key to an external storage",
         "product_type": "Storage Type",
@@ -63,7 +73,7 @@
         "mail_template": "Mail template",
         "registration": "Registration",
         "import_workspace": "Import",
-        "last_change_password": "Last password change",
+        "last_change_password": "Last change password",
         "workspace_owner": "You're the owner of this workspace",
         "allow_self_registration": "Allow self registration",
         "allowed_email_addresses": "Allowed Email Addresses",
@@ -105,6 +115,7 @@
         "folder": "Folder",
         "ip": "IP Address",
         "name": "Name",
+        "secret_name": "Secret name",
         "login": "Login",
         "generate_password": "Generate password accordingly to the password policy",
         "show_password": "Show password",
@@ -127,10 +138,12 @@
         "share": "Share",
         "create": "Create",
         "empty_trash": "Empty trash",
+        "restore_trash": "Restore trash",
+        "trash" : "Trash",
         "delete": "Delete",
         "import": "Import",
         "favorite": "Favorite",
-        "keys": "Keys",
+        "keys": "Secrets",
         "add": "Add",
         "actions": "Actions",
         "change_password": "Change password",
@@ -174,10 +187,13 @@
         "copy_id": "Copy ID"
     },
     "title": {
+        "notifications": "Notifications",
         "test_configuration": "Test connection",
         "send_sms": "Send SMS",
-        "key": "Key",
+        "key": "Secret",
         "user": "User",
+        "recovery": "Recovery",
+        "two_factor": "Two factor",
         "add_login": "Create a login",
         "add_server": "Create a server",
         "add_phone": "Create a phone",
@@ -206,6 +222,7 @@
         "phone": "Phone"
     },
     "button": {
+        "notification_read": "Read",
         "download_certificates": "Download Certificates",
         "test": "Test",
         "recover": "Recover account",
@@ -226,9 +243,14 @@
         "install": "Install",
         "ok": "OK",
         "empty_trash": "Empty trash",
+        "restore_trash": "Restore trash",
         "send": "Send"
     },
     "success": {
+        "notif_created": "You will receive an alert when this secret is used",
+        "notif_deleted": "You will no longer receive an alert when this secret is used",
+        "notif_cleaned": "Notifications cleared",
+        "notif_ack": "Notification read",
         "recovery_save": "Recovery Configuration saved",
         "recovery_ok": "Connection OK",
         "secret_created": "Secret created",
@@ -251,9 +273,9 @@
         "import_running": "Import in progress",
         "copied": "Data copied",
         "secret_copied": "Secret copied",
-        "key_moved": "Key moved",
-        "key_moved_to_trash": "Key moved to the trash",
-        "key_deleted": "Key deleted",
+        "key_moved": "Secret moved",
+        "key_moved_to_trash": "Secret moved to the trash",
+        "key_deleted": "Secret deleted",
         "password_changed": "Password successfully changed",
         "configuration_saved": "Configuration saved",
         "workspace_deleted": "Workspace successfully deleted",
@@ -266,6 +288,8 @@
         "user_updated": "User updated",
         "recovery_enabled": "Recovery mode enabled for this user",
         "trash_emptied": "Trash emptied",
+        "trash_restored": "Trash restored",
+        "key_restored": "Secret restored",
         "secret_shared": "The secret is successfully shared"
     },
     "warning": {
@@ -277,6 +301,8 @@
         "confirm_enable_recovery2": "This user will be able to recover his account using his recovery file.",
         "key_encryption": "Be aware that encrypted informations can't be searched. Encrypt only sensible data.",
         "confirm_empty_trash": "The trash is going to be emptied, with all its content",
+        "confirm_restore_trash": "The trash is going to be restored, with all its content in the first folder",
+        "confirm_restore_key": "The key is going to be restored in the first folder",
         "confirm_delete": "Are you sure to delete this entry ?",
         "confirm_delete_folder": "Confirm delete folder, with all its content",
         "confirm_delete_workspace": "Confirm delete workspace, with all its content",
@@ -296,12 +322,13 @@
         "remember_recovery": "Once configured and logged in, don't forget to download your recovery key, in case you forget your password.",
         "remember_recovery2": "Once you've change your password, don't forget to download your new recovery key.",
         "wait_registration": "Registration can take a few seconds, please wait.",
-        "restore": "To restore that folder or those secrets, move them at the wanted place"
+        "restore": "To restore those secrets, move them at the wanted place",
+        "secret_cannot_be_copied": "The secret cannot be copied because it is empty"
     },
     "error": {
+        "invalid_biometric": "Invalid biometric, please use your password to log in",
         "file_too_large": "File too large. Teamlock accept only files of 10MB or less",
         "invalid_form": "Invalid form",
-        "trash_cant_be_moved": "Trash can't be moved",
         "invalid_password": "Invalid password",
         "occurred": "An error has occurred",
         "otp_need_config": "Please configure MFA with your Authenticator application",
@@ -318,6 +345,12 @@
         "too_many_auth_failures": "Too many authentication failures. Account locked up for 10 minutes"
     },
     "help": {
+        "add_to_filter": "Click to filter",
+        "clear_notification": "Clear notifications",
+        "warning_secret_use": "Send me an alert when this secret is used",
+        "warning_secret_use_disable": "Disable alert when this secret is used",
+        "export_workspace_password": "This password will be used to encrypt the KeePass database",
+        "googlechrome_import": "All passwords will be put in a Google folder",
         "send_recovery_enabled": "You can define an external storage to store User's recovery key. If an user lost his recovery key, you'll be able to restore his account.",
         "enable_twilio": "Enable Twilio. Will be used to send secrets by SMS",
         "twilio_recipient": "Phone Number with international country code (ex: +33 for France)",
@@ -359,8 +392,11 @@
         "add_user": "Add an user",
         "edit_key": "Edit user",
         "empty_trash": "Empty trash",
+        "restore_trash": "Restore trash",
+        "restore_key": "Restore key",
         "context_menu_workspace": "Right click for more options",
-        "copied": "Copied"
+        "copied": "Copied",
+        "show_read_notifications": "Show read notifications"
     },
     "folder": {
         "edit": "Edit folder",
@@ -374,5 +410,15 @@
             "text": "Hello,<br/><br/>You have been added into a Teamlock application.<br/>Please click on the following link to configure your account:",
             "link_text": "Configure your account"
         }
+    },
+    "notifications": {
+        "details": {
+            "User recovery attempt": "User attempt to use the recovery, but his not allowed to",
+            "Too many authentication failed": "Too many authentication failed. User locked for 10 minutes",
+            "Secret usage": "An user has reveal a secret"
+        },
+        "User recovery attempt": "User recovery attempt",
+        "Too many authentication failed": "Too many authentication failed",
+        "Secret usage": "Secret used"
     }
 }

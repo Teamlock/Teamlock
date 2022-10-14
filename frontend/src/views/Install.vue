@@ -338,7 +338,7 @@ export default defineComponent({
           case 2: return this.$t('label.password_configuration')
           default: return this.$t('label.admin_configuration')
         }
-      },
+      }
     },
 
     beforeMount() {
@@ -396,11 +396,7 @@ export default defineComponent({
 
             const url = `${process.env.VUE_APP_BASE_URL}/install`
             axios.post(url, this.form).then(async () => {
-                this.$toast.success(this.$t("success.successful_installation"), {
-                    closeOnClick: true,
-                    timeout: 3000,
-                    icon: true
-                })
+                this.$toast.success(this.$t("success.successful_installation"))
 
                 setTimeout(() => {
                     this.$router.push({name: "Login"})
@@ -415,11 +411,7 @@ export default defineComponent({
                     }
                 } catch(err) {
                     console.error(err)
-                    this.$toast.error(this.$t("error.occurred"), {
-                        closeOnClick: true,
-                        timeout: 3000,
-                        icon: true
-                    })
+                    this.$toast.error(this.$t("error.occurred"))
                 }
             }).then(() => {
                 this.is_loading = false
