@@ -516,13 +516,13 @@ async def get_trash_stats(
     path="/{workspace_id}/trash/restore",
     summary="Restore the trash entirely",
     status_code=status.HTTP_204_NO_CONTENT,
-    dependencies=[Depends(get_current_user)]
 )
 async def restore_trash(
-    workspace_id: str
+    workspace_id: str,
+    user: LoggedUser = Depends(get_current_user)
 ) -> None:
     trash = WorkspaceUtils.get_trash_folder(workspace_id)
 
-    [SecretUtils.restore(secret,trash.workspace) for secret in Secret.objects(trash = trash)]
+    [SecretUtils.restore(secret,trash.workspace,user) for secret in Secret.objects(trash = trash)]
 
     return Response(status_code=status.HTTP_204_NO_CONTENT)

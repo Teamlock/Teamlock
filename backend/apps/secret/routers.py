@@ -451,7 +451,7 @@ async def restore(
 
     workspace : Workspace = secret.trash.workspace
     WorkspaceUtils.have_rights(workspace, user)
-    SecretUtils.restore(secret, workspace)
+    SecretUtils.restore(secret, workspace,user)
 
     create_history(
         user=user.email,

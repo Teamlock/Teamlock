@@ -285,6 +285,8 @@ export default defineComponent({
             icon: true
           })
           this.loading = false;
+          if(localStorage.getItem("nbFolders") === "0")
+            EventBus.$emit("refreshTreeview");
           EventBus.$emit("refreshTrashStats");
         })
         .catch((error) => {
@@ -388,6 +390,8 @@ export default defineComponent({
     restoreItem(item){
       http.patch(`/api/v1/secret/${item._id}/restore`).then(() =>{
         EventBus.$emit("refreshTrashStats");
+        if(localStorage.getItem("nbFolders") === "0")
+          EventBus.$emit("refreshTreeview");
         for (let i in this.secrets) {
           if (this.secrets[i]._id === item._id) {
             this.secrets.splice(i, 1)

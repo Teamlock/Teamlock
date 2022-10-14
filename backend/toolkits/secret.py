@@ -18,19 +18,29 @@ class SecretUtils:
         secret.save()
 
     @classmethod
-    def restore(cls, secret: Secret, workspace: Workspace) -> None:
+    def restore(cls, secret: Secret, workspace: Workspace, user) -> None:
         """Restore a secret which was in the trash
 
         Args:
             secret (Secret): secret to restore
             workspace (Workspace): workspace where was the secret
+            user (LoggedUser): user who restore the secret
         """
         #if there is no folders to put the secret in, we raise an Exception
         folders = Folder.objects(workspace=workspace)
         if (len(folders) == 0):
-            raise HTTPException(status_code=400,detail="You can't restore that secret because there is no folders to put it in")
-        
-        #we put the secret in the first folder of the workspace
+            # we create a default folder
+            restore_folder = Folder(
+                name="Restore",
+                icon="file-restore",
+                created_by=user.in_db,
+                workspace=workspace,
+                password_policy=None
+            ).save()
+            secret.folder = restore_folder 
+        else:
+            #we put the secret in the first folder of the workspace
+            secret.folder = folders[0]
+
         secret.trash = None
-        secret.folder = folders[0]
         secret.save()

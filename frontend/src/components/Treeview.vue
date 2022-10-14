@@ -164,7 +164,7 @@ export default defineComponent({
                         if (!selected_folder) {
                             selected_folder = localStorage.getItem("selected_folder")
                         }
-
+                        localStorage.setItem("nbFolders", response.data.length)
                         this.folders = this.construct_tree(response.data, selected_folder)
                         this.loading = false
                     })
