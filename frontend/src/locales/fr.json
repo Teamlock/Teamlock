@@ -341,6 +341,7 @@
         "too_many_auth_failures": "Trop d'erreur d'authentification. Votre compte est bloqué pendant 10 minutes"
     },
     "help": {
+        "add_to_filter": "Cliquez pour filtrer",
         "clear_notification": "Supprimer toutes les notifications",
         "warning_secret_use": "M'envoyer une alerte quand ce secret est utilisé",
         "warning_secret_use_disable": "Ne plus m'envoyer d'alerte si ce secret est utilisé",

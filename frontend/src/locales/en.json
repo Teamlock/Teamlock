@@ -345,6 +345,7 @@
         "too_many_auth_failures": "Too many authentication failures. Account locked up for 10 minutes"
     },
     "help": {
+        "add_to_filter": "Click to filter",
         "clear_notification": "Clear notifications",
         "warning_secret_use": "Send me an alert when this secret is used",
         "warning_secret_use_disable": "Disable alert when this secret is used",

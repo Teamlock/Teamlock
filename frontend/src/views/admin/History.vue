@@ -97,29 +97,24 @@
             <span v-html="renderDate(item.date)" />
         </template>
         <template v-slot:[`item.user`]="{ item }">
-            <v-btn
-                @click="addFilter('user', item.user)"
-                color="primary"
-                tile
-                icon
-                small
-            >
-                <v-icon>mdi-magnify-plus-outline</v-icon>
-            </v-btn>
-            <span v-html="item.user" />
+            <v-tooltip bottom>
+                <template v-slot:activator="{ on, attrs }">
+                    <span class="cursor" @click="addFilter('user', item.user)" v-on="on" v-bind="attrs">
+                        {{ item.user}}
+                    </span>
+                </template>
+                <span>{{ $t('help.add_to_filter')}} </span>
+            </v-tooltip>
         </template>
         <template v-slot:[`item.workspace`]="{ item }">
-            <v-btn
-                @click="addFilter('workspace', item.workspace)"
-                v-if="item.workspace"
-                color="primary"
-                tile
-                icon
-                small
-            >
-                <v-icon>mdi-magnify-plus-outline</v-icon>
-            </v-btn>
-            <span v-html="item.workspace" />
+            <v-tooltip bottom>
+                <template v-slot:activator="{ on, attrs }">
+                    <span class="cursor" @click="addFilter('workspace', item.workspace)" v-on="on" v-bind="attrs">
+                        {{ item.workspace}}
+                    </span>
+                </template>
+                <span>{{ $t('help.add_to_filter')}} </span>
+            </v-tooltip>
         </template>
     </v-data-table>
 </template>
