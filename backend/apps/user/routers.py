@@ -273,6 +273,7 @@ async def change_admin_status(
 )
 async def update_user(
     password_update_schema: schema.UpdateUserSchema,
+    background_tasks: BackgroundTasks,
     user: LoggedUser = Depends(get_current_user)
 ) -> None:
     if not check_password(password_update_schema.current_password, user.in_db.password):
@@ -306,7 +307,8 @@ async def update_user(
     WorkspaceUtils.update_password(
         user.in_db,
         old_passphrase,
-        password_update_schema.new_password
+        password_update_schema.new_password,
+        background_tasks
     )
 
     try:

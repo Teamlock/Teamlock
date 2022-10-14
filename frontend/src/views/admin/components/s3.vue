@@ -8,11 +8,13 @@
     <v-text-field
       @input="update('access_key', $event)"
       :value="local.access_key"
+      type="password"
       :label="$t('label.s3_access_key')"
     />
     <v-text-field
       @input="update('secret_key', $event)"
       :value="local.secret_key"
+      type="password"
       :label="$t('label.s3_secret_key')"
     />
     <v-text-field
