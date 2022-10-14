@@ -46,14 +46,14 @@ def create_notification(
     background_task: BackgroundTasks|None = None
 ):
     try:
-        from teamlock_pro.toolkits.proNotif import create_notification
+        from teamlock_pro.toolkits.proNotif import create_notification as create_notif
         from teamlock_pro.apps.user.models import NotifSecret
         from teamlock_pro.toolkits.proMail import ProMail
 
         try:
             notif = NotifSecret.objects(secret=secret).get()
-            if user == notif.user.pk:
-                create_notification(
+            if user != notif.user.pk:
+                create_notif(
                     request=request,
                     secret_id=secret.pk,
                     message="Secret usage",
@@ -61,14 +61,13 @@ def create_notification(
                     users=[notif.user]
                 )
 
-                if mail:
-                    if background_task:
-                        background_task.add_task(
-                            ProMail().send_mail,
-                            [notif.user.email],
-                            "",
-                            "secret_used"
-                        )
+                if mail and background_task:
+                    background_task.add_task(
+                        ProMail().send_mail,
+                        [notif.user.email],
+                        "",
+                        "secret_used"
+                    )
         except NotifSecret.DoesNotExist:
             pass
 
