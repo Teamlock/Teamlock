@@ -1,13 +1,16 @@
 <template>
   <span v-if="selected_workspace" @click.stop>
     <v-data-table
-        :headers="headers"
-        :loading="loading"
-        class="elevation-1"
-        fill-height
-        :items="secrets"
-        item-key="_id"
-        dense
+      hide-default-footer
+      :headers="headers"
+      :loading="loading"
+      class="elevation-1"
+      disable-sort
+      disable-pagination
+      fill-height
+      :items="secrets"
+      item-key="_id"
+      dense
     >
       <template v-slot:no-data>
         {{ $t('label.no_data_available') }}

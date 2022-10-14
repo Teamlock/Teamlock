@@ -87,7 +87,7 @@ class FolderUtils:
         _, sym_key = WorkspaceUtils.get_workspace(folder.workspace.pk, user)
 
         model_ = const.MAPPING_SECRET[category]
-        tmp_secrets: list = list(model_.objects(folder=folder))
+        tmp_secrets: list = list(model_.objects(folder=folder).order_by("name__value"))
         secrets: list = []
 
         decrypted_sym_key = CryptoUtils.rsa_decrypt(

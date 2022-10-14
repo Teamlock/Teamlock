@@ -457,7 +457,7 @@ async def get_trash(
         secrets: list = [GlobalSecretSchema(**obj.to_mongo()) for obj in model_.objects(folder=None, trash=trash)]
         return secrets
 
-    tmp_secrets = model_.objects(folder=None, trash=trash)
+    tmp_secrets = model_.objects(folder=None, trash=trash).order_by("name__value")
     secrets: list = []
 
     _, sym_key = WorkspaceUtils.get_workspace(workspace_id, user)
