@@ -32,7 +32,7 @@ class SecretUtils:
             # we create a default folder
             restore_folder = Folder(
                 name="Restore",
-                icon="file-restore",
+                icon="mdi-file-restore",
                 created_by=user.in_db,
                 workspace=workspace,
                 password_policy=None
