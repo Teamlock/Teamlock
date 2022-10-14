@@ -21,16 +21,16 @@ __maintainer__ = "Teamlock Project"
 __email__ = "contact@teamlock.io"
 __doc__ = ''
 
+from fastapi import FastAPI, status, Depends, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from starlette_context import middleware, plugins
 from toolkits.mongo import connect_to_database
-from fastapi.exceptions import HTTPException
 from fastapi.templating import Jinja2Templates
-from fastapi.responses import HTMLResponse
-from fastapi import FastAPI, status, Depends
+from fastapi.exceptions import HTTPException
 from apps.auth.tools import get_current_user
 from fastapi_utils.tasks import repeat_every
 from toolkits.migrations import Migrations
+from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.requests import Request
 from mongoengine import disconnect
@@ -136,7 +136,11 @@ async def version():
     summary="Install TeamLock instance",
     description="Define Configuration and initialize Admin User"
 )
-async def install(config_schema: ConfigSchema, admin: AdminUserSchema) -> str:
+async def install(
+    config_schema: ConfigSchema,
+    admin: AdminUserSchema,
+    background_tasks: BackgroundTasks
+) -> str:
     if Config.objects.count() > 0:
         raise HTTPException(
             status_code=status.HTTP_410_GONE,
@@ -165,7 +169,7 @@ async def install(config_schema: ConfigSchema, admin: AdminUserSchema) -> str:
     )
 
     try:
-        return create_user_toolkits(user_def)
+        return create_user_toolkits(user_def, background_tasks)
     except Exception as error:
         config.delete()
         raise error

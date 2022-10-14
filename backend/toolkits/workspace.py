@@ -505,14 +505,15 @@ class WorkspaceUtils:
         )
 
     @classmethod
-    def recover_account(cls, user: User, sym_key: str, new_password: str):
+    def recover_account(cls, user: User, sym_key: str, new_password: str, background_tasks: BackgroundTasks):
         try:
             decrypted_password: str = CryptoUtils.sym_decrypt(
                 user.encrypted_password,
                 base64.b64decode(sym_key)
             )
-            cls.update_password(user, decrypted_password, new_password)
-        except Exception:
+            cls.update_password(user, decrypted_password, new_password, background_tasks)
+        except Exception as err:
+            print(err)
             logger.info(
                 f"Recovery failed for user {user.email}: Invalid Recovery Key"
             )

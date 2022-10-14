@@ -115,7 +115,7 @@ export default defineComponent({
     getStats(folder, showTrash = false) {
       const url = showTrash === true ? 
         `/api/v1/workspace/${sessionStorage.getItem("current_workspace")}/trash/stats` : 
-        `/api/v1/folder/${folder}/stats/`
+        `/api/v1/folder/${folder}/stats`
 
       http.get(url).then((response) => {
         this.stats = response.data;

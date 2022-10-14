@@ -85,14 +85,14 @@
 
                                         <br/><br/>
 
-                                        <router-link
-                                            text
-                                            class="mb-0"
-                                            :to="{name: 'Login'}"
-                                        >
-                                            {{ $t("button.login") }}
-                                        </router-link>
                                     </v-form>
+                                    <router-link
+                                        text
+                                        class="mb-0"
+                                        :to="{name: 'Login'}"
+                                    >
+                                        {{ $t("button.login") }}
+                                    </router-link>
                                 </v-col>
                             </v-row>
                         </v-card-text>

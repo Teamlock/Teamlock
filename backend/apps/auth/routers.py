@@ -220,10 +220,11 @@ async def register_user(registration_schema: RegistrationSchema) -> bool:
 )
 async def recover_user(
     request: Request,
+    background_tasks: BackgroundTasks,
     email: str = Form(...),
     new_password: str = Form(...),
     confirm_password: str = Form(...),
-    recover_file: UploadFile = File(...)
+    recover_file: UploadFile = File(...),
 ) -> bool:
     try:
 
@@ -276,7 +277,7 @@ async def recover_user(
             )
 
         sym_key: bytes = await recover_file.read()
-        WorkspaceUtils.recover_account(user, sym_key.decode("utf-8"), new_password)
+        WorkspaceUtils.recover_account(user, sym_key.decode("utf-8"), new_password, background_tasks)
         user.recovery_enabled = False
         user.save()
 
