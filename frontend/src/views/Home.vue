@@ -107,7 +107,9 @@ export default defineComponent({
     })
 
     EventBus.$on("refreshSecrets", () => {
-      this.$refs[this.tabs[this.selected_tab]].getSecrets()
+      if (this.$refs[this.tabs[this.selected_tab]]) {
+        this.$refs[this.tabs[this.selected_tab]].getSecrets()
+      }
     })
   },
 
