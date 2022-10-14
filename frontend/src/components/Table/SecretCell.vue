@@ -1,5 +1,12 @@
 <template>
   <span>
+    <v-btn
+      @click="revealPassword(item._id, field)"
+      small
+      icon
+    >
+      <v-icon small>mdi-eye</v-icon>
+    </v-btn>
     <v-tooltip bottom>
       <template v-slot:activator="{ on, attrs }">
         <span 
@@ -20,14 +27,6 @@
       </template>
       <span>{{ $t('tooltip.dblclick_copy') }}</span>
     </v-tooltip>
-    <v-btn
-      @click="revealPassword(item._id, field)"
-      style="float: right"
-      small
-      icon
-    >
-      <v-icon small>mdi-eye</v-icon>
-    </v-btn>
   </span>
 </template>
 

@@ -1,5 +1,5 @@
 <template>
-  <span>
+  <span style="float: right">
     <v-menu :close-on-content-click="false"  left offset-y>
       <template v-slot:activator="{ on, attrs }">
         <v-icon small v-on="on" class="mr-2" v-bind="attrs">

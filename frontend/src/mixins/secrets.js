@@ -28,6 +28,7 @@ const secretMixin = {
           text: vm.$t('label.password'),
           align: 'start',
           value: 'password',
+          width: 300,
           sortable: false,
           component: "SecretCell"
         },
@@ -57,6 +58,7 @@ const secretMixin = {
           text: vm.$t('label.password'),
           align: 'start',
           value: 'password',
+          width: 200,
           sortable: false,
           component: "SecretCell"
         },
