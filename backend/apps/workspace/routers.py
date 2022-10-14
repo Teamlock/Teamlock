@@ -33,22 +33,25 @@ from toolkits.import_utils import ImportUtils
 from fastapi.exceptions import HTTPException
 from apps.folder.schema import FolderSchema
 from apps.secret.models import Login, Secret, Server, Bank, Phone
+from apps.secret.schema import GlobalSecretSchema
 from apps.auth.tools import get_current_user
 from mongoengine.queryset.visitor import Q
 from toolkits.folder import FolderUtils
 from toolkits.crypto import CryptoUtils
 from toolkits.secret import SecretUtils
+from toolkits.paginate import PaginationParamsSchema, get_order
 from apps.auth.schema import LoggedUser
 from fastapi.responses import Response
 from .models import Workspace, Share
 from apps.folder.models import Folder
 from apps.secret.models import Secret
-from apps.trash.schema import TrashSchema, TrashStats
+from apps.trash.schema import TrashStats, TrashTableSchema
 from datetime import datetime
 from settings import settings
 from toolkits import const
 import logging.config
 import logging
+import math
 
 
 logging.config.dictConfig(settings.LOGGING)
@@ -410,38 +413,55 @@ async def export_workspace_file(
 
 @router.get(
     path="/{workspace_id}/trash",
-    summary="Get the trash folder, and all its secrets depending on the category you want"
+    status_code=status.HTTP_200_OK,
+    response_model=TrashTableSchema | list[GlobalSecretSchema],
+    summary="Get the trash folder, and all its secrets depending on the category you want",
+    dependencies=[Depends(get_current_user)]
 )
 async def get_trash(
     workspace_id: str,
     category: str,
-    user: LoggedUser = Depends(get_current_user)
-) -> TrashSchema:
-    trash = WorkspaceUtils.get_trash_folder(workspace_id)
-    WorkspaceUtils.have_rights(workspace_id, user)
-
+    all: bool = False,
+    paginate: PaginationParamsSchema = Depends()
+) -> TrashTableSchema: 
     model_ = const.MAPPING_SECRET[category]
-    tmp_secrets: list = list(model_.objects(folder=None))
-    secrets = []
+    trash = WorkspaceUtils.get_trash_folder(workspace_id)       
+    if all:
+        secrets: list = [GlobalSecretSchema(**obj.to_mongo()) for obj in model_.objects(folder=None,trash=trash)]
+        return secrets
 
-    _, sym_key = WorkspaceUtils.get_workspace(workspace_id, user)
-    decrypted_sym_key = CryptoUtils.rsa_decrypt(
-        sym_key,
-        user.in_db.private_key,
-        CryptoUtils.decrypt_password(user)
-    )
+    if not paginate.sort:
+        paginate.sort = "name|desc"
+    
+    aggs: list = []
+    match: dict = {"$match": {}}
+    if paginate.search:
+        match["$match"]["name"] = {
+            "$regex": paginate.search
+        }
 
-    for tmp in tmp_secrets:
-            schema = tmp.schema()
-            secrets.append(WorkspaceUtils.decrypt_secret(decrypted_sym_key, schema))
+    if len(match["$match"].values()) > 0:
+        aggs.append(match)
 
+    aggs.append(get_order(paginate.sort))
+    skip: int = (paginate.page -1) * paginate.per_page
+    if paginate.per_page != -1:
+        aggs.append({"$skip": skip})
+        aggs.append({"$limit": paginate.per_page})
 
-    logger.info(f"[FOLDER][{str(trash.workspace.pk)}][{trash.workspace.name}] {user.in_db.email} retreive trash")
-    return TrashSchema(
-        id = trash.pk,
-        workspace = trash.workspace.pk, 
-        created_at = trash.created_at,
-        secrets = secrets
+    total_objects: int = model_.objects(folder=None,trash=trash).count()
+
+    objects = model_.objects(folder=None,trash=trash).aggregate(*aggs)
+    secrets: list = [GlobalSecretSchema(**tmp) for tmp in objects]
+
+    return TrashTableSchema(
+        start=skip,
+        data=secrets,
+        total=total_objects,
+        to=skip + len(secrets),
+        current_page=paginate.page,
+        per_page=paginate.per_page,
+        last_pages=math.ceil(total_objects / paginate.per_page),
     )
 
 @router.delete(

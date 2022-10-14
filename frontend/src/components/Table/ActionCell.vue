@@ -16,7 +16,7 @@
       </v-card>
     </v-menu>
     <v-menu
-      v-if="can_share_external && is_pro"
+      v-if="!showTrash && can_share_external && is_pro"
       offset-y
       left
     >
@@ -58,7 +58,7 @@
         <span v-html="tooltipHTML" />
     </v-tooltip>
     <span v-if="(selected_workspace.owner === user._id || selected_workspace.can_write)">
-      <v-tooltip bottom>
+      <v-tooltip bottom v-if="!showTrash">
         <template v-slot:activator="{ on, attrs }">
           <v-icon
             small

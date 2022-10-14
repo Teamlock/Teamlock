@@ -264,6 +264,11 @@ async def update_secret(
 ) -> None:
     try:
         secret: Secret = Secret.objects(pk=secret_id).get()
+        if secret.folder is None:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Secret is in trash"
+            )
         workspace, sym_key = WorkspaceUtils.get_workspace(secret.folder.workspace.pk, user)
 
         WorkspaceUtils.have_rights(workspace, user)
