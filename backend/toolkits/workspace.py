@@ -177,8 +177,13 @@ class WorkspaceUtils:
         Raises:
             HTTPException: Raise error if user does not exists
         """
+        encrypted_sym_key = workspace.sym_key
+        if workspace.owner != user.in_db:
+            share = Share.objects(workspace=workspace, user=user.in_db).get()
+            encrypted_sym_key = share.sym_key
+
         sym_key: str = CryptoUtils.rsa_decrypt(
-            workspace.sym_key,
+            encrypted_sym_key,
             user.in_db.private_key,
             CryptoUtils.decrypt_password(user)
         )

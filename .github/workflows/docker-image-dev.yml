@@ -7,7 +7,7 @@ on:
       - dev
 
 env:
-  VERSION: "1.15"
+  VERSION: "1.151"
 
 jobs:
   build:
