@@ -281,8 +281,15 @@ async def update_user(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Invalid password"
         )
+    
+    # Check if password is the same
+    if check_password(password_update_schema.new_password, user.in_db.password):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Used password"
+        )
 
-    # Check if password has already been used
+        # Check if password has already been used
     for password in user.in_db.last_passwords:
         if check_password(password_update_schema.new_password, password):
             raise HTTPException(
