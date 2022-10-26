@@ -1,5 +1,6 @@
 from apps.secret.schema import CreateLoginSchema, SecretListValueSchema, SecretValueSchema
 from apps.workspace.schema import ImportXMLFileSchema
+from toolkits.history import create_history
 from toolkits.workspace import WorkspaceUtils
 from apps.workspace.models import Workspace
 from apps.folder.models import Folder
@@ -205,6 +206,12 @@ class ImportUtils(WorkspaceUtils):
                 f"[IMPORT][{str(workspace.pk)}][{workspace.name}] Import finished"
             )
 
+            create_history(
+                user=user.in_db.email,
+                workspace=workspace.name,
+                action=f"Import KeePass file"
+            )
+
         except Exception as error:
             tb = traceback.format_exc()
             logger.critical(error, exc_info=1)
@@ -261,6 +268,12 @@ class ImportUtils(WorkspaceUtils):
 
             logger.info(
                 f"[IMPORT][{str(workspace.pk)}] Import finished"
+            )
+
+            create_history(
+                user=user.in_db.email,
+                workspace=workspace.name,
+                action=f"Import Google Chrome passwords"
             )
         except Exception as error:
             tb = traceback.format_exc()
@@ -352,6 +365,12 @@ class ImportUtils(WorkspaceUtils):
 
             logger.info(
                 f"[IMPORT][{str(workspace.pk)}][{workspace.name}] Import finished"
+            )
+
+            create_history(
+                user=user.in_db.email,
+                workspace=workspace.name,
+                action=f"Import Bitwarden export"
             )
         except Exception as error:
             tb = traceback.format_exc()

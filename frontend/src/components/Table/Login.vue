@@ -119,7 +119,7 @@
           </template>
           <span v-html="tooltipSecretId" />
       </v-tooltip>
-      <span v-if="(selected_workspace.owner === user._id || selected_workspace.can_write)">
+      <span v-if="(selected_workspace.is_owner || selected_workspace.can_write)">
         <v-tooltip bottom>
           <template v-slot:activator="{ on, attrs }">
             <v-icon

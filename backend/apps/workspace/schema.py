@@ -35,7 +35,6 @@ class WorkspaceSchema(BaseModel):
     icon: str | None
     created_at: datetime.datetime
     last_change: datetime.datetime
-    owner: PyObjectId = Field(default_factory=PyObjectId)
     password_policy: PasswordPolicySchema | None = Field(
         alias="password_policy")
     nb_folders: int | None
@@ -57,7 +56,7 @@ class EditWorkspaceSchema(BaseModel):
 
 
 class SharedWorkspaceSchema(WorkspaceSchema):
-    shared: bool = False
+    is_owner: bool = False
     can_write: bool = False
     can_share: bool = False
     can_export: bool = False
@@ -88,6 +87,7 @@ class UsersWorkspace(BaseModel):
     user: PyObjectId
     expire_at: datetime.date | None
     user_email: str
+    is_owner: bool
     can_write: bool
     can_share: bool
     can_export: bool

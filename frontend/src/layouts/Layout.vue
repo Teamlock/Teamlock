@@ -108,6 +108,9 @@ export default defineComponent({
 
         EventBus.$on("showTrash", (val) => {
             this.trashShowed = val
+            if (!val) {
+                localStorage.removeItem("showTrash")
+            }
         })
     },
 

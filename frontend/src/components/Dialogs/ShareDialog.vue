@@ -50,6 +50,16 @@
                         </v-menu>
                     </template>
 
+                    <template v-slot:[`item.is_owner`]="{ item }">
+                        <v-switch
+                            class="mt-0"
+                            hide-details
+                            :disabled="item.is_owner"
+                            v-model="item.is_owner"
+                            @change="changeOwner(item)"
+                        />
+                    </template>
+
                     <template v-slot:[`item.can_read`]="{}">
                         <v-icon color="green">mdi-check</v-icon>
                     </template>
@@ -158,28 +168,14 @@ export default defineComponent({
         }
     },
 
-    beforeMount() {
-        this.headers = [
-            {text: this.$t("label.email"), align: 'start', sortable: true, value: 'user_email'},
-            {text: this.$t('label.can_read'), value:"can_read"},
-            {text: this.$t('label.can_write'), value:"can_write"},
-            {text: this.$t('label.can_share'), value:"can_share"},
-            // {text: this.$t('label.can_export'), value:"can_export"}
-        ]
-
+    async beforeMount() {
         this.is_pro = this.$store.state.pro
-
-        if (this.is_pro) {
-            this.headers.push({text: this.$t('label.can_share_external'), value:"can_share_external"})
-        }
-
-        this.headers.push({text: this.$t('label.expire'), value:"expire_at"})
-        this.headers.push({text: "", value:"_id", sortable: false})
     },
 
     mounted() {
-        EventBus.$on("shareWorkspace", (workspace_id) => {
+        EventBus.$on("shareWorkspace", async (workspace_id) => {
             this.workspace_id = workspace_id
+            await this.getWorkspace()
             this.getUsers()
             this.open = true;
         })
@@ -190,6 +186,35 @@ export default defineComponent({
     },
 
     methods: {
+        constructHeaders(isOwner) {
+            let headers = [
+                {text: this.$t("label.email"), align: 'start', sortable: true, value: 'user_email'}
+            ]
+            if (isOwner) {
+                headers.push({text: this.$t('label.is_owner'), value:"is_owner", visible: this.isOwner})
+            }
+
+            headers.push(...[
+                {text: this.$t('label.can_read'), value:"can_read"},
+                {text: this.$t('label.can_write'), value:"can_write"},
+                {text: this.$t('label.can_share'), value:"can_share"},
+                // {text: this.$t('label.can_export'), value:"can_export"}
+            ])
+
+            if (this.is_pro) {
+                headers.push({text: this.$t('label.can_share_external'), value:"can_share_external"})
+            }
+
+            headers.push({text: this.$t('label.expire'), value:"expire_at"})
+            headers.push({text: "", value:"_id", sortable: false})
+            this.headers = headers
+        },
+
+        async getWorkspace() {
+            const { data } = await http.get(`/api/v1/workspace/${this.workspace_id}`)
+            this.constructHeaders(data.is_owner)
+        },
+
         close() {
             try {
                 this.$refs.addUserShare.emptyForm();
@@ -198,6 +223,7 @@ export default defineComponent({
                 // Continue
             }
             this.open = false
+            EventBus.$emit("reloadWorkspaces")
         },
 
         getUsers() {
@@ -230,7 +256,19 @@ export default defineComponent({
             const uri = `/api/v1/workspace/${this.workspace_id}/share/${share._id}`
             http.put(uri, form).then(() => {
                 this.$toast.success(this.$t('success.shared_updated'))
+                this.getUsers()
+            })
+        },
 
+        changeOwner(share) {
+            const form = {
+                new_user: share.user
+            }
+
+            const uri = `/api/v1/workspace/${this.workspace_id}/owner`
+            http.put(uri, form).then(() => {
+                this.$toast.success(this.$t("Ownership successfully changed"))
+                this.getWorkspace()
                 this.getUsers()
             })
         }

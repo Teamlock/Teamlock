@@ -121,19 +121,36 @@ export default defineComponent({
 
       http.get(url).then((response) => {
         this.stats = response.data;
+
+        if (this.stats.login === 0) {
+          if (this.stats.server === 0) {
+            if (this.stats.phone === 0) {
+              if (this.stats.bank > 0) {
+                this.handleChange(3)
+              }
+            } else {
+              this.handleChange(2)
+            }
+          } else {
+            this.handleChange(1)
+          }
+        }
       })
     },
 
     handleChange(val) {
+      console.log(val)
       setTimeout(() => {
         this.selected_tab = val
         for (const i in this.tabs) {
           if (parseInt(i) === val) {
-            if (this.$refs[this.tabs[i]])
+            setTimeout(() => {
               this.$refs[this.tabs[i]].getSecrets()
+            }, 200)
           } else {
-            if (this.$refs[this.tabs[i]])
+            if (this.$refs[this.tabs[i]]) {
               this.$refs[this.tabs[i]].keys = []
+            }
           }
         }
       }, 200);
