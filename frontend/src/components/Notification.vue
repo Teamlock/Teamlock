@@ -172,7 +172,7 @@ export default defineComponent({
         this.getNofications()
         this.interval = setInterval(() => {
             this.getNofications()
-        }, 10000)
+        }, 60000)
     },
 
     destroyed() {
