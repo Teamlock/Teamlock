@@ -4,7 +4,7 @@
             <v-subheader>
                 <v-icon style="margin-right: 5px" v-if="node.data.icon">{{ node.data.icon }}</v-icon>
                 <v-icon style="margin-right: 5px" v-else>mdi-folder</v-icon>
-                <b style="font-size: 15px">{{ node.data.name }}</b>
+                <b style="font-size: 15px">{{ node.data.name | str_limit(20) }}</b>
             </v-subheader>
             <v-divider />
             <v-list-item-group color="primary" v-model="selectedMenu">

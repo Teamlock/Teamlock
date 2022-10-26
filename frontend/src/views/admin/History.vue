@@ -96,6 +96,19 @@
         <template v-slot:[`item.date`]="{ item }">
             <span v-html="renderDate(item.date)" />
         </template>
+        <template v-slot:[`item.action`]="{ item }">
+            <span v-html="item.action" />
+        </template>
+        <template v-slot:[`item.folder`]="{ item }">
+            <v-tooltip bottom>
+                <template v-slot:activator="{ on, attrs }">
+                    <span v-on="on" v-bind="attrs">
+                        {{ item.folder|str_limit(20) }}
+                    </span>
+                </template>
+                {{ item.folder }}
+            </v-tooltip>
+        </template>
         <template v-slot:[`item.user`]="{ item }">
             <v-tooltip bottom>
                 <template v-slot:activator="{ on, attrs }">
@@ -130,10 +143,12 @@ export default defineComponent({
     mixins: [renderMixin],
     data: (vm) => ({
         headersHistory: [
-            { text: vm.$t("label.date"), value: "date", width: "15%"},
+            { text: vm.$t("label.date"), value: "date", width: "12%"},
             { text: vm.$t("label.user"), value: "user", width: "20%" },
-            { text: vm.$t("label.workspace"), value: "workspace", width: "20%" },
-            { text: vm.$t("label.action"), value: "action", width: "45%" },
+            { text: vm.$t("label.workspace"), value: "workspace", width: "10%" },
+            { text: vm.$t("label.folder"), value: "folder", width: "10%" },
+            { text: vm.$t("label.secret"), value: "secret", width: "10%" },
+            { text: vm.$t("label.action"), value: "action", width: "38%" },
         ],
         options: {},
         search: "",

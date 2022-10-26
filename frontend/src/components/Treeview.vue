@@ -88,7 +88,7 @@ export default defineComponent({
                     current_children.push({
                         id: folder._id,
                         icon: folder.icon,
-                        title: folder.name,
+                        title: this.str_limit(folder.name, 25),
                         isLeaf: false,
                         isSelected: folder._id === selected_folder,
                         isExpanded: is_open,
@@ -99,6 +99,16 @@ export default defineComponent({
             }
 
             return { is_open: open, children: current_children }
+        },
+
+        str_limit(value, size) {
+            if (!value) return '';
+            value = value.toString();
+
+            if (value.length <= size) {
+                return value;
+            }
+            return value.substr(0, size) + '...';
         },
 
         construct_tree(folders, selected_folder) {
@@ -119,7 +129,7 @@ export default defineComponent({
                     tree.push({
                         id: folder._id,
                         icon: folder.icon,
-                        title: folder.name,
+                        title: this.str_limit(folder.name, 25),
                         isLeaf: false,
                         isExpanded: is_open,
                         isSelected: folder._id === selected_folder,

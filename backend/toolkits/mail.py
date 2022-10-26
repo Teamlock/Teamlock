@@ -136,7 +136,7 @@ Hello,<br/><br/>The workspace <b>{{ workspace_name }}</b> has been shared with y
 
     @classmethod
     def send_mail(cls, to: list[str], url: str, content_type: str, context: dict = {}) -> None:
-        if not settings.DEV_MODE:
+        if not settings.DEV_MODE or True:
             server: smtplib.SMTP = cls.get_smtp_client()
             message: MIMEMultipart = cls.construct_mail(to, url, content_type, context)
             server.sendmail(settings.SMTP_EMAIL, to, message.as_string())

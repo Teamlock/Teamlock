@@ -36,6 +36,7 @@ from apps.auth.schema import LoggedUser
 from fastapi.responses import Response
 from toolkits.crypto import CryptoUtils
 from toolkits.folder import FolderUtils
+from apps.trash.models import Trash
 from settings import settings
 from toolkits import const
 from .models import Folder
@@ -134,7 +135,7 @@ async def create_folder(
     create_history(
         user=user.in_db.email,
         workspace=workspace.name,
-        workspace_owner=workspace.owner.email,
+        folder=folder.name,
         action=f"Create folder {folder.name}"
     )
     return Response(
@@ -187,7 +188,7 @@ async def update_folder(
     create_history(
         user=user.in_db.email,
         workspace=folder.workspace.name,
-        workspace_owner=folder.workspace.owner.email,
+        folder=folder.name,
         action=f"Update folder {folder.name}"
     )
 
@@ -230,8 +231,8 @@ async def copy_folder(
 
         create_history(
             user=user.in_db.email,
+            folder=folder.name,
             workspace=folder.workspace.name,
-            workspace_owner=folder.workspace.owner.email,
             action=f"Folder {folder.name} copied to workspace {to_workspace.name}"
         )
 
@@ -250,36 +251,6 @@ async def copy_folder(
         )
 
 
-# @router.delete(
-#     path="/{folder_id}",
-#     summary="Delete a folder",
-#     status_code=status.HTTP_204_NO_CONTENT
-# )
-# async def delete_folder(
-#     folder_id: str,
-#     user: LoggedUser = Depends(get_current_user)
-# ): 
-#     try:
-#         folder: Folder = Folder.objects(pk=folder_id).get()
-#         WorkspaceUtils.have_rights(str(folder.workspace.pk), user)
-
-#         logger.info(f"[FOLDER][{str(folder.workspace.pk)}][{folder.workspace.name}] {user.in_db.email} delete folder {folder.name}")
-#         folder.delete()
-
-#         create_history(
-#             user=user.in_db.email,
-#             workspace=folder.workspace.name,
-#             workspace_owner=folder.workspace.owner.email,
-#             action=f"Folder {folder.name} deleted"
-#         )
-
-#         return Response(status_code=status.HTTP_204_NO_CONTENT)
-#     except Folder.DoesNotExist:
-#         raise HTTPException(
-#             status_code=status.HTTP_404_NOT_FOUND,
-#             detail="Folder not found"
-#         )
-
 @router.delete(
     path="/{folder_id}/trash",
     summary="Move a folder to trash",
@@ -294,7 +265,14 @@ async def move_trash_folder(
 
         WorkspaceUtils.have_rights(folder.workspace, user)
         trash : Trash = WorkspaceUtils.get_trash_folder(folder.workspace)
-        FolderUtils.move_to_trash(folder, trash, user)
+        total_secrets: int = FolderUtils.move_to_trash(folder, trash)
+
+        create_history(
+            user=user.in_db.email,
+            workspace=folder.workspace.name,
+            folder=folder.name,
+            action=f"Folder {folder.name} deleted with {total_secrets} secrets"
+        )
         
         return Response(status_code=status.HTTP_204_NO_CONTENT)
     except Folder.DoesNotExist:

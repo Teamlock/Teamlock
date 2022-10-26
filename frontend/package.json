@@ -1,5 +1,7 @@
 {
   "name": "teamlock",
+  "description": "Teamlock Desktop Application",
+  "author": "Olivier de Régis",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -9,9 +11,12 @@
     "electron:build": "vue-cli-service electron:build",
     "electron:serve": "vue-cli-service electron:serve",
     "postinstall": "electron-builder install-app-deps",
-    "postuninstall": "electron-builder install-app-deps"
+    "postuninstall": "electron-builder install-app-deps",
+    "start": "electron-forge start",
+    "package": "electron-forge package",
+    "make": "electron-forge make"
   },
-  "main": "./background.js",
+  "main": "./src/background.js",
   "dependencies": {
     "@fortawesome/fontawesome-free": "^6.1.1",
     "@fortawesome/fontawesome-svg-core": "^6.1.1",
@@ -20,7 +25,6 @@
     "@vue/composition-api": "^1.6.2",
     "axios": "^0.27.2",
     "core-js": "^3.22.7",
-    "electron-builder": "^23.3.3",
     "electron-settings": "^4.0.2",
     "electron-squirrel-startup": "^1.0.0",
     "humanize-duration": "^3.27.3",
@@ -44,6 +48,12 @@
     "vuex": "^3.6.2"
   },
   "devDependencies": {
+    "@electron-forge/cli": "^6.0.0-beta.68",
+    "@electron-forge/maker-deb": "^6.0.0-beta.68",
+    "@electron-forge/maker-dmg": "^6.0.0-beta.68",
+    "@electron-forge/maker-rpm": "^6.0.0-beta.68",
+    "@electron-forge/maker-squirrel": "^6.0.0-beta.68",
+    "@electron-forge/maker-zip": "^6.0.0-beta.68",
     "@vue/cli-plugin-babel": "~4.5.0",
     "@vue/cli-plugin-eslint": "~4.5.0",
     "@vue/cli-plugin-router": "~4.5.0",
@@ -81,5 +91,8 @@
     "last 2 versions",
     "not dead"
   ],
-  "productName": "TeamLock"
+  "productName": "TeamLock",
+  "config": {
+    "forge": "./forge.config.js"
+  }
 }

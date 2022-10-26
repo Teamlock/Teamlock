@@ -1,5 +1,6 @@
 {
     "label": {
+        "is_owner": "Propriétaire",
         "edit_workspace": "Editer le l'espace de travail",
         "share_workspace": "Partage l'espace de travail",
         "export_workspace": "Exporter l'espace de travail",

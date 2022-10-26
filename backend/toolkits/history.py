@@ -25,13 +25,20 @@ from fastapi import Request, BackgroundTasks
 from apps.secret.models import Secret
 
 
-def create_history(user: str, workspace: str = "", workspace_owner: str = "", action: str = ""):
+def create_history(
+    user: str,
+    workspace: str="",
+    action: str="",
+    folder: str="",
+    secret: str=""
+):
     try:
         from teamlock_pro.apps.history.models import History
         History.objects.create(
             user=user,
             workspace=workspace,
-            workspace_owner=workspace_owner,
+            folder=folder,
+            secret=secret,
             action=action
         )
     except ImportError:

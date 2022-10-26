@@ -30,7 +30,7 @@
         </span>
         <span v-else-if="selectedFolder" class="text_label_app_bar">
             <v-icon>{{selectedFolder.icon}}</v-icon>
-            {{ selectedFolder.name }}
+            {{ selectedFolder.name|str_limit(40) }}
 
             <v-tooltip
                 v-model="tooltip_copy"
