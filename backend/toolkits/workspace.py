@@ -631,8 +631,23 @@ class WorkspaceUtils:
         if package_name:
             query &= Q(package_name=package_name)
         elif search:
+            urls_query: Q = Q()
+            if "://" in search:
+                tmp_list = search.split("://")
+                protocol: str = tmp_list[0]
+
+                s = ""
+                for index, sub_domain in enumerate(tmp_list[1].split(".")[::-1]):
+                    if index == 0:
+                        s += sub_domain
+                    else:
+                        s = f"{sub_domain}.{s}"
+                        url = f"{protocol}://{s}"
+                        urls_query |= Q(urls__value__icontains=url)
+
+
+
             name_query: Q = Q(name__value__icontains=search)
-            urls_query: Q = Q(urls__value__icontains=search)
 
             query &= (name_query | urls_query)
 
