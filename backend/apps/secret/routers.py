@@ -112,7 +112,7 @@ async def global_search_keys(
     shared_query = Q(user=user.id) & (Q(expire_at=None) | Q(expire_at__lte=datetime.utcnow()))
     workspaces = []
     for tmp in Share.objects(shared_query):
-        workspace.append(tmp.workspace)
+        workspaces.append(tmp.workspace)
 
     secrets: list = []
     for workspace in workspaces:
