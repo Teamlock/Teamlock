@@ -8,7 +8,7 @@ env:
 
 jobs:
   build:
-    runs-on: self-hosted
+    runs-on: ubuntu-20.04
 
     steps:
       - uses: actions/checkout@v3
@@ -16,16 +16,18 @@ jobs:
         run: sudo docker build -t teamlock:dev-$VERSION --build-arg VERSION=$VERSION .
 
   deploy:
-    runs-on: self-hosted
+    runs-on: ubuntu-20.04
     needs: build
 
     env:
       PERSONNAL_TOKEN: ${{ secrets.PERSONNAL_TOKEN }}
+      SCALEWAY_SECRET_KEY: ${{ secrets.SCALEWAY_SECRET_KEY }}
 
     steps:
       - name: Login on Container registry
-        run: echo $PERSONNAL_TOKEN | sudo docker login ghcr.io -u raznak --password-stdin
+        # run: echo $PERSONNAL_TOKEN | sudo docker login ghcr.io -u raznak --password-stdin
+        run: echo $SCALEWAY_SECRET_KEY | sudo docker login rg.fr-par.scw.cloud/teamlock -u nologin --password-stdin
       - name: Tag the image
-        run: sudo docker tag teamlock:dev-$VERSION ghcr.io/teamlock/teamlock:dev-$VERSION
+        run: sudo docker tag teamlock:dev-$VERSION rg.fr-par.scw.cloud/teamlock/teamlock:dev-$VERSION
       - name: Push the image
-        run: sudo docker push ghcr.io/teamlock/teamlock:dev-$VERSION
+        run: sudo docker push rg.fr-par.scw.cloud/teamlock/teamlock:dev-$VERSION
