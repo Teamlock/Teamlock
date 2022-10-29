@@ -10,6 +10,7 @@ RUN cp /app/src/assets/img/white_bg.png /app/dist/static/img/white_bg.png
 RUN cp /app/src/assets/img/TLAppLogo_Baseline.svg /app/dist/static/img/TLAppLogo_Baseline.svg
 RUN cp /app/src/assets/img/TLAppLogo_Baseline.png /app/dist/static/img/TLAppLogo_Baseline.png
 
+
 FROM python:3.10 as python-stage
 COPY ./backend/requirements.txt /requirements.txt
 RUN apt update && apt -y install python3-venv
