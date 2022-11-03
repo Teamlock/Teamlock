@@ -113,7 +113,11 @@ def create_access_token(user: User,
 
     expire: int = settings.TOKEN_EXPIRE
     if x_teamlock_app == "browser_ext":
-        expire: int = settings.TOKEN_EXPIRE_BROWSER_EXT
+        now = datetime.utcnow()
+        end = datetime(now.year, now.month, now.day, settings.END_DAY)
+        if now > end:
+            end += timedelta(days=1)
+        expire: int = int((end - now).seconds)
 
     access_token_expires: timedelta = timedelta(seconds=expire)
     expire = datetime.utcnow() + access_token_expires
@@ -135,7 +139,7 @@ def create_access_token(user: User,
         tmp_user["otp"] = x_teamlock_key in user.remember_key
 
     # Store token into Redis
-    RedisTools.store(encoded_jwt, json.dumps(tmp_user), expire=expire)
+    RedisTools.store(encoded_jwt, json.dumps(tmp_user), expire=access_token_expires)
     return Login(
         access_token=encoded_jwt,
         expireAt=expire.isoformat()
