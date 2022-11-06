@@ -168,7 +168,10 @@ async def get_me(user: LoggedUser = Depends(get_current_user)) -> UserSchema:
     path="/register",
     summary="Register a new user"
 )
-async def register_user(registration_schema: RegistrationSchema) -> bool:
+async def register_user(
+    registration_schema: RegistrationSchema,
+    background_tasks: BackgroundTasks
+) -> bool:
     config: Config = fetch_config()
     if not config.allow_self_registration:
         raise HTTPException(
@@ -195,7 +198,7 @@ async def register_user(registration_schema: RegistrationSchema) -> bool:
     )
 
     try:
-        create_user_toolkits(user_schema)
+        create_user_toolkits(user_schema, background_tasks)
 
         log_message: str = f"[REGISTER] Email {user_schema.email} registered"
         logger.info(log_message)
