@@ -137,7 +137,8 @@ def create_access_token(user: User,
     # Store token into Redis
     RedisTools.store(encoded_jwt, json.dumps(tmp_user), expire=settings.TOKEN_EXPIRE)
     return Login(
-        access_token=encoded_jwt
+        access_token=encoded_jwt,
+        expireAt=expire.isoformat()
     )
 
 

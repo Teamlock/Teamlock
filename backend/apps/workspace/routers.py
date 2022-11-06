@@ -433,9 +433,10 @@ async def import_keepass_file(
 )
 async def get_workspace_folders(
     workspace_id: str,
+    parent_id: str|None = None,
     user: LoggedUser = Depends(get_current_user)
 ) -> list[FolderSchema]:
-    return WorkspaceUtils.get_folders(workspace_id, user)
+    return WorkspaceUtils.get_folders(workspace_id, user, parent_id)
 
 
 @router.get(

@@ -519,11 +519,11 @@ class WorkspaceUtils:
             )
 
     @classmethod
-    def get_folders(cls, workspace_id: str | ObjectId, user: LoggedUser) -> list[FolderSchema]:
+    def get_folders(cls, workspace_id: str | ObjectId, user: LoggedUser, parent_id: str|None) -> list[FolderSchema]:
         workspace, _ = cls.get_workspace(workspace_id, user)
         folders: list = []
 
-        query: Q = Q(workspace=workspace.pk)
+        query: Q = Q(workspace=workspace.pk, parent=parent_id)
         for folder in Folder.objects(query).order_by("name"):
             parent = None
             if folder.parent:

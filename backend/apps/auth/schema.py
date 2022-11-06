@@ -32,6 +32,7 @@ class Login(BaseModel):
     token_type: str = "bearer"
     access_token: str
     remember_key: str | None
+    expireAt: str
 
 
 class TokenData(BaseModel):
