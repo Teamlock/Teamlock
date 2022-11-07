@@ -109,14 +109,15 @@ async def login_for_access_token(
     )
 
     # Check if user has TOTP Enabled
-    if user.otp and user.otp.enabled:
-        if x_teamlock_key not in user.remember_key:
-            # Need to create temporary Session key for user to validate OTP
-            token: str = create_temp_otp_key(login)
-            return JSONResponse(content={
-                "otp": True,
-                "token": token
-            })
+    if user.otp and x_teamlock_key not in user.remember_key:
+        token: str = create_temp_otp_key(login)
+        content : dict = {
+            "otp": True,
+            "token": token
+        }
+        if not user.otp.enabled:
+            content["configured"] = False
+        return JSONResponse(content=content)
 
     if (session := create_user_session(user, request)) and not settings.DEV_MODE:
         # Send an email if new connection and no DEV MODE

@@ -343,7 +343,8 @@
         "invalid_recovery_key": "Invalid recovery key",
         "max_users_limit": "You have reach the max users you can add. Please upgrade your subscription to add more.",
         "could_not_validate_credentials": "Incorrect username or password",
-        "too_many_auth_failures": "Too many authentication failures. Account locked up for 10 minutes"
+        "too_many_auth_failures": "Too many authentication failures. Account locked up for 10 minutes",
+        "invalid_unique_code": "Your unique code to reconfigure your otp is invalid. Please check your mails"
     },
     "help": {
         "add_to_filter": "Click to filter",
@@ -397,7 +398,8 @@
         "restore_key": "Restore key",
         "context_menu_workspace": "Right click for more options",
         "copied": "Copied",
-        "show_read_notifications": "Show read notifications"
+        "show_read_notifications": "Show read notifications",
+        "reset_otp": "Reset OTP"
     },
     "folder": {
         "edit": "Edit folder",

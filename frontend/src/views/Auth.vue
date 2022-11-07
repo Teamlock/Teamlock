@@ -24,7 +24,7 @@
                                         {{ error }}
                                     </v-alert>
 
-                                    <v-form ref="form" v-model="valid" @submit.prevent="login" v-if="!need_otp" class="v_form_login">
+                                    <v-form ref="form" v-model="valid" @submit.prevent="login" v-if="!need_otp && !hasToConfigureOTP" class="v_form_login">
                                         <v-text-field
                                             v-if="electron"
                                             v-model="form.teamlock_url"
@@ -60,7 +60,7 @@
                                             {{ $t('button.login')}}
                                         </v-btn>
                                     </v-form>
-                                    <v-form ref="formOtp" v-model="otpValid" @submit.prevent="validateOTP" v-if="need_otp">
+                                    <v-form ref="formOtp" v-model="otpValid" @submit.prevent="validateOTP" v-if="need_otp || hasToConfigureOTP">
                                         <v-alert
                                             v-if="error_otp"
                                             type="error"
@@ -70,7 +70,8 @@
                                             {{ error_otp }}
                                         </v-alert>
 
-                                        <p class="mt-5">{{ $t('help.otp') }}</p>
+                                        <qr-code :text="captcha" :size="200" class="mt-5 qr-code" v-if="hasToConfigureOTP"/>
+                                        <p class="mt-5" v-if="!hasToConfigureOTP">{{ $t('help.otp') }}</p>
 
                                         <v-otp-input length="6" v-model="form.otp" ref="otp" :label="$t('label.otp')" class="mt-5 mb-5" @finish="validateOTP"/>
 
@@ -113,10 +114,14 @@ import { defineComponent } from '@vue/composition-api'
 import renderMixin from "@/mixins/render"
 import axios from "axios"
 import qs from "qs"
+import VueQRCodeComponent from 'vue-qrcode-component'
 
 export default defineComponent({
     name: 'Auth',
     mixins: [renderMixin],
+    components: {
+        "qr-code": VueQRCodeComponent,
+    },
 
     data: () => ({
         logo_light: require("@/assets/img/TLAppLogo_White.svg"),
@@ -141,6 +146,7 @@ export default defineComponent({
         },
         error: "",
         error_otp: "",
+        hasToConfigureOTP: false,
     }),
 
     async beforeMount() {
@@ -305,11 +311,14 @@ export default defineComponent({
                 if (response.data.otp) {
                     localStorage.removeItem("auth_key")
                     sessionStorage.setItem("x_token", response.data.token)
-                    this.need_otp = true;
-
-                    this.$nextTick(() => {
-                        this.$refs.otp.focus()
-                    })
+                    if(response.data.configured === false){
+                        this.getQRCode()
+                    }else{
+                        this.need_otp = true;
+                        this.$nextTick(() => {
+                            this.$refs.otp.focus()
+                        })
+                    }
                 } else {
                     const access_token = response.data.access_token
                     sessionStorage.setItem("token", access_token)
@@ -339,7 +348,34 @@ export default defineComponent({
             }).then(() => {
                 this.is_loading = false
             })
-        }
+        },
+
+        getQRCode(){
+            let unique_code = this.$route.query.unique_code;
+            if(!unique_code){
+                this.error = this.$t("error.invalid_unique_code")
+                return;
+            }
+            this.is_loading_otp = true;
+            const headers = {
+                "X-Token": sessionStorage.getItem("x_token")
+            };
+            const params = {unique_code};
+
+            let base_url = process.env.VUE_APP_BASE_URL;
+            if (this.electron) {
+                base_url = this.form.teamlock_url
+            }
+
+            let url = `${base_url}/pro/api/v1/user/totp/reset`;
+            axios.get(url, { params, headers }).then(response => {
+                this.is_loading_otp = false;
+                this.captcha = response.data
+                this.hasToConfigureOTP = true
+            }).catch(() => {
+                this.error = this.$t("error.invalid_unique_code")
+            });
+        },
     }
 })
 </script>

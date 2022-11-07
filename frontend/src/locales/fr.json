@@ -339,7 +339,8 @@
         "invalid_recovery_key": "Clé de récupération invalide",
         "max_users_limit": "Vous avez atteints le nombre maximum d'utilisateurs",
         "could_not_validate_credentials": "Email ou mot de passe incorrect",
-        "too_many_auth_failures": "Trop d'erreur d'authentification. Votre compte est bloqué pendant 10 minutes"
+        "too_many_auth_failures": "Trop d'erreur d'authentification. Votre compte est bloqué pendant 10 minutes",
+        "invalid_unique_code": "Votre code pour reconfigurer votre otp est invalide. Veuillez regarder vos mails"
     },
     "help": {
         "add_to_filter": "Cliquez pour filtrer",
@@ -390,7 +391,8 @@
         "restore_trash": "Restaurer la corbeille",
         "restore_key": "Restaurer la clé",
         "context_menu_workspace": "Clic droit pour plus d'options",
-        "copied": "Copié"
+        "copied": "Copié",
+        "reset_otp": "Réinitialiser l'OTP"
     },
     "folder": {
         "edit": "Editer un dossier",

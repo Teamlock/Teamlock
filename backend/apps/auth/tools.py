@@ -97,6 +97,10 @@ def validate_otp(tmp_token: str, otp: int):
     if not totp.verify(otp):
         return False
 
+    if not user.otp.enabled:
+        user.otp.unique_code = ""
+        user.otp.enabled = True
+    user.save()
     data["otp"] = True
     RedisTools.store(access_token, json.dumps(data), expire=settings.TOKEN_EXPIRE)
     RedisTools.delete(tmp_token)

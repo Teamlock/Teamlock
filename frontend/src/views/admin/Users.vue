@@ -187,6 +187,20 @@
                         <v-icon
                             v-html="item.otp.enabled ? 'mdi-check-bold' : 'mdi-close-thick'"
                         />
+                        <v-tooltip bottom v-if="item.otp.enabled">
+                            <template v-slot:activator="{ on, attrs }">
+                                <v-btn
+                                color="primary"
+                                icon
+                                v-bind="attrs"
+                                v-on="on"
+                                @click="resetMFA(item)"
+                                >
+                                    <v-icon>mdi-lock-reset</v-icon>
+                                </v-btn>
+                            </template>
+                            <span>{{ $t("help.reset_otp") }}</span>
+                        </v-tooltip>
                     </template>
                     <template v-slot:[`item.is_configured`]="{ item }">
                         <v-icon
@@ -398,6 +412,12 @@ export default defineComponent({
                 this.$toast.success(this.$t("success.user_deleted"))
                 this.getUsers()
             })
+        },
+        resetMFA(item){
+            http.post(`/pro/api/v1/user/totp/${item._id}/reset`).then(() => {
+                this.$toast.success(this.$t("success.user_updated"));
+                this.getUsers()
+            });
         }
     }
 })
