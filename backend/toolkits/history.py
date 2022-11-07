@@ -31,7 +31,6 @@ def create_history(user: str, workspace: str = "", workspace_owner: str = "", ac
         History.objects.create(
             user=user,
             workspace=workspace,
-            workspace_owner=workspace_owner,
             action=action
         )
     except ImportError:
