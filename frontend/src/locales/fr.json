@@ -178,7 +178,11 @@
         "admin_configuration": "Administrateur",
         "twilio_phone_number": "Numéro de téléphone Twilio",
         "twilio_account_sid": "Twilio Account SID",
-        "twilio_auth_token": "Twilio Auth Token"
+        "twilio_auth_token": "Twilio Auth Token",
+        "min_special": "Minimum de caractères spéciaux",
+        "min_uppercase": "Minimum de majuscules",
+        "min_numbers": "Minimum de chiffres",
+        "min_length": "Taille minimum du mot de passe"
     },
     "tooltip": {
         "dblclick_copy": "Double cliquez pour copier",
@@ -205,7 +209,8 @@
         "2fa_setup": "Authentification Multi Facteur",
         "2fa_disable": "Désactiver l'authentification multi facteur",
         "share_workspace": "Partager l'espace de travail",
-        "add_user_to_workspace": "Partage l'espace de travail à ces utilisateurs"
+        "add_user_to_workspace": "Partage l'espace de travail à ces utilisateurs",
+        "password_generator": "Générer un mot de passe pour votre secret"
     },
     "required": {
         "required": "Obligatoire",

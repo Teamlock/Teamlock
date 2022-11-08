@@ -144,6 +144,7 @@ export default defineComponent({
                     tree[0].isExpanded = true
                     tree[0].isSelected = true
                     this.$store.dispatch("set_current_folder", tree[0].data._id)
+                    this.$store.dispatch("set_current_password_policy", tree[0].data._id)
                     EventBus.$emit("selectedFolder", {
                         _id: tree[0].data._id,
                         name: tree[0].data.name,
@@ -152,6 +153,7 @@ export default defineComponent({
                 }
             } else {
                 this.$store.dispatch("set_current_folder", selected_folder)
+                this.$store.dispatch("set_current_password_policy", selected_folder)
                 EventBus.$emit("selectedFolder", {
                     _id: found._id,
                     name: found.name,
@@ -193,6 +195,7 @@ export default defineComponent({
             
             localStorage.setItem("selected_folder", folder_id)
             this.$store.dispatch("set_current_folder", folder_id)
+            this.$store.dispatch("set_current_password_policy", folder_id)
         },
 
         toggleFolder(selected) {
