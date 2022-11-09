@@ -51,6 +51,8 @@ class HistoryPaginationParamsSchema(PaginationParamsSchema):
     users: list[str]
     workspaces: list[str]
 
+class UnchangedSecretPaginationParamsSchema(PaginationParamsSchema):
+    date_from: datetime
 
 class PaginationResponseSchema(BaseModel):
     start: int
@@ -73,5 +75,3 @@ def get_order(sort) -> dict:
             sort_field: order_dir.get(order, -1)
         }
     }
-
-    

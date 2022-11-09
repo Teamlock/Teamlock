@@ -29,7 +29,7 @@ from apps.config.schema import PasswordPolicySchema
 from toolkits.workspace import WorkspaceUtils
 from toolkits.secret import SecretUtils
 from fastapi.exceptions import HTTPException
-from apps.auth.tools import get_current_user
+from apps.auth.tools import get_current_user, is_admin
 from mongoengine.queryset.visitor import Q
 from apps.auth.schema import LoggedUser
 from toolkits.crypto import CryptoUtils
@@ -38,12 +38,14 @@ from apps.trash.models import Trash
 from apps.folder.models import Folder
 from apps.workspace.models import Workspace
 from .models import Login, Secret
+from toolkits.paginate import UnchangedSecretPaginationParamsSchema, get_order
 from datetime import datetime
 from settings import settings
 from typing import Union
 from . import schema
 import logging.config
 import logging
+import math
 
 logging.config.dictConfig(settings.LOGGING)
 logger = logging.getLogger("api")
@@ -481,3 +483,53 @@ async def restore(
     logger.info(f"[SECRET][{str(workspace.pk)}][{workspace.name}] {user.in_db.email} restored secret {secret.name.value}")
 
 
+@router.post(
+    path="/unchange",
+    summary="Get all unchange secrets since a date",
+    response_model=schema.UnchangedSecretTableSchema,
+    dependencies=[Depends(is_admin)]
+)
+async def get_unchanged(paginate: UnchangedSecretPaginationParamsSchema) -> schema.UnchangedSecretTableSchema:
+    if not paginate.sort:
+        paginate.sort = "password_last_change|desc"
+
+    aggs: list = []
+    search: dict = {
+        "$match": {
+            "password_last_change": {
+                "$gte": paginate.date_from,
+            }
+        }
+    }
+
+    if paginate.search:
+        print(paginate.search)
+        search["$match"]["name.value"] = {
+            "$regex": paginate.search
+        }
+
+    aggs.append(search)
+    skip: int = (paginate.page -1) * paginate.per_page    
+    aggs.append(get_order(paginate.sort))
+    aggs.append({"$skip": skip})
+    aggs.append({"$limit": paginate.per_page})
+
+    objects = Secret.objects.aggregate(*aggs)
+    unchanged_secrets: list = []
+    for obj in objects:
+        print(obj)
+        unchanged_secrets.append(schema.UnchangedSecretSchema(
+            password_last_change=obj["password_last_change"],
+            name=obj["name"]["value"],
+        ))
+    total_objects: int = len(list(objects))
+
+    return schema.UnchangedSecretTableSchema(
+        start=skip,
+        data=unchanged_secrets,
+        total=total_objects,
+        to=skip + len(unchanged_secrets),
+        current_page=paginate.page,
+        per_page=paginate.per_page,
+        last_pages=math.ceil(total_objects / paginate.per_page)
+    )

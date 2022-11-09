@@ -23,6 +23,7 @@ __doc__ = ''
 
 from pydantic import BaseModel, Field
 from toolkits.bson import PyObjectId
+from toolkits.paginate import PaginationResponseSchema
 from typing import Literal, Union
 from datetime import datetime
 from bson import ObjectId
@@ -161,6 +162,19 @@ class GetSecretSchema(BaseModel):
     
     class Config:
         allow_population_by_field_name: bool = True
+        arbitrary_types_allowed: bool = True
+        json_encoders: dict = {
+            ObjectId: str
+        }
+
+class UnchangedSecretSchema(BaseModel):
+    password_last_change: datetime
+    name: str
+
+class UnchangedSecretTableSchema(PaginationResponseSchema):
+    data: list[UnchangedSecretSchema]
+
+    class Config:
         arbitrary_types_allowed: bool = True
         json_encoders: dict = {
             ObjectId: str
