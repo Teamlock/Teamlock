@@ -311,7 +311,7 @@ export default defineComponent({
                 if (response.data.otp) {
                     localStorage.removeItem("auth_key")
                     sessionStorage.setItem("x_token", response.data.token)
-                    if(response.data.configured === false){
+                    if(response.data.otp_to_configure === true){
                         this.getQRCode()
                     }else{
                         this.need_otp = true;
