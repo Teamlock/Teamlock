@@ -77,6 +77,7 @@ async def get_folder(
 
         logger.info(f"[FOLDER][{str(folder.workspace.pk)}][{folder.workspace.name}] {user.in_db.email} retreive folder {folder.name}")
         return FolderSchema(
+            _id=str(folder.pk),
             name=folder.name,
             icon=folder.icon,
             password_policy=password_policy,
@@ -320,7 +321,9 @@ async def get_secrets(
 ):
     try:
         folder: Folder = Folder.objects(pk=folder_id).get()
-        secrets = FolderUtils.get_secrets(folder_id,category, user)
+        WorkspaceUtils.have_rights(folder.workspace, user)
+
+        secrets = FolderUtils.get_secrets(folder_id, category, user)
         logger.info(f"[FOLDER][{str(folder.workspace.pk)}][{folder.workspace.name}] {user.in_db.email} retreive secrets in folder {folder.name}")
         return secrets
     except Folder.DoesNotExist:
