@@ -127,20 +127,7 @@
                             :label="$t('label.password')"
                         >
                             <span slot="prepend">
-                                <v-tooltip bottom>
-                                    <template v-slot:activator="{ on, attrs }">
-                                        <v-icon
-                                            v-on="on"
-                                            v-bind="attrs"
-                                            @click="generatePassword"
-                                            class="mr-2"
-                                            tabindex="-1"
-                                        >
-                                            mdi-auto-fix
-                                        </v-icon>
-                                    </template>
-                                    <span v-html="$t('label.generate_password')" />
-                                </v-tooltip>
+                                <PasswordGenerator @password="insertPassword"/>
                             </span>
                             <span slot="append">
                                 <v-tooltip bottom>
@@ -223,11 +210,15 @@
 import { defineComponent } from '@vue/composition-api'
 import http from "@/utils/http"
 import EventBus from "@/event"
+import PasswordGenerator from '../PasswordGenerator.vue'
 
 export default defineComponent({
+    components: {
+        PasswordGenerator
+    },
     name: "AddLogin",
     data: () => ({
-        open: false ,
+        open: false,
         secret_id: null,
         show_password: false,
         loading: false,
@@ -236,111 +227,91 @@ export default defineComponent({
         errors: [],
         form: {
             secret_type: "login",
-            name: {encrypted: false, value: ""},
-            urls: {encrypted: false, value: [""]},
-            login: {encrypted: false, value: ""},
-            password: {encrypted: true, value: ""},
-            ip: {encrypted: false, value: ""},
-            informations: {encrypted: false, value: ""}
+            name: { encrypted: false, value: "" },
+            urls: { encrypted: false, value: [""] },
+            login: { encrypted: false, value: "" },
+            password: { encrypted: true, value: "" },
+            ip: { encrypted: false, value: "" },
+            informations: { encrypted: false, value: "" }
         }
     }),
-
     computed: {
         title() {
-            return this.secret_id ? this.$t('title.edit_login') : this.$t("title.add_login")
+            return this.secret_id ? this.$t("title.edit_login") : this.$t("title.add_login");
         }
     },
-
     watch: {
         open(val) {
             if (!val) {
                 this.form = {
                     secret_type: "login",
-                    name: {encrypted: false, value: ""},
-                    urls: {encrypted: false, value: [""]},
-                    login: {encrypted: false, value: ""},
-                    password: {encrypted: true, value: ""},
-                    ip: {encrypted: false, value: ""},
-                    informations: {encrypted: false, value: ""}
-                }
-            } else {
+                    name: { encrypted: false, value: "" },
+                    urls: { encrypted: false, value: [""] },
+                    login: { encrypted: false, value: "" },
+                    password: { encrypted: true, value: "" },
+                    ip: { encrypted: false, value: "" },
+                    informations: { encrypted: false, value: "" }
+                };
+            }
+            else {
                 setTimeout(() => {
-                    this.$refs.name_input.focus()
+                    this.$refs.name_input.focus();
                 }, 200);
             }
         }
     },
-
     mounted() {
         EventBus.$on("edit_login", (secret_id, folder_id) => {
-            this.secret_id = secret_id
-            this.folder_id = folder_id
-            this.open = true
-
+            this.secret_id = secret_id;
+            this.folder_id = folder_id;
+            this.open = true;
             if (this.secret_id) {
-                this.getSecret()
+                this.getSecret();
             }
-        })
+        });
     },
-
     methods: {
         getSecret() {
-            this.loading = true
-            const uri =  `/api/v1/secret/${this.secret_id}`
-
+            this.loading = true;
+            const uri = `/api/v1/secret/${this.secret_id}`;
             http.get(uri).then((response) => {
-                const secret = response.data
-                this.folder_id = secret.folder
-
+                const secret = response.data;
+                this.folder_id = secret.folder;
                 if (secret.urls.value.length === 0) {
-                    secret.urls.value = [""]
+                    secret.urls.value = [""];
                 }
-
                 this.form = {
-                    secret_type: 'login',
+                    secret_type: "login",
                     name: secret.name,
                     login: secret.login,
                     password: secret.password,
                     urls: secret.urls,
                     ip: secret.ip,
                     informations: secret.informations
-                }
+                };
             }).then(() => {
-                this.loading = false
-            })
+                this.loading = false;
+            });
         },
-
         closePanel() {
             this.form = {
-                secret_type: 'login',
+                secret_type: "login",
                 name: "",
-                urls: {value: [""]},
+                urls: { value: [""] },
                 login: "",
                 password: "",
                 ip: "",
                 informations: ""
-            }
-            this.show_password = false
-            this.errorPassword = []
-            this.errorPasswordCount = 0
-            this.open = false
+            };
+            this.show_password = false;
+            this.errorPassword = [];
+            this.errorPasswordCount = 0;
+            this.open = false;
         },
 
-        generatePassword() {
-            this.loading = true
-
-            const params = {
-                folder_id: this.folder_id
-            }
-
-            http.get("/api/v1/secret/generate", { params: params })
-                .then((response) => {
-                    this.form.password.value = response.data
-                })
-                .then(() => {
-                    this.loading = false
-                })
-        },
+        insertPassword(newPassword){
+            this.form.password.value = newPassword;
+        },  
 
         hasErrors(error) {
             const mapping = {
@@ -348,66 +319,63 @@ export default defineComponent({
                 uppercase: this.$t("label.password_upper"),
                 numbers: this.$t("label.password_number"),
                 special: this.$t("label.password_special")
-            }
-
+            };
             if (!error.response) {
-                return false
+                return false;
             }
-
             if (error.response.status === 400) {
-                let detail = [error.response.data.detail.error]
-                for (const {type, min} of error.response.data.detail.details) {
-                    detail.push(`${mapping[type]}: ${min}`)
+                let detail = [error.response.data.detail.error];
+                for (const { type, min } of error.response.data.detail.details) {
+                    detail.push(`${mapping[type]}: ${min}`);
                 }
-
-                this.errorPassword = detail
-                this.errorPasswordCount = detail.length + 1
-            } else {
-                this.$toast.error(this.$t("error.occurred"))
-                this.loading = false
-                throw error
+                this.errorPassword = detail;
+                this.errorPasswordCount = detail.length + 1;
             }
-
-            return this.errorPasswordCount > 0
+            else {
+                this.$toast.error(this.$t("error.occurred"));
+                this.loading = false;
+                throw error;
+            }
+            return this.errorPasswordCount > 0;
         },
-
         async saveLogin() {
-            this.errorPassword = []
+            this.errorPassword = [];
             this.loading = true;
-            let uri = "/api/v1/secret/"
-            let message = "success.secret_created"
-            const secret_id = this.secret_id
-            this.form.folder = this.folder_id
-
+            let uri = "/api/v1/secret/";
+            let message = "success.secret_created";
+            const secret_id = this.secret_id;
+            this.form.folder = this.folder_id;
             if (secret_id) {
-                uri += secret_id
+                uri += secret_id;
                 try {
-                    await http.put(uri, {secret: this.form})
-                    message = "success.secret_updated"
-                } catch (error){
-                    if (this.hasErrors(error)) {
-                        this.loading = false;
-                        return
-                    }
+                    await http.put(uri, { secret: this.form });
+                    message = "success.secret_updated";
                 }
-            } else {
-                try {
-                    await http.post(uri, {secret: this.form})
-                } catch(error) {
+                catch (error) {
                     if (this.hasErrors(error)) {
                         this.loading = false;
-                        return
+                        return;
                     }
                 }
             }
-
-            EventBus.$emit("refreshSecrets")
-            EventBus.$emit("refreshStats")
+            else {
+                try {
+                    await http.post(uri, { secret: this.form });
+                }
+                catch (error) {
+                    if (this.hasErrors(error)) {
+                        this.loading = false;
+                        return;
+                    }
+                }
+            }
+            EventBus.$emit("refreshSecrets");
+            EventBus.$emit("refreshStats");
             this.loading = false;
-            this.$toast.success(this.$t(message))
-            this.closePanel()
+            this.$toast.success(this.$t(message));
+            this.closePanel();
         }
-    }
+    },
 })
 </script>
 

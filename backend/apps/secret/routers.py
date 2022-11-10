@@ -51,13 +51,13 @@ logger = logging.getLogger("api")
 router: APIRouter = APIRouter()
 
 
-@router.get(
+@router.post(
     path="/generate",
     summary="Generate a password",
     response_model=str,
     dependencies=[Depends(get_current_user)]
 )
-async def generate_password(folder_id: str) -> str:
+async def generate_password(folder_id: str, policy : PasswordPolicySchema = Body(default=None)) -> str:
     try:
         folder = Folder.objects(pk=folder_id).get()
         password_policy = folder.password_policy
@@ -66,6 +66,14 @@ async def generate_password(folder_id: str) -> str:
 
         if password_policy:
             password_policy = PasswordPolicySchema(**password_policy.to_mongo())
+            if policy:
+                if any(getattr(policy,key) < getattr(password_policy,key) for key in ["length", "uppercase", "numbers", "special"]):
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail="Password policy is not respected"
+                    )
+                else:
+                    password_policy = policy
 
         password: str = CryptoUtils.generate_password(password_policy)
         return password
