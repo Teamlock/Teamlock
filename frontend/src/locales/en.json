@@ -181,7 +181,8 @@
         "admin_configuration": "Administrator",
         "twilio_phone_number": "Twilio Phone Number",
         "twilio_account_sid": "Twilio Account SID",
-        "twilio_auth_token": "Twilio Auth Token"
+        "twilio_auth_token": "Twilio Auth Token",
+        "configure_otp" : "Please configure your otp by scanning that qr-code"
     },
     "tooltip": {
         "dblclick_copy": "Double click to copy",

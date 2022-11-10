@@ -69,6 +69,12 @@
                                         >
                                             {{ error_otp }}
                                         </v-alert>
+                                        <v-alert
+                                            v-if="hasToConfigureOTP"
+                                            type="warning"
+                                            border="top"
+                                            class="mt-4"
+                                        > {{$t("label.configure_otp")}} </v-alert>
 
                                         <qr-code :text="captcha" :size="200" class="mt-5 qr-code" v-if="hasToConfigureOTP"/>
                                         <p class="mt-5" v-if="!hasToConfigureOTP">{{ $t('help.otp') }}</p>
