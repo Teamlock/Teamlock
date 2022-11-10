@@ -51,6 +51,8 @@ const ifAuthenticated = async (to, from, next) => {
       next({ name: 'Profile' })
       // } else if (user && !user.recovery_key_downloaded && to.name !== "Profile") {
       //   next({ name: 'Profile' })
+    }else if(user && user.otp.need_configure && to.name !== "Configure Otp"){
+      next({ name: 'Configure Otp'})
     } else {
       next()
     }
@@ -146,6 +148,12 @@ const routes = [
     name: 'Login',
     component: Auth,
     beforeEnter: ifNotAuthenticated,
+  },
+  {
+    path: "/totp",
+    name: "Configure Otp",
+    component: () => import("@/views/ConfigureOTP"),
+    beforeEnter: ifAuthenticated
   },
 ]
 

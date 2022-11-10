@@ -48,7 +48,7 @@
                     <change-password />
                 </v-tab-item>
                 <v-tab-item v-if="is_pro">
-                    <mfa />
+                    <totp-configuration/>
                 </v-tab-item>
 
                 <v-tab-item>
@@ -63,7 +63,7 @@
 <script>
 import DownloadRecovery from '../components/Profile/DownloadRecovery.vue'
 import ChangePassword from '../components/Profile/ChangePassword.vue'
-import MFA from '../components/Profile/MFA.vue'
+import TotpConfigurationVue from '../components/TotpConfiguration.vue'
 import { defineComponent } from '@vue/composition-api'
 import renderMixin from "@/mixins/render"
 import { mapGetters } from 'vuex'
@@ -73,7 +73,7 @@ export default defineComponent({
     mixins: [renderMixin],
 
     components: {
-        "mfa": MFA,
+        "totp-configuration" : TotpConfigurationVue,
         ChangePassword,
         DownloadRecovery
     },

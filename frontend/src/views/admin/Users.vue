@@ -184,10 +184,11 @@
                         <v-icon v-else small>mdi-block-helper</v-icon>
                     </template>
                     <template v-slot:[`item.otp.enabled`]="{ item }">
-                        <v-icon
+                        <v-icon v-if="!item.otp.need_configure"
                             v-html="item.otp.enabled ? 'mdi-check-bold' : 'mdi-close-thick'"
                         />
-                        <v-menu offset-y v-if="item.otp.enabled">
+                        <v-icon v-else>mdi-cellphone-cog</v-icon>
+                        <v-menu offset-y v-if="item.otp.enabled && !item.otp.need_configure">
                             <template v-slot:activator="{ on: menu, attrs }">
                                 <v-tooltip bottom>
                                     <template v-slot:activator="{ on: tooltip }">

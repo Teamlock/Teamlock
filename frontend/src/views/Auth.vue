@@ -24,7 +24,7 @@
                                         {{ error }}
                                     </v-alert>
 
-                                    <v-form ref="form" v-model="valid" @submit.prevent="login" v-if="!need_otp && !hasToConfigureOTP" class="v_form_login">
+                                    <v-form ref="form" v-model="valid" @submit.prevent="login" v-if="!need_otp" class="v_form_login">
                                         <v-text-field
                                             v-if="electron"
                                             v-model="form.teamlock_url"
@@ -60,7 +60,7 @@
                                             {{ $t('button.login')}}
                                         </v-btn>
                                     </v-form>
-                                    <v-form ref="formOtp" v-model="otpValid" @submit.prevent="validateOTP" v-if="need_otp || hasToConfigureOTP">
+                                    <v-form ref="formOtp" v-model="otpValid" @submit.prevent="validateOTP" v-if="need_otp">
                                         <v-alert
                                             v-if="error_otp"
                                             type="error"
@@ -69,16 +69,6 @@
                                         >
                                             {{ error_otp }}
                                         </v-alert>
-                                        <v-alert
-                                            v-if="hasToConfigureOTP"
-                                            type="warning"
-                                            border="top"
-                                            class="mt-4"
-                                        > {{$t("label.configure_otp")}} </v-alert>
-
-                                        <qr-code :text="captcha" :size="200" class="mt-5 qr-code" v-if="hasToConfigureOTP"/>
-                                        <p class="mt-5" v-if="!hasToConfigureOTP">{{ $t('help.otp') }}</p>
-
                                         <v-otp-input length="6" v-model="form.otp" ref="otp" :label="$t('label.otp')" class="mt-5 mb-5" @finish="validateOTP"/>
 
                                         <v-checkbox v-model="rememberOTP" :label="$t('label.remember_otp')"/>
@@ -152,7 +142,6 @@ export default defineComponent({
         },
         error: "",
         error_otp: "",
-        hasToConfigureOTP: false,
     }),
 
     async beforeMount() {
@@ -256,7 +245,7 @@ export default defineComponent({
 
                     window.ipc.send("FINGERPRINT", {password: this.form.password})
                 }
-
+                this.$store.dispatch("set_enforce_totp");
                 this.$store.dispatch("set_user")
 
                 let path = sessionStorage.getItem("redirectPath")
@@ -316,10 +305,17 @@ export default defineComponent({
 
                 if (response.data.otp) {
                     localStorage.removeItem("auth_key")
-                    sessionStorage.setItem("x_token", response.data.token)
-                    if(response.data.otp_to_configure === true){
-                        this.getQRCode()
+                    if(response.data.otp_need_configure === true){
+                        
+                        const access_token = response.data.token;
+                        sessionStorage.setItem("token", access_token);
+                        localStorage.setItem("teamlock_email", this.form.username);
+                        this.$store.dispatch("set_user");
+                        this.$store.dispatch("set_enforce_totp");
+
+                        this.$router.push("/totp")
                     }else{
+                        sessionStorage.setItem("x_token", response.data.token)
                         this.need_otp = true;
                         this.$nextTick(() => {
                             this.$refs.otp.focus()
@@ -328,8 +324,8 @@ export default defineComponent({
                 } else {
                     const access_token = response.data.access_token
                     sessionStorage.setItem("token", access_token)
-                    localStorage.setItem("teamlock_email", this.form.username)
-
+                    localStorage.setItem("teamlock_email", this.form.username);
+                    this.$store.dispatch("set_enforce_totp");
                     this.$store.dispatch("set_user")
 
                     this.$nextTick(() => {
@@ -354,33 +350,6 @@ export default defineComponent({
             }).then(() => {
                 this.is_loading = false
             })
-        },
-
-        getQRCode(){
-            let unique_code = this.$route.query.unique_code;
-            if(!unique_code){
-                this.error = this.$t("error.invalid_unique_code")
-                return;
-            }
-            this.is_loading_otp = true;
-            const headers = {
-                "X-Token": sessionStorage.getItem("x_token")
-            };
-            const params = {unique_code};
-
-            let base_url = process.env.VUE_APP_BASE_URL;
-            if (this.electron) {
-                base_url = this.form.teamlock_url
-            }
-
-            let url = `${base_url}/pro/api/v1/user/totp/reset`;
-            axios.get(url, { params, headers }).then(response => {
-                this.is_loading_otp = false;
-                this.captcha = response.data
-                this.hasToConfigureOTP = true
-            }).catch(() => {
-                this.error = this.$t("error.invalid_unique_code")
-            });
         },
     }
 })

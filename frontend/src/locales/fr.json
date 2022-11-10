@@ -179,7 +179,8 @@
         "twilio_phone_number": "Numéro de téléphone Twilio",
         "twilio_account_sid": "Twilio Account SID",
         "twilio_auth_token": "Twilio Auth Token",
-        "configure_otp" : "Veuillez configurer votre otp en scannant ce qr-code"
+        "configure_otp" : "Veuillez configurer votre otp en scannant ce qr-code",
+        "need_configure_otp" : "Besoin de configurer votre otp"
     },
     "tooltip": {
         "dblclick_copy": "Double cliquez pour copier",
@@ -394,7 +395,8 @@
         "restore_key": "Restaurer la clé",
         "context_menu_workspace": "Clic droit pour plus d'options",
         "copied": "Copié",
-        "reset_otp": "Réinitialiser l'OTP"
+        "reset_otp": "Réinitialiser l'OTP",
+        "disable_otp": "Entrez le totp de votre app pour désactiver la MFA"
     },
     "folder": {
         "edit": "Editer un dossier",

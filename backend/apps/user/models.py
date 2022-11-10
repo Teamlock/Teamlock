@@ -29,7 +29,7 @@ import json
 class OTP(mongoengine.EmbeddedDocument):
     enabled = mongoengine.BooleanField(default=False)
     secret = mongoengine.StringField(default="")
-    unique_code = mongoengine.StringField(default="")
+    need_configure = mongoengine.BooleanField(default=False)
 
 
 

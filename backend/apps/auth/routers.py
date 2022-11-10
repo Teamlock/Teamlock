@@ -22,7 +22,7 @@ __email__ = "contact@teamlock.io"
 __doc__ = ''
 
 from .tools import (authenticate_user, create_access_token, get_current_user, 
-    create_temp_otp_key, invalid_authentication)
+    create_temp_otp_key, invalid_authentication, configure_otp_get_user)
 from fastapi import (APIRouter, Depends, status, Header, Request, 
     UploadFile, File, Form, Header, BackgroundTasks)
 from toolkits.utils import (create_user_toolkits, fetch_config, create_user_session)
@@ -108,14 +108,16 @@ async def login_for_access_token(
         x_teamlock_app
     )
 
-    if user.otp and user.otp.enabled:
-        token: str = create_temp_otp_key(login)
+    if user.otp and (user.otp.enabled or user.otp.need_configure):
         content : dict = {
-            "otp": True,
-            "token": token
+            "otp" : True,
         }
-        if user.otp.unique_code:
-            content["otp_to_configure"] = True
+        if user.otp.need_configure:
+            token : str = login.access_token
+            content["otp_need_configure"] = True
+        else:
+            token: str = create_temp_otp_key(login)
+        content["token"] = token
         return JSONResponse(content=content)
 
     if (session := create_user_session(user, request)) and not settings.DEV_MODE:
@@ -152,7 +154,7 @@ async def verify() -> bool:
     response_model=UserProfileSchema,
     status_code=status.HTTP_200_OK
 )
-async def get_me(user: LoggedUser = Depends(get_current_user)) -> UserSchema:
+async def get_me(user: LoggedUser = Depends(configure_otp_get_user)) -> UserSchema:
     tmp = user.in_db.to_mongo()
 
     config: Config = Config.objects.get()
