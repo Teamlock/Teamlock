@@ -185,7 +185,8 @@
         "min_special": "Minimum special character(s)",
         "min_uppercase": "Minimum uppercase letter(s)",
         "min_numbers": "Minimum number(s)",
-        "min_length": "Password minimum length"
+        "min_length": "Password minimum length",
+        "reset_browsers_list_otp": "Reset browsers list"
     },
     "tooltip": {
         "dblclick_copy": "Double click to copy",
@@ -296,7 +297,8 @@
         "trash_emptied": "Trash emptied",
         "trash_restored": "Trash restored",
         "key_restored": "Secret restored",
-        "secret_shared": "The secret is successfully shared"
+        "secret_shared": "The secret is successfully shared",
+        "browsers_list_otp_reset": "The browsers list has been reset"
     },
     "warning": {
         "user_recovery": "Contact your IT Administrator before using the recovery.",
@@ -348,7 +350,8 @@
         "invalid_recovery_key": "Invalid recovery key",
         "max_users_limit": "You have reach the max users you can add. Please upgrade your subscription to add more.",
         "could_not_validate_credentials": "Incorrect username or password",
-        "too_many_auth_failures": "Too many authentication failures. Account locked up for 10 minutes"
+        "too_many_auth_failures": "Too many authentication failures. Account locked up for 10 minutes",
+        "otp_not_enabled": "Your OTP is not enabled"
     },
     "help": {
         "add_to_filter": "Click to filter",
@@ -402,7 +405,8 @@
         "restore_key": "Restore key",
         "context_menu_workspace": "Right click for more options",
         "copied": "Copied",
-        "show_read_notifications": "Show read notifications"
+        "show_read_notifications": "Show read notifications",
+        "reset_browsers_list_otp" : "Reset browsers list in your OTP"
     },
     "folder": {
         "edit": "Edit folder",

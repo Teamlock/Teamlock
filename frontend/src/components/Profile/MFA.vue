@@ -53,6 +53,20 @@
                             >
                                 {{ $t('label.disable_otp') }}
                             </v-btn>
+                            <v-tooltip bottom>
+                                <template v-slot:activator="{ on, attrs }">
+                                    <v-btn
+                                        color="primary"
+                                        v-bind="attrs"
+                                        @click="resetBrowsersList"
+                                        class="mb-5"
+                                        v-on="on"
+                                    >
+                                        {{ $t("label.reset_browsers_list_otp") }}
+                                    </v-btn>
+                                </template>
+                                <span>{{ $t("help.reset_browsers_list_otp") }}</span>
+                            </v-tooltip>
                         </template>
                         <v-card>
                             <v-card-title>
@@ -197,7 +211,19 @@ export default defineComponent({
                     this.otp_value = ""
                     this.loadingValidate2FA = false
                 })
-        }
+        },
+
+        resetBrowsersList(){
+            http.post("/pro/api/v1/user/totp/reset-list")
+                .then(() => {
+                    this.$toast.success(this.$t('success.browsers_list_otp_reset'))
+                })
+                .catch((err) => {
+                    if (err.response.status === 400) {
+                        this.$toast.error(this.$t("error.otp_not_enabled"))
+                    }
+                })
+        },
     }
 
 })
