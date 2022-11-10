@@ -403,7 +403,8 @@
         "copied": "Copied",
         "show_read_notifications": "Show read notifications",
         "reset_otp": "Reset OTP",
-        "disable_otp": "Enter your app's totp to disable the MFA"
+        "disable_otp": "Enter your app's totp to disable the MFA",
+        "mfa_enforce": "MFA is enforced"
     },
     "folder": {
         "edit": "Edit folder",

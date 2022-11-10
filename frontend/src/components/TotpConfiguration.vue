@@ -30,10 +30,10 @@
                             small
                             text-color="success"
                         >
-                            {{ $t("label.enabled") }}
+                            {{ totp_enforce ? $t("label.mfa_enforce") : $t("label.enabled") }}
                         </v-chip>
                     </p>
-                    <v-menu offset-y max-width="500" bottom :close-on-content-click="false">
+                    <v-menu offset-y max-width="500" bottom :close-on-content-click="false" v-if="!totp_enforce">
                         <template v-slot:activator="{ on: menu, attrs }">
                             <v-tooltip bottom>
                                 <template v-slot:activator="{ on: tooltip }">
@@ -123,6 +123,7 @@ export default defineComponent({
         getQrCode(){
             http.get("/pro/api/v1/user/totp/enable").then(res => {
                 this.captcha = res.data;
+                this.$store.dispatch("set_user");
             });
         },
         enableOtp(){

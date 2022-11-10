@@ -180,7 +180,8 @@
         "twilio_account_sid": "Twilio Account SID",
         "twilio_auth_token": "Twilio Auth Token",
         "configure_otp" : "Veuillez configurer votre otp en scannant ce qr-code",
-        "need_configure_otp" : "Besoin de configurer votre otp"
+        "need_configure_otp" : "Besoin de configurer votre otp",
+        "mfa_enforce": "MFA is enforced"
     },
     "tooltip": {
         "dblclick_copy": "Double cliquez pour copier",
