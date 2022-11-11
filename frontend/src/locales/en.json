@@ -182,6 +182,8 @@
         "twilio_phone_number": "Twilio Phone Number",
         "twilio_account_sid": "Twilio Account SID",
         "twilio_auth_token": "Twilio Auth Token",
+        "configure_otp" : "Please configure your otp by scanning that qr-code",
+        "need_configure_otp" : "Need to configure your otp",
         "min_special": "Minimum special character(s)",
         "min_uppercase": "Minimum uppercase letter(s)",
         "min_numbers": "Minimum number(s)",
@@ -331,7 +333,8 @@
         "remember_recovery2": "Once you've change your password, don't forget to download your new recovery key.",
         "wait_registration": "Registration can take a few seconds, please wait.",
         "restore": "To restore those secrets, move them at the wanted place",
-        "secret_cannot_be_copied": "The secret cannot be copied because it is empty"
+        "secret_cannot_be_copied": "The secret cannot be copied because it is empty",
+        "confirm_reset_otp" : "Are you sure to reset OTP ?"
     },
     "error": {
         "invalid_biometric": "Invalid biometric, please use your password to log in",
@@ -351,7 +354,7 @@
         "max_users_limit": "You have reach the max users you can add. Please upgrade your subscription to add more.",
         "could_not_validate_credentials": "Incorrect username or password",
         "too_many_auth_failures": "Too many authentication failures. Account locked up for 10 minutes",
-        "otp_not_enabled": "Your OTP is not enabled"
+        "otp_not_enabled": "Your multi factor authentication is not enabled"
     },
     "help": {
         "add_to_filter": "Click to filter",
@@ -406,7 +409,10 @@
         "context_menu_workspace": "Right click for more options",
         "copied": "Copied",
         "show_read_notifications": "Show read notifications",
-        "reset_browsers_list_otp" : "Reset browsers list in your OTP"
+        "reset_otp": "Reset Multi Factor Authentication",
+        "disable_otp": "Enter your app's totp to disable the MFA",
+        "mfa_enforce": "Multi Factor Authentication is enforced",
+        "reset_browsers_list_otp" : "Reset browsers"
     },
     "folder": {
         "edit": "Edit folder",

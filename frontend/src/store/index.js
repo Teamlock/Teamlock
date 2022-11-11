@@ -13,6 +13,7 @@ export default new Vuex.Store({
         twilio: false,
         current_folder: null,
         selected_workspace: null,
+        totp_enforce: false,
         current_password_policy: {
             length: 12,
             uppercase: 1,
@@ -27,6 +28,8 @@ export default new Vuex.Store({
         getTwilio: state => state.twilio,
         getUser: state => state.user,
         getPro: state => state.pro,
+        getNeedConfigureOtp : state => state.user?.otp?.need_configure,
+        getTotpEnforce : state => state.totp_enforce,
         getPasswordPolicy: state => state.current_password_policy,
     },
 
@@ -67,7 +70,11 @@ export default new Vuex.Store({
             } else {
                 state.selected_workspace = null
             }
-        }
+        },
+
+        SET_TOTP_ENFORCE(state, value) {
+            state.totp_enforce = value
+        },
     },
 
     actions: {
@@ -131,6 +138,16 @@ export default new Vuex.Store({
                 commit("SET_PRO", true)
             } catch {
                 console.log("NO PRO")
+            }
+        },
+
+        async set_enforce_totp({commit, state}){
+            if (!state.pro) commit("SET_TOTP_ENFORCE", false);
+            else{
+                const response = await http.get("/pro/api/v1/config");
+                if (response.status === 200) {
+                    commit("SET_TOTP_ENFORCE", response.data.enforce_totp);
+                }else commit("SET_TOTP_ENFORCE", false);
             }
         }
     }

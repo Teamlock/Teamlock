@@ -184,9 +184,37 @@
                         <v-icon v-else small>mdi-block-helper</v-icon>
                     </template>
                     <template v-slot:[`item.otp.enabled`]="{ item }">
-                        <v-icon
+                        <v-icon v-if="!item.otp.need_configure"
                             v-html="item.otp.enabled ? 'mdi-check-bold' : 'mdi-close-thick'"
                         />
+                        <v-icon v-else>mdi-cellphone-cog</v-icon>
+                        <v-menu offset-y v-if="item.otp.enabled && !item.otp.need_configure">
+                            <template v-slot:activator="{ on: menu, attrs }">
+                                <v-tooltip bottom>
+                                    <template v-slot:activator="{ on: tooltip }">
+                                        <v-icon
+                                            color="primary"
+                                            v-bind="attrs"
+                                            v-on="{ ...tooltip, ...menu }"
+                                        >
+                                            mdi-lock-reset
+                                        </v-icon>
+                                    </template>
+                                    <span>{{ $t("help.reset_otp") }}</span>
+                                </v-tooltip>
+                            </template>
+                            <v-card>
+                                <v-card-title style="font-size: 16px">
+                                    <v-icon>mdi-lock-reset</v-icon>
+                                    &nbsp;<span class="text-body-2">{{ $t('warning.confirm_reset_otp') }}</span>
+                                </v-card-title>
+                                <v-card-actions>
+                                    <v-spacer />
+                                    <v-btn small text>{{ $t('button.cancel') }}</v-btn>
+                                    <v-btn small color="primary" text @click="resetMFA(item)">{{ $t('button.confirm') }}</v-btn>
+                                </v-card-actions>
+                            </v-card>
+                        </v-menu>
                     </template>
                     <template v-slot:[`item.is_configured`]="{ item }">
                         <v-icon
@@ -398,6 +426,12 @@ export default defineComponent({
                 this.$toast.success(this.$t("success.user_deleted"))
                 this.getUsers()
             })
+        },
+        resetMFA(item){
+            http.post(`/pro/api/v1/user/totp/${item._id}/reset`).then(() => {
+                this.$toast.success(this.$t("success.user_updated"));
+                this.getUsers()
+            });
         }
     }
 })

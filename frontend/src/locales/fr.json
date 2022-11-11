@@ -179,6 +179,9 @@
         "twilio_phone_number": "Numéro de téléphone Twilio",
         "twilio_account_sid": "Twilio Account SID",
         "twilio_auth_token": "Twilio Auth Token",
+        "configure_otp" : "Veuillez configurer votre otp en scannant ce qr-code",
+        "need_configure_otp" : "Veuillez configurer la double authentification",
+        "mfa_enforce": "La double authentification est obligatoire",
         "min_special": "Minimum de caractères spéciaux",
         "min_uppercase": "Minimum de majuscules",
         "min_numbers": "Minimum de chiffres",
@@ -328,7 +331,8 @@
         "restore": "Pour restaurer ces secrets, déplacer les à l'endroit souhaité",
         "trash_restored": "Corbeille restaurée",
         "trash_emptied": "Corbeille vidée",
-        "secret_cannot_be_copied": "Le secret ne peut pas être copié car il est vide"
+        "secret_cannot_be_copied": "Le secret ne peut pas être copié car il est vide",
+        "confirm_reset_otp" : "Etes vous sûr de Réinitialiser l'OTP ?"
     },
     "error": {
         "file_too_large": "Fichier trop volumineux. Teamlock n'accepte que les fichiers de 10MB et moins",
@@ -347,7 +351,7 @@
         "max_users_limit": "Vous avez atteints le nombre maximum d'utilisateurs",
         "could_not_validate_credentials": "Email ou mot de passe incorrect",
         "too_many_auth_failures": "Trop d'erreur d'authentification. Votre compte est bloqué pendant 10 minutes",
-        "otp_not_enabled": "Votre OTP n'est pas activé"
+        "otp_not_enabled": "La double authentification n'est pas activée"
     },
     "help": {
         "add_to_filter": "Cliquez pour filtrer",
@@ -399,7 +403,9 @@
         "restore_key": "Restaurer la clé",
         "context_menu_workspace": "Clic droit pour plus d'options",
         "copied": "Copié",
-        "reset_browsers_list_otp" : "Réinitialiser la liste des navigateurs dans votre OTP"
+        "reset_otp": "Réinitialiser la double authentification",
+        "disable_otp": "Entrez le totp de votre app pour désactiver la double authentification",
+        "reset_browsers_list_otp" : "Réinitialiser la liste des navigateurs"
     },
     "folder": {
         "edit": "Editer un dossier",
