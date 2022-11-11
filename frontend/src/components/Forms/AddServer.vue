@@ -91,20 +91,7 @@
                             :label="$t('label.password')"
                         >
                             <span slot="prepend">
-                                <v-tooltip bottom>
-                                    <template v-slot:activator="{ on, attrs }">
-                                        <v-icon
-                                            v-on="on"
-                                            v-bind="attrs"
-                                            @click="generatePassword"
-                                            class="mr-2"
-                                            tabindex="-1"
-                                        >
-                                            mdi-auto-fix
-                                        </v-icon>
-                                    </template>
-                                    <span v-html="$t('label.generate_password')" />
-                                </v-tooltip>
+                                <PasswordGenerator @password="insertPassword"/>
                             </span>
                             <span slot="append">
                                 <v-tooltip bottom>
@@ -187,9 +174,13 @@
 import { defineComponent } from '@vue/composition-api'
 import EventBus from "@/event"
 import http from "@/utils/http"
+import PasswordGenerator from "../PasswordGenerator";
 
 export default defineComponent({
     name: "AddServer",
+    components: {
+        PasswordGenerator
+    },
     data: () => ({
         open: false ,
         secret_id: null,
@@ -286,21 +277,9 @@ export default defineComponent({
             this.open = false
         },
 
-        generatePassword() {
-            this.loading = true
-
-            const params = {
-                folder_id: this.folder_id
-            }
-
-            http.get("/api/v1/secret/generate", { params: params })
-                .then((response) => {
-                    this.form.password.value = response.data
-                })
-                .then(() => {
-                    this.loading = false
-                })
-        },
+        insertPassword(newPassword){
+            this.form.password.value = newPassword;
+        }, 
 
         hasErrors(error) {
             const mapping = {

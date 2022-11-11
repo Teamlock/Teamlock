@@ -14,6 +14,12 @@ export default new Vuex.Store({
         current_folder: null,
         selected_workspace: null,
         totp_enforce: false,
+        current_password_policy: {
+            length: 12,
+            uppercase: 1,
+            numbers: 1,
+            special: 1,
+        },
     },
 
     getters: {
@@ -23,7 +29,8 @@ export default new Vuex.Store({
         getUser: state => state.user,
         getPro: state => state.pro,
         getNeedConfigureOtp : state => state.user?.otp?.need_configure,
-        getTotpEnforce : state => state.totp_enforce
+        getTotpEnforce : state => state.totp_enforce,
+        getPasswordPolicy: state => state.current_password_policy,
     },
 
     mutations: {
@@ -42,6 +49,10 @@ export default new Vuex.Store({
         SET_CURRENT_FOLDER(state, folder) {
             state.current_folder = folder
             EventBus.$emit("refreshSecrets")
+        },
+
+        SET_CURRENT_PASSWORD_POLICY(state, policy) {
+            state.current_password_policy = policy
         },
 
         async REFRESH_USER(state) {
@@ -88,6 +99,27 @@ export default new Vuex.Store({
 
         set_current_folder({ commit }, folder_id) {
             commit("SET_CURRENT_FOLDER", folder_id)
+        },
+
+        async set_current_password_policy({ commit }, folder_id) {
+            let policy;
+            const response = await http.get(`/api/v1/folder/${folder_id}`);
+            const folder = response.data;
+            if (response.status !== 200) return;
+            policy = folder.password_policy;
+            if(!policy) {
+                const wk = (await http.get(`/api/v1/workspace/${folder.workspace}`)).data;
+                policy = wk.password_policy;
+                if(!policy) {
+                    policy = {
+                        length: 12,
+                        uppercase: 1,
+                        numbers: 1,
+                        special: 1,
+                    }
+                }
+            }
+            commit("SET_CURRENT_PASSWORD_POLICY", policy);
         },
 
         change_workspace({ commit }, workspace_id) {
