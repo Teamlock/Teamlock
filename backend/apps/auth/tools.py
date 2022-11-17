@@ -140,7 +140,7 @@ def create_access_token(user: User,
         tmp_user["otp"] = x_teamlock_key in user.remember_key
 
     # Store token into Redis
-    RedisTools.store(encoded_jwt, json.dumps(tmp_user), expire=access_token_expires)
+    RedisTools.store(encoded_jwt, json.dumps(tmp_user), expire=access_token_expires.seconds)
     return Login(
         access_token=encoded_jwt,
         expireAt=expire.isoformat()

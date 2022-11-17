@@ -105,7 +105,7 @@ def migrate_1_15(db):
     db.folder.update_many({},{"$unset":{"is_trash":"","in_trash":""}})
 
 
-def migrate_1_16(db):
+def migrate_1_154(db):
     workspaces = db.workspace.find()
     for workspace in workspaces:
         db.share.insert_one({
@@ -137,7 +137,7 @@ class Migrations:
         1.1: migrate_1_1,
         1.12: migrate_1_12,
         1.15: migrate_1_15,
-        1.16: migrate_1_16
+        1.154: migrate_1_154
     }
 
     def __init__(self):
