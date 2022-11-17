@@ -108,26 +108,30 @@ def migrate_1_15(db):
 def migrate_1_154(db):
     workspaces = db.workspace.find()
     for workspace in workspaces:
-        db.share.insert_one({
-            "is_owner": True,
-            "expire_at": None,
-            "can_write": True,
-            "can_share": True,
-            "can_export": True,
-            "can_share_external": True,
-            "sym_key": workspace["sym_key"],
-            "workspace": workspace["_id"],
-            "user": workspace["owner"]
-        })
+        try:
+            db.share.insert_one({
+                "is_owner": True,
+                "expire_at": None,
+                "can_write": True,
+                "can_share": True,
+                "can_export": True,
+                "can_share_external": True,
+                "sym_key": workspace["sym_key"],
+                "workspace": workspace["_id"],
+                "user": workspace["owner"]
+            })
 
-        db.workspace.update({
-            "_id": workspace["_id"]
-        }, {
-            "$unset": {
-                "owner": True,
-                "sym_key": True
-            }
-        })
+            db.workspace.update({
+                "_id": workspace["_id"]
+            }, {
+                "$unset": {
+                    "owner": True,
+                    "sym_key": True
+                }
+            })
+        except KeyError:
+            # Workspace already migrated
+            pass
     
     db.history.update_many({}, {"$unset": {"workspace_owner": True}})
 
