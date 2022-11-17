@@ -156,6 +156,8 @@
 import { defineComponent } from '@vue/composition-api'
 import renderMixin from "@/mixins/render"
 import http from "@/utils/http"
+import EventBus from "@/event"
+
 
 export default defineComponent({
     mixins: [renderMixin],
@@ -170,18 +172,31 @@ export default defineComponent({
 
     mounted() {
         this.getNofications()
-        this.interval = setInterval(() => {
-            this.getNofications()
-        }, 60000)
+        
+        EventBus.$on("intervalNotification", () => {
+            console.log("Create notification interval")
+            this.interval = setInterval(() => {
+                this.getNofications()
+            }, 60000)
+        })
+
+        EventBus.$on("delIntervalNotification", () => {
+            console.log("Delete notification interval")
+            this.delInterval()
+        })
     },
 
     destroyed() {
-        if (this.interval) {
-            clearInterval(this.interval)
-        }
+        this.delInterval()
     },
 
     methods: {
+        delInterval() {
+            if (this.interval) {
+                clearInterval(this.interval)
+            }
+        },
+
         async getNofications() {
             const { data } = await http.get("/pro/api/v1/notif/")
             this.notifications = data

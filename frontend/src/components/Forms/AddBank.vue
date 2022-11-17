@@ -243,7 +243,7 @@ import EventBus from "@/event"
 import http from "@/utils/http"
 
 export default defineComponent({
-    name: "AddPhone",
+    name: "AddBank",
     data: () => ({
         open: false ,
         secret_id: null,
