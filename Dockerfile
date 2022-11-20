@@ -19,7 +19,7 @@ RUN /env/bin/pip3 install -U pip
 RUN /env/bin/pip3 install -r requirements.txt
 
 
-FROM python:3.10.8-alpine3.16
+FROM python:3.10
 ARG VERSION
 ENV VERSION=$VERSION
 
