@@ -30,20 +30,19 @@ import mongoengine
 class Workspace(mongoengine.Document):
     name = mongoengine.StringField()
     icon = mongoengine.StringField(default="")
-    sym_key = mongoengine.StringField()
     created_at = mongoengine.DateTimeField(default=datetime.utcnow)
     last_change = mongoengine.DateTimeField(default=datetime.utcnow)
     password_policy = mongoengine.EmbeddedDocumentField(
         PasswordPolicy, null=True)
     import_in_progress = mongoengine.BooleanField(default=False)
     import_error = mongoengine.StringField(default="")
-    owner = mongoengine.ReferenceField(
-        User,
-        reverse_delete_rule=mongoengine.CASCADE
-    )
+
+    def get_owner(self):
+        return Share.objects(workspace=self, is_owner=True).get().user
 
 
 class Share(mongoengine.Document):
+    is_owner = mongoengine.BooleanField(default=False)
     expire_at = mongoengine.DateTimeField(null=True, default=None)
     can_write = mongoengine.BooleanField(default=False)
     can_share = mongoengine.BooleanField(default=False)

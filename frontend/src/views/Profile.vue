@@ -4,6 +4,7 @@
             <v-tabs
                 background-color="primary"
                 height="40"
+                v-model="tab"
                 dark
             >
                 <v-tab>
@@ -23,37 +24,39 @@
                     {{ $t('title.recovery')}}
                 </v-tab>
 
-                <v-tab-item>
-                    <v-card flat class="pt-5 px-0">
-                        <v-img :src="image" height="140" width="180" class="mx-auto"/>
-                        <v-card-text>
-                            <v-list>
-                                <v-list-item>
-                                    <v-list-item-content v-if="user">
-                                        <v-list-item-subtitle class="mail_profile">{{ user.email }}</v-list-item-subtitle>
-                                        <v-list-item-subtitle class="">{{ $t("label.last_change_password") }}: {{ renderDate(user.last_change_pass, "DD/MM/YYYY") }}</v-list-item-subtitle>
-                                        <v-list-item-subtitle class="mt-5">
-                                            <v-btn color="primary" outlined @click="downloadCertificates" :loading="downloadCertificatesLoading">
-                                                <v-icon>mdi-download</v-icon>
-                                                {{ $t('button.download_certificates') }}
-                                            </v-btn>
-                                        </v-list-item-subtitle>
-                                    </v-list-item-content>
-                                </v-list-item>
-                            </v-list>
-                        </v-card-text>
-                    </v-card>
-                </v-tab-item>
-                <v-tab-item>
-                    <change-password />
-                </v-tab-item>
-                <v-tab-item v-if="is_pro">
-                    <mfa />
-                </v-tab-item>
+                <v-tabs-items v-model="tab">
+                    <v-tab-item :key="1">
+                        <v-card flat class="pt-5 px-0">
+                            <v-img :src="image" height="140" width="180" class="mx-auto"/>
+                            <v-card-text>
+                                <v-list>
+                                    <v-list-item>
+                                        <v-list-item-content v-if="user">
+                                            <v-list-item-subtitle class="mail_profile">{{ user.email }}</v-list-item-subtitle>
+                                            <v-list-item-subtitle class="">{{ $t("label.last_change_password") }}: {{ renderDate(user.last_change_pass, "DD/MM/YYYY") }}</v-list-item-subtitle>
+                                            <v-list-item-subtitle class="mt-5">
+                                                <v-btn color="primary" outlined @click="downloadCertificates" :loading="downloadCertificatesLoading">
+                                                    <v-icon>mdi-download</v-icon>
+                                                    {{ $t('button.download_certificates') }}
+                                                </v-btn>
+                                            </v-list-item-subtitle>
+                                        </v-list-item-content>
+                                    </v-list-item>
+                                </v-list>
+                            </v-card-text>
+                        </v-card>
+                    </v-tab-item>
+                    <v-tab-item :key="2">
+                        <change-password />
+                    </v-tab-item>
+                    <v-tab-item :key="3" v-if="is_pro">
+                        <totp-configuration/>
+                    </v-tab-item>
 
-                <v-tab-item>
-                    <download-recovery />
-                </v-tab-item>
+                    <v-tab-item :key="4">
+                        <download-recovery />
+                    </v-tab-item>
+                </v-tabs-items>
             </v-tabs>
         </v-card>
         <v-row class="yellow_line"></v-row>
@@ -63,7 +66,7 @@
 <script>
 import DownloadRecovery from '../components/Profile/DownloadRecovery.vue'
 import ChangePassword from '../components/Profile/ChangePassword.vue'
-import MFA from '../components/Profile/MFA.vue'
+import TotpConfigurationVue from '../components/TotpConfiguration.vue'
 import { defineComponent } from '@vue/composition-api'
 import renderMixin from "@/mixins/render"
 import { mapGetters } from 'vuex'
@@ -73,7 +76,7 @@ export default defineComponent({
     mixins: [renderMixin],
 
     components: {
-        "mfa": MFA,
+        "totp-configuration" : TotpConfigurationVue,
         ChangePassword,
         DownloadRecovery
     },
@@ -82,6 +85,7 @@ export default defineComponent({
         downloadCertificatesLoading: false,
         is_pro: false,
         electron: false,
+        tab: 0,
         image: require("@/assets/img/man.svg"),
     }),
     computed: {
@@ -102,7 +106,8 @@ export default defineComponent({
     mounted() {
         setTimeout(() => {
             if (this.user.need_change_password) {
-                this.$toast.warning(this.$t("warning.need_change_password"), {
+                this.tab = 1
+                this.$toast.error(this.$t("warning.need_change_password"), {
                     position: "top-center",
                     timeout: 10000
                 })

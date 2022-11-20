@@ -13,6 +13,13 @@ export default new Vuex.Store({
         twilio: false,
         current_folder: null,
         selected_workspace: null,
+        totp_enforce: false,
+        current_password_policy: {
+            length: 12,
+            uppercase: 1,
+            numbers: 1,
+            special: 1,
+        },
     },
 
     getters: {
@@ -21,6 +28,9 @@ export default new Vuex.Store({
         getTwilio: state => state.twilio,
         getUser: state => state.user,
         getPro: state => state.pro,
+        getNeedConfigureOtp : state => state.user?.otp?.need_configure,
+        getTotpEnforce : state => state.totp_enforce,
+        getPasswordPolicy: state => state.current_password_policy,
     },
 
     mutations: {
@@ -41,6 +51,10 @@ export default new Vuex.Store({
             EventBus.$emit("refreshSecrets")
         },
 
+        SET_CURRENT_PASSWORD_POLICY(state, policy) {
+            state.current_password_policy = policy
+        },
+
         async REFRESH_USER(state) {
             const response = await http.get("/api/v1/auth/me")
             state.user = response.data
@@ -56,7 +70,11 @@ export default new Vuex.Store({
             } else {
                 state.selected_workspace = null
             }
-        }
+        },
+
+        SET_TOTP_ENFORCE(state, value) {
+            state.totp_enforce = value
+        },
     },
 
     actions: {
@@ -83,6 +101,27 @@ export default new Vuex.Store({
             commit("SET_CURRENT_FOLDER", folder_id)
         },
 
+        async set_current_password_policy({ commit }, folder_id) {
+            let policy;
+            const response = await http.get(`/api/v1/folder/${folder_id}`);
+            const folder = response.data;
+            if (response.status !== 200) return;
+            policy = folder.password_policy;
+            if(!policy) {
+                const wk = (await http.get(`/api/v1/workspace/${folder.workspace}`)).data;
+                policy = wk.password_policy;
+                if(!policy) {
+                    policy = {
+                        length: 12,
+                        uppercase: 1,
+                        numbers: 1,
+                        special: 1,
+                    }
+                }
+            }
+            commit("SET_CURRENT_PASSWORD_POLICY", policy);
+        },
+
         change_workspace({ commit }, workspace_id) {
             commit("SET_WORKSPACE", workspace_id)
             commit("SET_CURRENT_FOLDER", null)
@@ -99,6 +138,16 @@ export default new Vuex.Store({
                 commit("SET_PRO", true)
             } catch {
                 console.log("NO PRO")
+            }
+        },
+
+        async set_enforce_totp({commit, state}){
+            if (!state.pro) commit("SET_TOTP_ENFORCE", false);
+            else{
+                const response = await http.get("/pro/api/v1/config");
+                if (response.status === 200) {
+                    commit("SET_TOTP_ENFORCE", response.data.enforce_totp);
+                }else commit("SET_TOTP_ENFORCE", false);
             }
         }
     }

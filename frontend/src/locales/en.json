@@ -1,5 +1,6 @@
 {
     "label": {
+        "is_owner": "Owner",
         "edit_workspace": "Edit workspace",
         "share_workspace": "Share workspace",
         "export_workspace": "Export workspace",
@@ -25,7 +26,7 @@
         "import_type": "Database format",
         "file": "File",
         "secrets": "Secrets",
-        "mfa": "Multi Factor Authentication",
+        "mfa": "Two Factor Authentication",
         "city": "City",
         "country": "Country",
         "send_by_mail": "Send by mail",
@@ -81,7 +82,7 @@
         "csv_file": "CSV File",
         "rsa_key_size": "Size of User's RSA Keys",
         "password_duration": "User's password duration (in days)",
-        "enforce_totp": "Enforce Multi Factor Authentication",
+        "enforce_totp": "Enforce Two Factor Authentication",
         "users_password_policy": "Users password's policy",
         "subject": "Subject",
         "body": "Body",
@@ -180,7 +181,14 @@
         "admin_configuration": "Administrator",
         "twilio_phone_number": "Twilio Phone Number",
         "twilio_account_sid": "Twilio Account SID",
-        "twilio_auth_token": "Twilio Auth Token"
+        "twilio_auth_token": "Twilio Auth Token",
+        "configure_otp" : "Please configure your Two Factor Authentication by scanning that qr-code",
+        "need_configure_otp" : "Need to configure your Two Factor Authentication",
+        "min_special": "Minimum special character(s)",
+        "min_uppercase": "Minimum uppercase letter(s)",
+        "min_numbers": "Minimum number(s)",
+        "min_length": "Password minimum length",
+        "reset_browsers_list_otp": "Reset browsers list"
     },
     "tooltip": {
         "dblclick_copy": "Double click to copy",
@@ -207,7 +215,8 @@
         "2fa_setup": "Two Factor Authentication Setup",
         "2fa_disable": "Disable Two Factor Authentication",
         "share_workspace": "Share workspace",
-        "add_user_to_workspace": "Share workspace to user(s)"
+        "add_user_to_workspace": "Share workspace to user(s)",
+        "password_generator": "Generate a password for your secret"
     },
     "required": {
         "required": "Required",
@@ -262,8 +271,8 @@
         "users_removed_from_workspace": "User has no longer access to this workspace",
         "check_email_registration": "We have just sent you an email with a link to configure your account.",
         "check_email_registration2": "If you don't receive it, check your spam.",
-        "otp_validated": "MFA successfully configured",
-        "otp_disabled": "MFA successfully disabled",
+        "otp_validated": "Two factor authentication successfully configured",
+        "otp_disabled": "Two factor authentication successfully disabled",
         "favorite": "Favorite workspace successfully changed",
         "folder_copied": "Folder successfully copied",
         "folder_moved_to_trash": "Folder successfully moved to trash",
@@ -290,11 +299,12 @@
         "trash_emptied": "Trash emptied",
         "trash_restored": "Trash restored",
         "key_restored": "Secret restored",
-        "secret_shared": "The secret is successfully shared"
+        "secret_shared": "The secret is successfully shared",
+        "browsers_list_otp_reset": "The browsers list has been reset"
     },
     "warning": {
         "user_recovery": "Contact your IT Administrator before using the recovery.",
-        "user_recovery2": "Your administrator must enable this features onto your account.",
+        "user_recovery2": "Your administrator must enable this feature onto your account.",
         "import": "Here you can import an XML File of a KeePass database, or a backup file from a Teamlock v1 workspace.",
         "need_change_password": "Your password has expired, please change it.",
         "confirm_enable_recovery": "Enable recovery mode for this user ?",
@@ -323,7 +333,8 @@
         "remember_recovery2": "Once you've change your password, don't forget to download your new recovery key.",
         "wait_registration": "Registration can take a few seconds, please wait.",
         "restore": "To restore those secrets, move them at the wanted place",
-        "secret_cannot_be_copied": "The secret cannot be copied because it is empty"
+        "secret_cannot_be_copied": "The secret cannot be copied because it is empty",
+        "confirm_reset_otp" : "Are you sure to reset OTP ?"
     },
     "error": {
         "invalid_biometric": "Invalid biometric, please use your password to log in",
@@ -331,10 +342,10 @@
         "invalid_form": "Invalid form",
         "invalid_password": "Invalid password",
         "occurred": "An error has occurred",
-        "otp_need_config": "Please configure MFA with your Authenticator application",
+        "otp_need_config": "Please configure Two factor authentication with your Authenticator application",
         "unique_user": "An user with this email address already exists",
         "unknown": "An error has occurred. Please check the logs",
-        "invalid_otp": "Invalid OTP Code",
+        "invalid_otp": "Invalid Code",
         "provide_allowed_email_addresses": "Provide at least one allowed email address",
         "invalid_domain": "Email address not valid",
         "passwords_mismatch": "Passwords mismatch",
@@ -342,7 +353,8 @@
         "invalid_recovery_key": "Invalid recovery key",
         "max_users_limit": "You have reach the max users you can add. Please upgrade your subscription to add more.",
         "could_not_validate_credentials": "Incorrect username or password",
-        "too_many_auth_failures": "Too many authentication failures. Account locked up for 10 minutes"
+        "too_many_auth_failures": "Too many authentication failures. Account locked up for 10 minutes",
+        "otp_not_enabled": "Your Two factor authentication is not enabled"
     },
     "help": {
         "add_to_filter": "Click to filter",
@@ -378,7 +390,7 @@
         "delete_workspace": "Delete this workspace",
         "import_users": "Create a CSV file with a list of email address (1 email by line).",
         "password_duration": "0 = no limit",
-        "enforce_totp": "Force users to enable Multi Factor Authentication",
+        "enforce_totp": "Force users to enable Two Factor Authentication",
         "allow_self_registration": "Registration will be enabled",
         "allowed_email_addresses": "Restrict registration for some domains (ex: @teamlock.io)",
         "password_mismatch": "Passwords mismatch",
@@ -396,7 +408,11 @@
         "restore_key": "Restore key",
         "context_menu_workspace": "Right click for more options",
         "copied": "Copied",
-        "show_read_notifications": "Show read notifications"
+        "show_read_notifications": "Show read notifications",
+        "reset_otp": "Reset Two Factor Authentication",
+        "disable_otp": "Enter your app's generated code to disable the Two Factor Authentication",
+        "mfa_enforce": "Two Factor Authentication is enforced",
+        "reset_browsers_list_otp" : "Reset browsers"
     },
     "folder": {
         "edit": "Edit folder",

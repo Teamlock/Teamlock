@@ -13,7 +13,7 @@
         <workspace-icon
           :workspace="workspace"
           @selectWorkspace="selectWorkspace"
-          :owner="workspace.owner === $store.state.user._id"
+          :owner="workspace.is_owner"
           :selected="workspace._id === $store.state.selected_workspace._id"
         />
       </div>
@@ -101,6 +101,8 @@ export default defineComponent({
 
   methods: {
     selectWorkspace(workspace_id, manual) {
+      EventBus.$emit("showTrash", false);
+
       if (manual ){
         localStorage.removeItem("selected_folder")
         localStorage.setItem("current_workspace", workspace_id)

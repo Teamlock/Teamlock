@@ -125,9 +125,7 @@ async def get_configured_users(
     user: LoggedUser = Depends(get_current_user)
 ):
     workspace, _ = WorkspaceUtils.get_workspace(workspace_id, user)
-
     shares = [s.user.pk for s in Share.objects(workspace=workspace)]
-    shares.append(workspace.owner.pk)
 
     tmp_configured_users = [u.to_mongo() for u in User.objects(pk__nin=shares, is_configured=True).order_by("email")]
     return tmp_configured_users
@@ -281,8 +279,15 @@ async def update_user(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Invalid password"
         )
+    
+    # Check if password is the same
+    if check_password(password_update_schema.new_password, user.in_db.password):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Used password"
+        )
 
-    # Check if password has already been used
+        # Check if password has already been used
     for password in user.in_db.last_passwords:
         if check_password(password_update_schema.new_password, password):
             raise HTTPException(
@@ -376,9 +381,19 @@ async def delete_user(user_id: str) -> None:
     try:
         user = User.objects(pk=user_id).get()
 
-        Share.objects(user=user).delete()
-        Workspace.objects(owner=user).delete()
+        Share.objects(user=user, is_owner=False).delete()
         UserSession.objects(user=user).delete()
+
+        shares = Share.objects(user=user, is_owner=True)
+        for share in shares:
+            share.is_owner = False
+            share.save()
+
+            # Define the first user found as the new owner
+            # TODO: Modal with new owner selection
+            s = Share.objects(workspace=share.workspace)[0]
+            s.is_owner = True
+            s.save()
 
         user.delete()
 

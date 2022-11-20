@@ -97,6 +97,7 @@ def validate_otp(tmp_token: str, otp: int):
     if not totp.verify(otp):
         return False
 
+    user.save()
     data["otp"] = True
     RedisTools.store(access_token, json.dumps(data), expire=settings.TOKEN_EXPIRE)
     RedisTools.delete(tmp_token)
@@ -113,9 +114,13 @@ def create_access_token(user: User,
 
     expire: int = settings.TOKEN_EXPIRE
     if x_teamlock_app == "browser_ext":
-        expire: int = settings.TOKEN_EXPIRE_BROWSER_EXT
+        now = datetime.utcnow()
+        end = datetime(now.year, now.month, now.day, settings.END_DAY)
+        if now > end:
+            end += timedelta(days=1)
+        expire: int = int((end - now).seconds)
 
-    access_token_expires: timedelta = timedelta(minutes=expire)
+    access_token_expires: timedelta = timedelta(seconds=expire)
     expire = datetime.utcnow() + access_token_expires
     token_data: TokenData = TokenData(email=user.email, expire=expire.isoformat())
 
@@ -135,9 +140,10 @@ def create_access_token(user: User,
         tmp_user["otp"] = x_teamlock_key in user.remember_key
 
     # Store token into Redis
-    RedisTools.store(encoded_jwt, json.dumps(tmp_user), expire=settings.TOKEN_EXPIRE)
+    RedisTools.store(encoded_jwt, json.dumps(tmp_user), expire=access_token_expires.seconds)
     return Login(
-        access_token=encoded_jwt
+        access_token=encoded_jwt,
+        expireAt=expire.isoformat()
     )
 
 
@@ -164,7 +170,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme)) -> LoggedUser:
         except User.DoesNotExist:
             raise AuthenticationError()
 
-        if user.otp and user.otp.enabled and not data.get("otp"):
+        if user.otp and user.otp.need_configure:
             raise AuthenticationError()
 
         if user.is_locked:
@@ -248,4 +254,46 @@ def invalid_authentication(email: str, background_tasks: BackgroundTasks, reques
     else:
         RedisTools.store(redis_key, nb_invalid_auth, 60)
 
-    
+def configure_otp_get_user(token: str = Depends(oauth2_scheme)) -> LoggedUser:
+    try:
+        if token is None:
+            raise AuthenticationError()
+
+        if not (data := RedisTools.retreive(token)):
+            raise AuthenticationError()
+
+        session_key: str = data["session_key"]
+        encrypted_password: str = data["encrypted_password"]
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[ALGORITHM])
+
+        try:
+            user = User.objects(email=payload["email"]).get()
+        except User.DoesNotExist:
+            raise AuthenticationError()
+
+       
+        if user.is_locked:
+            raise UserLocked()
+
+        # Check if user is locked
+        if RedisTools.retreive(f"{user.email}_locked") > 2:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Too many authentication failures"
+            )
+
+        logged_user : LoggedUser = LoggedUser(**UserSchema(**user.to_mongo()).dict())
+        logged_user.session_key = session_key
+        logged_user.encrypted_password = encrypted_password
+        logged_user.in_db = user
+        return logged_user
+
+    except (AuthenticationError, JWTError, User.DoesNotExist):
+            # If incorrect JWT, or User does not exist, authentication failed
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Could not validate credentials",
+                headers={"WWW-Authenticate": "Bearer"},
+            ) 
+
+        

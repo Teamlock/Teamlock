@@ -25,12 +25,14 @@ const keepAliveMixin = {
         },
 
         delInterval() {
+            EventBus.$emit("delIntervalNotification")
             if (this.interval) {
                 clearInterval(this.interval)
             }
         },
         setInterval() {
             this.testAuth()
+            EventBus.$emit("intervalNotification")
             this.interval = setInterval(() => {
                 this.testAuth()
             }, 10000)

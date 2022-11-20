@@ -34,6 +34,7 @@ class AdminUserSchema(BaseModel):
 
 class OTPSchema(BaseModel):
     enabled: bool = False
+    need_configure: bool | None
 
 
 class UpdateUserSchema(BaseModel):

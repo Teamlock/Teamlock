@@ -69,9 +69,6 @@
                                         >
                                             {{ error_otp }}
                                         </v-alert>
-
-                                        <p class="mt-5">{{ $t('help.otp') }}</p>
-
                                         <v-otp-input length="6" v-model="form.otp" ref="otp" :label="$t('label.otp')" class="mt-5 mb-5" @finish="validateOTP"/>
 
                                         <v-checkbox v-model="rememberOTP" :label="$t('label.remember_otp')"/>
@@ -113,10 +110,14 @@ import { defineComponent } from '@vue/composition-api'
 import renderMixin from "@/mixins/render"
 import axios from "axios"
 import qs from "qs"
+import VueQRCodeComponent from 'vue-qrcode-component'
 
 export default defineComponent({
     name: 'Auth',
     mixins: [renderMixin],
+    components: {
+        "qr-code": VueQRCodeComponent,
+    },
 
     data: () => ({
         logo_light: require("@/assets/img/TLAppLogo_White.svg"),
@@ -244,7 +245,7 @@ export default defineComponent({
 
                     window.ipc.send("FINGERPRINT", {password: this.form.password})
                 }
-
+                this.$store.dispatch("set_enforce_totp");
                 this.$store.dispatch("set_user")
 
                 let path = sessionStorage.getItem("redirectPath")
@@ -304,17 +305,27 @@ export default defineComponent({
 
                 if (response.data.otp) {
                     localStorage.removeItem("auth_key")
-                    sessionStorage.setItem("x_token", response.data.token)
-                    this.need_otp = true;
+                    if(response.data.otp_need_configure === true){
+                        
+                        const access_token = response.data.token;
+                        sessionStorage.setItem("token", access_token);
+                        localStorage.setItem("teamlock_email", this.form.username);
+                        this.$store.dispatch("set_user");
+                        this.$store.dispatch("set_enforce_totp");
 
-                    this.$nextTick(() => {
-                        this.$refs.otp.focus()
-                    })
+                        this.$router.push("/totp")
+                    }else{
+                        sessionStorage.setItem("x_token", response.data.token)
+                        this.need_otp = true;
+                        this.$nextTick(() => {
+                            this.$refs.otp.focus()
+                        })
+                    }
                 } else {
                     const access_token = response.data.access_token
                     sessionStorage.setItem("token", access_token)
-                    localStorage.setItem("teamlock_email", this.form.username)
-
+                    localStorage.setItem("teamlock_email", this.form.username);
+                    this.$store.dispatch("set_enforce_totp");
                     this.$store.dispatch("set_user")
 
                     this.$nextTick(() => {
@@ -339,7 +350,7 @@ export default defineComponent({
             }).then(() => {
                 this.is_loading = false
             })
-        }
+        },
     }
 })
 </script>

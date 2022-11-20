@@ -28,7 +28,7 @@ class FolderUtils:
         return children_list
 
     @classmethod
-    def move_to_trash(cls,folder: Folder, trash: Trash, user):
+    def move_to_trash(cls, folder: Folder, trash: Trash) -> int:
         """Move a folder to the trash
 
         Args:
@@ -36,21 +36,27 @@ class FolderUtils:
             trash (Trash): trash of the workspace
             user (LoggedUser) : user who move the folder
         """ 
-
         def search_secret(folder: Folder):
+            total_secrets: int = 0
             for cat in const.MAPPING_SECRET:  #get secrets for each category
                 model_ = const.MAPPING_SECRET[cat]
                 tmp_secrets: list = list(model_.objects(folder=folder))
+                total_secrets += len(tmp_secrets)
+
                 for secret in tmp_secrets:
                     SecretUtils.move_to_trash(secret,trash)
 
+            return total_secrets
 
+        total: int = 0
         children = cls.get_children(folder.pk)
-        search_secret(folder)
+        total += search_secret(folder)
         for child in children:
-            search_secret(child)
+            total += search_secret(child)
             child.delete()
+
         folder.delete()
+        return total
 
     @classmethod
     def get_root_children(cls,folder_id: str | ObjectId) -> list[Folder]:

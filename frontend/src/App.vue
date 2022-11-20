@@ -22,6 +22,7 @@ export default defineComponent({
   },
 
   beforeMount() {
+    EventBus.$emit("showTrash", false);
     let lang = localStorage.getItem("lang")
     if (lang) {
       i18n.locale = lang

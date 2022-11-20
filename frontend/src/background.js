@@ -7,6 +7,9 @@ import touchBar from './electron/touchBar.js'
 import settings from 'electron-settings';
 import ipc from "./electron/ipc.js"
 import path from "path"
+import updateElectronApp from "update-electron-app";
+
+updateElectronApp();
 
 const isDevelopment = process.env.NODE_ENV !== 'production'
 

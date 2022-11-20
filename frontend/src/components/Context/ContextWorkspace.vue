@@ -31,7 +31,7 @@
             </template>
             <span v-html="tooltipWorkspaceId" />
           </v-tooltip>
-          <span v-if="workspace.owner === $store.state.user._id">
+          <span v-if="workspace.is_owner">
             <v-tooltip bottom>
               <template v-slot:activator="{ on, attrs }">
                 <v-btn
@@ -58,7 +58,7 @@
         <v-divider />
         <v-list-item-group color="primary">
             <v-list-item
-                v-if="workspace.owner === $store.state.user._id"
+                v-if="workspace.is_owner"
                 @click="editWorkspace()"
             >
                 <v-list-item-icon>
@@ -71,7 +71,7 @@
                 </v-list-item-content>
             </v-list-item>
             <v-list-item
-                v-if="workspace.owner === $store.state.user._id || workspace.can_share"
+                v-if="workspace.is_owner || workspace.can_share"
                 @click="shareWorkspace()"
             >
                 <v-list-item-icon>
@@ -82,7 +82,7 @@
                 </v-list-item-content>
             </v-list-item>
             <v-list-item
-                v-if="workspace.owner === $store.state.user._id || workspace.can_write"
+                v-if="workspace.is_owner || workspace.can_write"
                 @click="importXML()"
             >
                 <v-list-item-icon>
@@ -94,7 +94,7 @@
             </v-list-item>
 
             <!-- <v-list-item
-                v-if="workspace.owner === $store.state.user._id || workspace.can_export"
+                v-if="workspace.is_owner || workspace.can_export"
                 @click="exportWorkspace()"
             >
                 <v-list-item-icon>
@@ -105,7 +105,7 @@
                 </v-list-item-content>
             </v-list-item> -->
 
-            <span v-if="workspace.owner === $store.state.user._id">
+            <span v-if="workspace.is_owner">
                 <v-divider />
                 <v-list-item
                     @click="deleteWorkspace()"

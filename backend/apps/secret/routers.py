@@ -34,10 +34,11 @@ from mongoengine.queryset.visitor import Q
 from apps.auth.schema import LoggedUser
 from toolkits.crypto import CryptoUtils
 from fastapi.responses import Response
+from apps.trash.models import Trash
 from apps.folder.models import Folder
 from apps.workspace.models import Workspace
 from .models import Login, Secret
-from datetime import date, datetime
+from datetime import datetime
 from settings import settings
 from typing import Union
 from . import schema
@@ -50,13 +51,13 @@ logger = logging.getLogger("api")
 router: APIRouter = APIRouter()
 
 
-@router.get(
+@router.post(
     path="/generate",
     summary="Generate a password",
     response_model=str,
     dependencies=[Depends(get_current_user)]
 )
-async def generate_password(folder_id: str) -> str:
+async def generate_password(folder_id: str, policy : PasswordPolicySchema = Body(default=None)) -> str:
     try:
         folder = Folder.objects(pk=folder_id).get()
         password_policy = folder.password_policy
@@ -65,6 +66,14 @@ async def generate_password(folder_id: str) -> str:
 
         if password_policy:
             password_policy = PasswordPolicySchema(**password_policy.to_mongo())
+            if policy:
+                if any(getattr(policy,key) < getattr(password_policy,key) for key in ["length", "uppercase", "numbers", "special"]):
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail="Password policy is not respected"
+                    )
+                else:
+                    password_policy = policy
 
         password: str = CryptoUtils.generate_password(password_policy)
         return password
@@ -107,11 +116,11 @@ async def global_search_keys(
     package_name: str = "",
     user: LoggedUser = Depends(get_current_user)
 ):
-    workspaces = list(Workspace.objects(owner=user.id))
-    shared_query: Q = Q(user=user.id) & (Q(expire_at=None) | Q(expire_at__lte=datetime.utcnow()))
 
-    shares = list(Share.objects(shared_query))
-    workspaces.extend([s.workspace for s in shares])
+    shared_query = Q(user=user.id) & (Q(expire_at=None) | Q(expire_at__lte=datetime.utcnow()))
+    workspaces = []
+    for tmp in Share.objects(shared_query):
+        workspaces.append(tmp.workspace)
 
     secrets: list = []
     for workspace in workspaces:
@@ -161,7 +170,8 @@ async def get_secret(
         create_history(
             user=user.in_db.email,
             workspace=workspace.name,
-            workspace_owner=workspace.owner.email,
+            folder=secret.folder.name,
+            secret=secret.name.value,
             action=f"Retreive secret for secret {decrypted_secret.name.value} {action}"
         )
 
@@ -225,7 +235,8 @@ async def create_secret(
         create_history(
             user=user.in_db.email,
             workspace=workspace.name,
-            workspace_owner=workspace.owner.email,
+            folder=encrypted_secret.folder.name,
+            secret=encrypted_secret.name.value,
             action=f"Create secret {schema.secret.name.value} in folder {encrypted_secret.folder.name}"
         )
 
@@ -255,12 +266,23 @@ async def move_key(
         WorkspaceUtils.have_rights(workspace, user)
         new_folder: Folder = Folder.objects(pk=folder_id).get()
 
+        old_folder_name = secret.folder.name
         if secret.trash is not None:
             secret.trash = None
+
         secret.folder = new_folder
         secret.save()
 
         logger.info(f"[SECRET][{str(workspace.pk)}][{workspace.name}] {user.in_db.email} move secret {secret.name.value}")
+
+        create_history(
+            user=user.in_db.email,
+            workspace=workspace.name,
+            folder=new_folder.name,
+            secret=secret.name.value,
+            action=f"Move secret from {old_folder_name} to {new_folder.name}"
+        )
+
         return Response(status_code=status.HTTP_202_ACCEPTED)
     except Folder.DoesNotExist:
         raise HTTPException(
@@ -331,7 +353,8 @@ async def update_secret(
         create_history(
             user=user.in_db.email,
             workspace=workspace.name,
-            workspace_owner=workspace.owner.email,
+            folder=secret.folder.name,
+            secret=secret.name.value,
             action=f"Update secret {schema.secret.name.value} in folder {secret.folder.name}"
         )
 
@@ -374,7 +397,7 @@ async def delete_secret(
         create_history(
             user=user.email,
             workspace=workspace.name,
-            workspace_owner=workspace.owner.email,
+            secret=secret.name.value,
             action=f"Delete secret {secret.name.value} in trash"
         )
 
@@ -399,22 +422,24 @@ async def move_to_trash_secret(
 ) -> None:
     try:
         secret: Secret = Secret.objects(pk=secret_id).get()
+        folder_name: str = secret.folder.name
         if secret.trash is not None:
             raise HTTPException(
                 status_code = status.HTTP_400_BAD_REQUEST,
                 detail = "The secret is alreay in the trash"
             )
 
-        workspace : Workspace = secret.folder.workspace
+        workspace: Workspace = secret.folder.workspace
         WorkspaceUtils.have_rights(workspace, user)
-        trash : Trash = WorkspaceUtils.get_trash_folder(workspace)
+        trash: Trash = WorkspaceUtils.get_trash_folder(workspace)
 
         SecretUtils.move_to_trash(secret, trash)
 
         create_history(
             user=user.email,
             workspace=workspace.name,
-            workspace_owner=workspace.owner.email,
+            folder=folder_name,
+            secret=secret.name.value,
             action=f"Move secret {secret.name.value} in the trash"
         )
 
@@ -456,7 +481,8 @@ async def restore(
     create_history(
         user=user.email,
         workspace=workspace.name,
-        workspace_owner=workspace.owner.email,
+        folder=secret.folder.name,
+        secret=secret.name.value,
         action=f"Restored secret {secret.name.value}"
     )
 

@@ -16,7 +16,7 @@
         {{ $t('label.no_data_available') }}
       </template>
       <template v-slot:[`header.actions`]="{}">
-        <v-menu offset-y left  v-if="showTrash && (selected_workspace.owner === user._id || selected_workspace.can_write)">
+        <v-menu offset-y left  v-if="showTrash && (selected_workspace.is_owner || selected_workspace.can_write)">
           <template v-slot:activator="{ on: menu, attrs }">
             <v-tooltip bottom>
               <template v-slot:activator="{ on: tooltip }">
@@ -48,7 +48,7 @@
         </v-menu>
         
 
-        <v-menu offset-y left  v-if="showTrash && (selected_workspace.owner === user._id || selected_workspace.can_write)">
+        <v-menu offset-y left  v-if="showTrash && (selected_workspace.is_owner || selected_workspace.can_write)">
           <template v-slot:activator="{ on: menu, attrs }">
             <v-tooltip bottom>
               <template v-slot:activator="{ on: tooltip }">
@@ -86,7 +86,7 @@
           color="primary"
           @click="addSecret(category, current_folder)"
           style="float: right"
-          v-if="!showTrash && (selected_workspace.owner === user._id || selected_workspace.can_write)"
+          v-if="!showTrash && (selected_workspace.is_owner || selected_workspace.can_write)"
         >
           <v-icon small>mdi-plus</v-icon>
           {{ $t("button.add") }}
@@ -320,12 +320,7 @@ export default defineComponent({
 
     getSecrets() {
       if(!this.current_folder) return
-
-      if (this.selected_workspace.owner  === this.$store.state.user._id) {
-        this.can_share_external = true
-      } else {
-        this.can_share_external = this.selected_workspace.can_share_external
-      }
+      this.can_share_external = this.selected_workspace.is_owner || this.selected_workspace.can_share_external
 
       this.secrets = [];                            
       

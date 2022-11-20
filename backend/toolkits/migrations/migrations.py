@@ -105,12 +105,43 @@ def migrate_1_15(db):
     db.folder.update_many({},{"$unset":{"is_trash":"","in_trash":""}})
 
 
+def migrate_1_154(db):
+    workspaces = db.workspace.find()
+    for workspace in workspaces:
+        try:
+            db.share.insert_one({
+                "is_owner": True,
+                "expire_at": None,
+                "can_write": True,
+                "can_share": True,
+                "can_export": True,
+                "can_share_external": True,
+                "sym_key": workspace["sym_key"],
+                "workspace": workspace["_id"],
+                "user": workspace["owner"]
+            })
+
+            db.workspace.update({
+                "_id": workspace["_id"]
+            }, {
+                "$unset": {
+                    "owner": True,
+                    "sym_key": True
+                }
+            })
+        except KeyError:
+            # Workspace already migrated
+            pass
+    
+    db.history.update_many({}, {"$unset": {"workspace_owner": True}})
+
 class Migrations:
     MIGRATIONS_DICT: dict = {
         1.0: migrate_1_0,
         1.1: migrate_1_1,
         1.12: migrate_1_12,
-        1.15: migrate_1_15
+        1.15: migrate_1_15,
+        1.154: migrate_1_154
     }
 
     def __init__(self):

@@ -1,5 +1,6 @@
 {
     "label": {
+        "is_owner": "Propriétaire",
         "edit_workspace": "Editer le l'espace de travail",
         "share_workspace": "Partage l'espace de travail",
         "export_workspace": "Exporter l'espace de travail",
@@ -84,8 +85,8 @@
         "body": "Contenu",
         "available_variables": "Variables disponibles",
         "status": "Status",
-        "enable_otp": "Activer la MFA",
-        "disable_otp": "Désactiver la MFA",
+        "enable_otp": "Activer la double authentification",
+        "disable_otp": "Désactiver la double authentification",
         "enabled": "Activé",
         "disabled": "Désactivé",
         "is_favorite": "Cet espace de travail est votre favorie",
@@ -95,8 +96,8 @@
         "secret": "Secret",
         "config": "Configuration",
         "users": "Utilisateurs",
-        "otp_value": "MFA",
-        "otp": "MFA",
+        "otp_value": "Authentification Multi Facteur",
+        "otp": "Authentification Multi Facteur",
         "configured": "Configuré",
         "not_configured_users": "Utilisateurs non configurés",
         "locked_users": "Utilisateurs bloqués",
@@ -177,7 +178,15 @@
         "admin_configuration": "Administrateur",
         "twilio_phone_number": "Numéro de téléphone Twilio",
         "twilio_account_sid": "Twilio Account SID",
-        "twilio_auth_token": "Twilio Auth Token"
+        "twilio_auth_token": "Twilio Auth Token",
+        "configure_otp" : "Veuillez configurer votre double authentification en scannant ce qr-code",
+        "need_configure_otp" : "Veuillez configurer la double authentification",
+        "mfa_enforce": "La double authentification est obligatoire",
+        "min_special": "Minimum de caractères spéciaux",
+        "min_uppercase": "Minimum de majuscules",
+        "min_numbers": "Minimum de chiffres",
+        "min_length": "Taille minimum du mot de passe",
+        "reset_browsers_list_otp": "Réinitialiser la liste des navigateurs"
     },
     "tooltip": {
         "dblclick_copy": "Double cliquez pour copier",
@@ -204,7 +213,8 @@
         "2fa_setup": "Authentification Multi Facteur",
         "2fa_disable": "Désactiver l'authentification multi facteur",
         "share_workspace": "Partager l'espace de travail",
-        "add_user_to_workspace": "Partage l'espace de travail à ces utilisateurs"
+        "add_user_to_workspace": "Partage l'espace de travail à ces utilisateurs",
+        "password_generator": "Générer un mot de passe pour votre secret"
     },
     "required": {
         "required": "Obligatoire",
@@ -258,8 +268,8 @@
         "shared_updated": "Droits sauvegardés",
         "check_email_registration": "Nous vous avons envoyé un mail pour configurer votre compte.",
         "check_email_registration2": "Si vous ne le recevez pas, pensez à vérifier vos spams.",
-        "otp_validated": "MFA configurée",
-        "otp_disabled": "MFA supprimée",
+        "otp_validated": "Double authentification configurée",
+        "otp_disabled": "Double authentification supprimée",
         "favorite": "Votre espace de travail favori a bien été changé",
         "folder_copied": "Dossier copié",
         "folder_moved_to_trash": "Dossier envoyé dans la corbeille",
@@ -285,7 +295,8 @@
         "trash_emptied": "Corbeille vidée",
         "trash_restored": "Corbeille restaurée",
         "key_restored": "Secret restauré",
-        "secret_shared": "Secret partagé"
+        "secret_shared": "Secret partagé",
+        "browsers_list_otp_reset": "La liste des navigateurs a bien été vidée"
     },
     "warning": {
         "user_recovery": "Contactez votre administrateur avant utiliser la récupération.",
@@ -320,7 +331,8 @@
         "restore": "Pour restaurer ces secrets, déplacer les à l'endroit souhaité",
         "trash_restored": "Corbeille restaurée",
         "trash_emptied": "Corbeille vidée",
-        "secret_cannot_be_copied": "Le secret ne peut pas être copié car il est vide"
+        "secret_cannot_be_copied": "Le secret ne peut pas être copié car il est vide",
+        "confirm_reset_otp" : "Etes vous sûr de Réinitialiser l'OTP ?"
     },
     "error": {
         "file_too_large": "Fichier trop volumineux. Teamlock n'accepte que les fichiers de 10MB et moins",
@@ -338,7 +350,8 @@
         "invalid_recovery_key": "Clé de récupération invalide",
         "max_users_limit": "Vous avez atteints le nombre maximum d'utilisateurs",
         "could_not_validate_credentials": "Email ou mot de passe incorrect",
-        "too_many_auth_failures": "Trop d'erreur d'authentification. Votre compte est bloqué pendant 10 minutes"
+        "too_many_auth_failures": "Trop d'erreur d'authentification. Votre compte est bloqué pendant 10 minutes",
+        "otp_not_enabled": "La double authentification n'est pas activée"
     },
     "help": {
         "add_to_filter": "Cliquez pour filtrer",
@@ -389,7 +402,10 @@
         "restore_trash": "Restaurer la corbeille",
         "restore_key": "Restaurer la clé",
         "context_menu_workspace": "Clic droit pour plus d'options",
-        "copied": "Copié"
+        "copied": "Copié",
+        "reset_otp": "Réinitialiser la double authentification",
+        "disable_otp": "Entrez le totp de votre app pour désactiver la double authentification",
+        "reset_browsers_list_otp" : "Réinitialiser la liste des navigateurs"
     },
     "folder": {
         "edit": "Editer un dossier",

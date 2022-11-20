@@ -109,14 +109,6 @@ export default defineComponent({
     },
 
     mounted() {
-        setTimeout(() => {
-            if (this.user.need_change_password) {
-                this.$toast.warning(this.$t("warning.need_change_password"), {
-                    position: "top-center",
-                    timeout: 10000
-                })
-            }
-        }, 200);
     },
 
     methods: {

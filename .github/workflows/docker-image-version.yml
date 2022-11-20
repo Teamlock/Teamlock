@@ -5,23 +5,19 @@ on:
     branches: [main]
 
 env:
-  VERSION: "1.153"
+  VERSION: "1.154"
 
 jobs:
   build:
-    runs-on: self-hosted
+    runs-on: ubuntu-22.04
+
+    env:
+      PERSONNAL_TOKEN: ${{ secrets.PERSONNAL_TOKEN }}
 
     steps:
       - uses: actions/checkout@v3
       - name: Build docker image
         run: sudo docker build -t teamlock:$VERSION --build-arg VERSION=$VERSION .
-
-  deploy:
-    runs-on: self-hosted
-    needs: build
-    env:
-      PERSONNAL_TOKEN: ${{ secrets.PERSONNAL_TOKEN }}
-    steps:
       - name: Login on Container registry
         run: echo $PERSONNAL_TOKEN | sudo docker login ghcr.io -u raznak --password-stdin
       - name: Tag the image

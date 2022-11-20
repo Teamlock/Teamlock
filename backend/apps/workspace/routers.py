@@ -22,6 +22,7 @@ __email__ = "contact@teamlock.io"
 __doc__ = ''
 
 from apps.secret.schema import BankSchema, LoginSchema, PhoneSchema, ServerSchema
+from toolkits.history import create_history
 from .schema import (EditShareSchema, EditWorkspaceSchema, ImportXMLFileSchema,
                      SharedWorkspaceSchema, UpdateShareSchema, UsersWorkspace, WorkspaceSchema)
 from fastapi import APIRouter, Depends, status, File, UploadFile, Form, BackgroundTasks
@@ -29,8 +30,8 @@ from apps.secret.schema import BankSchema, LoginSchema, PhoneSchema, ServerSchem
 from apps.secret.models import Login, Secret, Server, Bank, Phone
 from apps.secret.schema import GlobalSecretSchema
 from fastapi import APIRouter, Depends, status, File, UploadFile, Form, Body, BackgroundTasks
-from fastapi.responses import FileResponse
 from mongoengine.errors import NotUniqueError
+from fastapi.responses import FileResponse
 from pymongo.errors import DuplicateKeyError
 from apps.config.models import PasswordPolicy
 from toolkits.workspace import WorkspaceUtils
@@ -48,6 +49,7 @@ from toolkits.crypto import CryptoUtils
 from .models import Workspace, Share
 from apps.folder.models import Folder
 from apps.secret.models import Secret
+from apps.user.models import User
 from datetime import datetime
 from settings import settings
 from toolkits import const
@@ -68,15 +70,14 @@ router: APIRouter = APIRouter()
     summary="Fetch list of workspaces"
 )
 async def get_workspaces(user: LoggedUser = Depends(get_current_user)) -> list[WorkspaceSchema]:
-    workspaces = [SharedWorkspaceSchema(
-        **data.to_mongo()) for data in Workspace.objects(owner=user.id).order_by("name")]
+    workspaces = []
 
-    shared_query: Q = Q(user=user.id) & (
-        Q(expire_at=None) | Q(expire_at__lte=datetime.utcnow()))
+    shared_query: Q = Q(user=user.id) & (Q(expire_at=None) | Q(expire_at__lte=datetime.utcnow()))
     for tmp in Share.objects(shared_query):
         tmp_schema: dict = WorkspaceSchema(**tmp.workspace.to_mongo()).dict()
         tmp_schema.update({
             "shared": True,
+            "is_owner": tmp.is_owner,
             "can_write": tmp.can_write,
             "can_share": tmp.can_share,
             "can_export": tmp.can_export,
@@ -103,20 +104,12 @@ async def get_workspace(workspace_id: str, user: LoggedUser = Depends(get_curren
         nb_secrets += model_.objects(folder__in=folders).count()
 
     schema = SharedWorkspaceSchema(**workspace.to_mongo())
-
-    if workspace.owner != user.in_db:
-        try:
-            share = Share.objects(workspace=workspace, user=user.in_db).get()
-            schema.shared = True
-            schema.can_write = share.can_write
-            schema.can_share = share.can_share
-            schema.can_export = share.can_export
-            schema.can_share_external = share.can_share_external
-        except Share.DoesNotExist:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="WORKSPACENOTFOUND"
-            )
+    share = Share.objects(workspace=workspace, user=user.in_db).get()
+    schema.is_owner = share.is_owner
+    schema.can_write = share.can_write
+    schema.can_share = share.can_share
+    schema.can_export = share.can_export
+    schema.can_share_external = share.can_share_external
 
     schema.nb_folders = len(folders)
     schema.nb_secrets = nb_secrets
@@ -205,16 +198,13 @@ async def delete_workspace(
     workspace_id: str,
     user: LoggedUser = Depends(get_current_user)
 ) -> None:
-    try:
-        if not WorkspaceUtils.have_rights(workspace_id, user):
+    try:        
+        workspace, _ = WorkspaceUtils.get_workspace(workspace_id, user)
+        if not WorkspaceUtils.is_owner(workspace, user):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="NOTALLOWED"
             )
-
-        workspace: Workspace = Workspace.objects(
-            pk=workspace_id, owner=user.in_db
-        ).get()
 
         Share.objects(workspace=workspace).delete()
         workspace.delete()
@@ -239,11 +229,12 @@ async def get_user_workspace(
     workspace, _ = WorkspaceUtils.get_workspace(workspace_id, user)
     shares: list = []
 
-    for share in Share.objects(workspace=workspace):
+    for share in Share.objects(workspace=workspace, user__ne=user.in_db):
         shares.append({
             "_id": share.pk,
             "user": share.user.pk,
             "expire_at": share.expire_at,
+            "is_owner": share.is_owner,
             "user_email": share.user.email,
             "can_write": share.can_write,
             "can_share": share.can_share,
@@ -276,6 +267,48 @@ async def share_workspace(
         share_def,
         background_task
     )
+
+
+@router.put(
+    path="/{workspace_id}/owner",
+    status_code=status.HTTP_202_ACCEPTED,
+    summary="Change ownership of a Workspace"
+)
+async def change_owner(
+    workspace_id: str,
+    new_user: str = Body(..., embed=True),
+    user: LoggedUser = Depends(get_current_user)
+):
+    workspace, _ = WorkspaceUtils.get_workspace(
+        workspace_id, user
+    )
+
+    if not WorkspaceUtils.is_owner(workspace, user):
+        return HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="You are not the owner of this workspace"
+        )
+    
+    try:
+        new_user = User.objects(pk=new_user).get()
+        
+        # Changing owner of the workspace
+        owner_share = Share.objects(workspace=workspace, is_owner=True, user=user.in_db).get()
+        owner_share.is_owner = False
+        owner_share.save()
+
+        share = Share.objects(workspace=workspace, user=new_user).get()
+        share.is_owner = True
+        share.save()
+
+        return Response(
+            status_code=status.HTTP_202_ACCEPTED
+        )
+        
+    except User.DoesNotExist:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND
+        )
 
 
 @router.put(
@@ -487,7 +520,16 @@ async def delete_trash_content(
     trash = WorkspaceUtils.get_trash_folder(workspace_id)
     WorkspaceUtils.have_rights(workspace_id, user)
     
-    [secret.delete() for secret in Secret.objects(trash = trash)]
+    secrets = Secret.objects(trash = trash)
+    total_secrets = len(secrets)
+    [secret.delete() for secret in secrets]
+
+    create_history(
+        user=user.in_db.email,
+        workspace=workspace.name,
+        folder="Trash",
+        action=f"Trash emptied with {total_secrets} secrets"
+    )
 
     return Response(status_code=status.HTTP_204_NO_CONTENT)
     

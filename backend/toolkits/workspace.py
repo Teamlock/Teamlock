@@ -68,25 +68,27 @@ class WorkspaceUtils:
             list[Workspace, str]: Workspace object, symmetric key
         """
         try:
-            workspace = Workspace.objects(
-                pk=workspace_id, owner=user.in_db
+            share = Share.objects(
+                workspace=workspace_id,
+                user=user.in_db
             ).get()
-            sym_key: str = workspace.sym_key
-        except Workspace.DoesNotExist:
-            try:
-                share = Share.objects(
-                    workspace=workspace_id, user=user.in_db
-                ).get()
 
-                workspace = share.workspace
-                sym_key: str = share.sym_key
-            except Share.DoesNotExist:
-                raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    detail="Workspace not found"
-                )
-
-        return workspace, sym_key
+            workspace = share.workspace
+            sym_key = share.sym_key
+            return workspace, sym_key
+        except Share.DoesNotExist:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Workspace not found"
+            )
+    
+    @classmethod
+    def is_owner(cls, workspace: Workspace, user: LoggedUser) -> bool:
+        try:
+            Share.objects(workspace=workspace, user=user.in_db, is_owner=True).get()
+            return True
+        except Share.DoesNotExist:
+            return False
 
     @classmethod
     def have_rights(cls, workspace: str | Workspace, user: LoggedUser, right: str="can_write") -> bool:
@@ -106,7 +108,7 @@ class WorkspaceUtils:
         if not isinstance(workspace, Workspace):
             workspace, _ = cls.get_workspace(workspace, user)
 
-        if workspace.owner == user.in_db:
+        if cls.is_owner(workspace, user):
             # User is the owner, he have all rights
             return True
 
@@ -135,17 +137,21 @@ class WorkspaceUtils:
             password_policy = PasswordPolicy(**password_policy.dict())
 
         workspace = Workspace(
-            owner=user,
             name=workspace_name,
             icon=workspace_icon,
-            sym_key=encrypted_symkey,
             password_policy=password_policy
         )
 
         workspace.save()
 
-        Trash.objects.create(workspace=workspace)
+        Share.objects.create(
+            user=user,
+            workspace=workspace,
+            sym_key=encrypted_symkey,
+            is_owner=True
+        )
 
+        Trash.objects.create(workspace=workspace)
 
         Folder.objects.create(
             name="Web",
@@ -177,10 +183,8 @@ class WorkspaceUtils:
         Raises:
             HTTPException: Raise error if user does not exists
         """
-        encrypted_sym_key = workspace.sym_key
-        if workspace.owner != user.in_db:
-            share = Share.objects(workspace=workspace, user=user.in_db).get()
-            encrypted_sym_key = share.sym_key
+        share = Share.objects(workspace=workspace, user=user.in_db).get()
+        encrypted_sym_key = share.sym_key
 
         sym_key: str = CryptoUtils.rsa_decrypt(
             encrypted_sym_key,
@@ -448,22 +452,9 @@ class WorkspaceUtils:
             old_password (str): Old password
             new_password (str): New password
         """
-        workspaces = Workspace.objects(owner=user)
         shares = Share.objects(user=user)
 
         old_sym_keys = []
-        for workspace in workspaces:
-            sym_key = CryptoUtils.rsa_decrypt(
-                workspace.sym_key,
-                user.private_key,
-                old_password
-            )
-
-            old_sym_keys.append({
-                "workspace": workspace,
-                "sym_key": sym_key
-            })
-
         for share in shares:
             sym_key = CryptoUtils.rsa_decrypt(
                 share.sym_key,
@@ -640,8 +631,23 @@ class WorkspaceUtils:
         if package_name:
             query &= Q(package_name=package_name)
         elif search:
+            urls_query: Q = Q()
+            if "://" in search:
+                tmp_list = search.split("://")
+                protocol: str = tmp_list[0]
+
+                s = ""
+                for index, sub_domain in enumerate(tmp_list[1].split(".")[::-1]):
+                    if index == 0:
+                        s += sub_domain
+                    else:
+                        s = f"{sub_domain}.{s}"
+                        url = f"{protocol}://{s}"
+                        urls_query |= Q(urls__value__icontains=url)
+
+
+
             name_query: Q = Q(name__value__icontains=search)
-            urls_query: Q = Q(urls__value__icontains=search)
 
             query &= (name_query | urls_query)
 
