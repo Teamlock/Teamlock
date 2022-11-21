@@ -97,7 +97,7 @@
                 </span>
             </v-card-text>
         </v-card>
-        <v-dialog v-model="dialog2FA" width="500">
+        <v-dialog v-model="dialog2FA" width="300">
             <v-card>
                 <v-card-title>
                     {{ $t("title.2fa_setup") }}

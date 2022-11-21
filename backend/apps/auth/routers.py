@@ -108,17 +108,18 @@ async def login_for_access_token(
         x_teamlock_app
     )
 
-    if user.otp and (user.otp.enabled or user.otp.need_configure):
-        content : dict = {
-            "otp" : True,
-        }
-        if user.otp.need_configure:
-            token : str = login.access_token
-            content["otp_need_configure"] = True
-        else:
-            token: str = create_temp_otp_key(login)
-        content["token"] = token
-        return JSONResponse(content=content)
+    if x_teamlock_key not in user.remember_key:
+        if user.otp and (user.otp.enabled or user.otp.need_configure):
+            content : dict = {
+                "otp" : True,
+            }
+            if user.otp.need_configure:
+                token : str = login.access_token
+                content["otp_need_configure"] = True
+            else:
+                token: str = create_temp_otp_key(login)
+            content["token"] = token
+            return JSONResponse(content=content)
 
     if (session := create_user_session(user, request)) and not settings.DEV_MODE:
         # Send an email if new connection and no DEV MODE

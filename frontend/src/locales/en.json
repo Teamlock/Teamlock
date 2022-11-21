@@ -1,6 +1,7 @@
 {
     "label": {
         "is_owner": "Owner",
+        "mfa_enforce": "Two Factor Authentication is enforced",
         "edit_workspace": "Edit workspace",
         "share_workspace": "Share workspace",
         "export_workspace": "Export workspace",
