@@ -12,6 +12,7 @@
                     v-model="otp_value"
                     class="mt-5"
                     length="6"
+                    style="width: 300px !important"
                     type="number"
                     @finish="validateOtp"
                 />
@@ -56,6 +57,7 @@
                                     ref="disable_otp_input"
                                     v-model="otp_value"
                                     length="6"
+                                    style="width: 300px !important"
                                     type="number"
                                 />
                             </v-card-text>

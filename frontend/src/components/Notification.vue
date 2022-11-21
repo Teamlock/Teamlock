@@ -174,14 +174,12 @@ export default defineComponent({
         this.getNofications()
         
         EventBus.$on("intervalNotification", () => {
-            console.log("Create notification interval")
             this.interval = setInterval(() => {
                 this.getNofications()
             }, 60000)
         })
 
         EventBus.$on("delIntervalNotification", () => {
-            console.log("Delete notification interval")
             this.delInterval()
         })
     },
