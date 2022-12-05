@@ -398,8 +398,13 @@ class WorkspaceUtils:
                         get_protected_fields=True
                     )
 
+                    share = Share.objects(
+                        workspace=to_workspace,
+                        user=user.in_db
+                    ).get()
+
                     encrypted_secret = cls.encrypt_secret(
-                        user, to_workspace.sym_key, decrypted_secret
+                        user, share.sym_key, decrypted_secret
                     )
 
                     encrypted_secret.pk = None
