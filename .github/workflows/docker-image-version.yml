@@ -5,7 +5,7 @@ on:
     branches: [main]
 
 env:
-  VERSION: "1.1541"
+  VERSION: "1.155"
 
 jobs:
   build:
