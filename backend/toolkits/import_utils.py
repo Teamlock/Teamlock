@@ -171,18 +171,17 @@ class ImportUtils(WorkspaceUtils):
                             else:
                                 tmp[secret_mapping[key]] = ""
 
-
-                    url = [tmp["url"]]
-                    if not url[0]:
-                        url = []
+                    url = []
+                    if (u := tmp.get("url")):
+                        url.append(u)
 
                     secrets.append(cls.create_secret_import(
                         import_schema,
-                        tmp["name"],
+                        tmp.get("name", ""),
                         url,
-                        tmp["login"],
-                        tmp["password"],
-                        tmp["informations"],
+                        tmp.get("login", ""),
+                        tmp.get("password", ""),
+                        tmp.get("informations", ""),
                         sym_key,
                         folder,
                         user
