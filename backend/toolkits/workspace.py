@@ -647,6 +647,8 @@ class WorkspaceUtils:
                         s = f"{sub_domain}.{s}"
                         url = f"{protocol}://{s}"
                         urls_query |= Q(urls__value__icontains=url)
+            else:
+                urls_query = Q(urls__value__icontains=search)
 
             name_query: Q = Q(name__value__icontains=search)
 
