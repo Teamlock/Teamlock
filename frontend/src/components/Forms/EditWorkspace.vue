@@ -32,7 +32,7 @@
                 lazy-validation
                 @submit.prevent="saveWorkspace"
             >
-                <v-card :loading="loading" class="mx-auto" :min-width="400" :max-height="800">
+                <v-card :loading="loading" class="mx-auto" :min-width="400" :max-height="700" style="overflow: auto">
                     <v-app-bar flat dense class="edit_workspace_bar">
                         <v-app-bar-nav-icon>
                             <span v-if="!workspace">
