@@ -112,6 +112,14 @@ class BasePhoneSchema(BaseModel):
 class LoginSchema(GlobalSecretSchema, BaseLoginSchema):
     secret_type: Literal["login"]
 
+    class Config:
+        orm_mode = True
+        allow_population_by_field_name: bool = True
+        arbitrary_types_allowed: bool = True
+        json_encoders: dict = {
+            ObjectId: str
+        }
+
 
 class CreateLoginSchema(BaseSecretSchema, BaseLoginSchema):
     secret_type: Literal["login"]
@@ -119,6 +127,14 @@ class CreateLoginSchema(BaseSecretSchema, BaseLoginSchema):
 
 class ServerSchema(GlobalSecretSchema, BaseServerSchema):
     secret_type: Literal["server"]
+
+    class Config:
+        orm_mode = True
+        allow_population_by_field_name: bool = True
+        arbitrary_types_allowed: bool = True
+        json_encoders: dict = {
+            ObjectId: str
+        }
 
 
 class CreateServerSchema(BaseSecretSchema, BaseServerSchema):
@@ -128,6 +144,14 @@ class CreateServerSchema(BaseSecretSchema, BaseServerSchema):
 class BankSchema(GlobalSecretSchema, BaseBankSchema):
     secret_type: Literal["bank"]
 
+    class Config:
+        orm_mode = True
+        allow_population_by_field_name: bool = True
+        arbitrary_types_allowed: bool = True
+        json_encoders: dict = {
+            ObjectId: str
+        }
+
 
 class CreateBankSchema(BaseSecretSchema, BaseBankSchema):
     secret_type: Literal["bank"]
@@ -135,6 +159,14 @@ class CreateBankSchema(BaseSecretSchema, BaseBankSchema):
 
 class PhoneSchema(GlobalSecretSchema, BasePhoneSchema):
     secret_type: Literal["phone"]
+
+    class Config:
+        orm_mode = True
+        allow_population_by_field_name: bool = True
+        arbitrary_types_allowed: bool = True
+        json_encoders: dict = {
+            ObjectId: str
+        }
 
 
 class CreatePhoneSchema(BaseSecretSchema, BasePhoneSchema):

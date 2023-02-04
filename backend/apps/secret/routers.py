@@ -113,7 +113,6 @@ async def search_secrets(
 async def global_search_keys(
     search: str = "",
     category: str = "login",
-    package_name: str = "",
     user: LoggedUser = Depends(get_current_user)
 ):
 
@@ -124,13 +123,10 @@ async def global_search_keys(
 
     secrets: list = []
     for workspace in workspaces:
-        secrets.extend(WorkspaceUtils.search(workspace.pk, search, user, category, package_name=package_name))
+        secrets.extend(WorkspaceUtils.search(workspace.pk, search, user, category))
     
     if len(secrets) == 0:
         return []
-
-    if package_name:
-        return secrets[0]
 
     return secrets
 

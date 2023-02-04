@@ -627,15 +627,13 @@ class WorkspaceUtils:
             )
     
     @classmethod
-    def search(cls, workspace, search, user, category, package_name="", order="name"):
+    def search(cls, workspace, search, user, category, order="name"):
         workspace, sym_key = cls.get_workspace(workspace, user)
         folders: list[Folder] = Folder.objects(workspace=workspace)
 
         query: Q = Q(folder__in=folders)
 
-        if package_name:
-            query &= Q(package_name=package_name)
-        elif search:
+        if search:
             urls_query: Q = Q()
             if "://" in search:
                 tmp_list = search.split("://")
@@ -650,11 +648,33 @@ class WorkspaceUtils:
                         url = f"{protocol}://{s}"
                         urls_query |= Q(urls__value__icontains=url)
 
-
-
             name_query: Q = Q(name__value__icontains=search)
 
-            query &= (name_query | urls_query)
+            if category == "login":
+                login_query = Q(login__value__icontains=search)
+                ip_query = Q(ip__value__icontains=search)
+
+                query &= name_query | urls_query | login_query | ip_query
+
+            elif category == "server":
+                ip_query = Q(ip__value__icontains=search)
+                os_type_query = Q(os_type__value__icontains=search)
+                login_query = Q(login__value__icontains=search)
+
+                query &= name_query | ip_query | os_type_query | login_query
+            
+            elif category == "bank":
+                owner_query = Q(owner__value__icontains=search)
+                bank_name_query = Q(bank_name__value__icontains=search)
+                iban_query = Q(iban__value__icontains=search)
+                bic_query = Q(bic__value__icontains=search)
+                card_number_query = Q(card_number__value__icontains=search)
+            
+                query &= name_query | owner_query | bank_name_query | iban_query | bic_query | card_number_query
+ 
+            elif category == "phone":
+                number_query = Q(number__icontains=search)
+                query &= name_query | number_query
 
         model_ = const.MAPPING_SECRET[category]
 
@@ -669,8 +689,7 @@ class WorkspaceUtils:
             schema = tmp.schema()
             tmp = cls.decrypt_secret(
                 decrypted_sym_key,
-                schema,
-                get_protected_fields=package_name != ""
+                schema
             )
 
             tmp.folder_name = Folder.objects(pk=tmp.folder).get().name
