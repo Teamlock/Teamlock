@@ -19,7 +19,7 @@
       </div>
     </span>
 
-    <!-- <export-workspace /> -->
+    <export-workspace />
     <workspace-delete @workspaceDeleted="fetchWorkspaces" />
 
   </v-navigation-drawer>
@@ -27,7 +27,7 @@
 
 <script>
 import WorkspaceDelete from "./Dialogs/WorkspaceDelete.vue"
-// import ExportWorkspace from "./Dialogs/ExportWorkspace.vue"
+import ExportWorkspace from "./Dialogs/ExportWorkspace.vue"
 import { defineComponent } from '@vue/composition-api'
 import EditWorkspace from './Forms/EditWorkspace.vue'
 import WorkspaceIcon from './WorkspaceIcon.vue'
@@ -35,8 +35,8 @@ import EventBus from "@/event"
 import http from "@/utils/http"
 
 export default defineComponent({
-  components: { 
-    // ExportWorkspace,
+  components: {
+    ExportWorkspace,
     WorkspaceDelete,
     EditWorkspace,
     WorkspaceIcon,
@@ -52,7 +52,7 @@ export default defineComponent({
     x: 0,
     y: 0
   }),
-  
+
   destroyed() {
     if (this.interval) {
       clearInterval(this.interval)
@@ -141,10 +141,10 @@ export default defineComponent({
         return this.workspaces[0]._id
       }
     },
-  
+
     async fetchWorkspaces() {
       this.workspaces = []
-      
+
       const response = await http.get("/api/v1/workspace/")
       this.workspaces = response.data
 

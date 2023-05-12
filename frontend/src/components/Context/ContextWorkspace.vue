@@ -93,7 +93,7 @@
                 </v-list-item-content>
             </v-list-item>
 
-            <!-- <v-list-item
+            <v-list-item
                 v-if="workspace.is_owner || workspace.can_export"
                 @click="exportWorkspace()"
             >
@@ -103,7 +103,7 @@
                 <v-list-item-content>
                     <v-list-item-title>{{ $t('label.export_workspace') }}</v-list-item-title>
                 </v-list-item-content>
-            </v-list-item> -->
+            </v-list-item>
 
             <span v-if="workspace.is_owner">
                 <v-divider />
@@ -119,7 +119,7 @@
                 </v-list-item>
             </span>
         </v-list-item-group>
-        
+
     </v-list>
 </template>
 
@@ -149,9 +149,9 @@ export default {
         importXML() {
             EventBus.$emit('importXML')
         },
-        // exportWorkspace() {
-        //     EventBus.$emit("exportWorkspace", this.workspace)
-        // },
+        exportWorkspace() {
+            EventBus.$emit("exportWorkspace", this.workspace)
+        },
         deleteWorkspace() {
             EventBus.$emit("deleteWorkspace", this.workspace._id)
         },

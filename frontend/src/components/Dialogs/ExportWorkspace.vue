@@ -72,8 +72,11 @@ export default {
             }
 
             this.isLoading = true
-            http.post(`/api/v1/workspace/${this.workspace._id}/export`, data)
+            http.post(`/api/v1/workspace/${this.workspace._id}/export`, data, {
+                responseType: 'blob'
+            })
                 .then((response) => {
+                    console.log(response)
                     const fileURL = window.URL.createObjectURL(new Blob([response.data]));
                     const fileLink = document.createElement('a');
                     fileLink.href = fileURL;

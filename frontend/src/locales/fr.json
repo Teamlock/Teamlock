@@ -228,6 +228,7 @@
         "phone": "Téléphone"
     },
     "button": {
+        "export": "Export",
         "download_certificates": "Télécharger les certificats",
         "test": "Tester",
         "recover": "Récupérer le compte",

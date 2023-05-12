@@ -232,6 +232,7 @@
         "phone": "Phone"
     },
     "button": {
+        "export": "Export",
         "notification_read": "Read",
         "download_certificates": "Download Certificates",
         "test": "Test",
