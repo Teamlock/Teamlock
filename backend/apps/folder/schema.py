@@ -19,7 +19,7 @@ __license__ = "GPLv3"
 __version__ = "3.0.0"
 __maintainer__ = "Teamlock Project"
 __email__ = "contact@teamlock.io"
-__doc__ = ''
+__doc__ = ""
 
 from apps.config.schema import PasswordPolicySchema
 from pydantic import BaseModel, Field
@@ -43,16 +43,14 @@ class FolderSchema(BaseModel):
     icon: str
     parent: PyObjectId | None = None
     created_at: datetime
-    created_by: PyObjectId = Field(default_factory=PyObjectId)
+    created_by: PyObjectId | None = Field(default_factory=PyObjectId)
     password_policy: PasswordPolicySchema | None
     workspace: PyObjectId = Field(default_factory=PyObjectId)
 
     class Config:
         allow_population_by_field_name: bool = True
         arbitrary_types_allowed: bool = True
-        json_encoders: dict = {
-            ObjectId: str
-        }
+        json_encoders: dict = {ObjectId: str}
 
 
 class FolderStats(BaseModel):

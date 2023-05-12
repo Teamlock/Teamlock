@@ -19,7 +19,7 @@ __license__ = "GPLv3"
 __version__ = "3.0.0"
 __maintainer__ = "Teamlock Project"
 __email__ = "contact@teamlock.io"
-__doc__ = ''
+__doc__ = ""
 
 from apps.secret.schema import BankSchema, LoginSchema, PhoneSchema, ServerSchema
 from .schema import EditFolderSchema, FolderSchema, FolderStats
@@ -49,22 +49,13 @@ logger = logging.getLogger("api")
 router: APIRouter = APIRouter()
 
 
-@router.get(
-    path="/{folder_id}",
-    summary="Get a folder",
-    response_model=FolderSchema
-)
+@router.get(path="/{folder_id}", summary="Get a folder", response_model=FolderSchema)
 async def get_folder(
-    folder_id: str,
-    user: LoggedUser = Depends(get_current_user)
+    folder_id: str, user: LoggedUser = Depends(get_current_user)
 ) -> FolderSchema:
     try:
-
         folder: Folder = Folder.objects(pk=folder_id).get()
-        workspace, _ = WorkspaceUtils.get_workspace(
-            folder.workspace.pk,
-            user
-        )
+        workspace, _ = WorkspaceUtils.get_workspace(folder.workspace.pk, user)
         WorkspaceUtils.have_rights(workspace, user)
 
         parent = None
@@ -75,36 +66,38 @@ async def get_folder(
         if folder.password_policy:
             password_policy = PasswordPolicySchema(**folder.password_policy.to_mongo())
 
-        logger.info(f"[FOLDER][{str(folder.workspace.pk)}][{folder.workspace.name}] {user.in_db.email} retreive folder {folder.name}")
+        created_by = None
+        if folder.created_by:
+            created_by = folder.created_by.pk
+
+        logger.info(
+            f"[FOLDER][{str(folder.workspace.pk)}][{folder.workspace.name}] {user.in_db.email} retreive folder {folder.name}"
+        )
         return FolderSchema(
             name=folder.name,
             icon=folder.icon,
             password_policy=password_policy,
             workspace=folder.workspace.pk,
             created_at=folder.created_at,
-            created_by=folder.created_by.pk,
-            parent=parent
+            created_by=created_by,
+            parent=parent,
         )
-    
+
     except Folder.DoesNotExist:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Folder not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Folder not found"
         )
+
 
 @router.post(
     path="/",
     status_code=status.HTTP_201_CREATED,
-    summary="Create a folder in a workspace"
+    summary="Create a folder in a workspace",
 )
 async def create_folder(
-    folder_def: EditFolderSchema,
-    user: LoggedUser = Depends(get_current_user)
+    folder_def: EditFolderSchema, user: LoggedUser = Depends(get_current_user)
 ) -> str:
-    workspace, _ = WorkspaceUtils.get_workspace(
-        folder_def.workspace,
-        user
-    )
+    workspace, _ = WorkspaceUtils.get_workspace(folder_def.workspace, user)
     WorkspaceUtils.have_rights(workspace, user)
 
     password_policy = None
@@ -116,7 +109,7 @@ async def create_folder(
         icon=folder_def.icon,
         workspace=workspace,
         created_by=user.id,
-        password_policy=password_policy
+        password_policy=password_policy,
     )
 
     if folder_def.parent:
@@ -125,46 +118,40 @@ async def create_folder(
             folder.parent = folder_parent
         except Folder.DoesNotExist:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Parent folder not found"
+                status_code=status.HTTP_404_NOT_FOUND, detail="Parent folder not found"
             )
 
     folder.save()
-    logger.info(f"[FOLDER][{str(folder.workspace.pk)}][{folder.workspace.name}] {user.in_db.email} create folder {folder_def.name}")
+    logger.info(
+        f"[FOLDER][{str(folder.workspace.pk)}][{folder.workspace.name}] {user.in_db.email} create folder {folder_def.name}"
+    )
 
     create_history(
         user=user.in_db.email,
         workspace=workspace.name,
         folder=folder.name,
-        action=f"Create folder {folder.name}"
+        action=f"Create folder {folder.name}",
     )
-    return Response(
-        content=str(folder.id),
-        status_code=status.HTTP_201_CREATED
-    )
+    return Response(content=str(folder.id), status_code=status.HTTP_201_CREATED)
 
 
 @router.put(
-    path="/{folder_id}",
-    summary="Update a folder",
-    status_code=status.HTTP_202_ACCEPTED
+    path="/{folder_id}", summary="Update a folder", status_code=status.HTTP_202_ACCEPTED
 )
 async def update_folder(
     folder_id: str,
     folder_def: EditFolderSchema,
-    user: LoggedUser = Depends(get_current_user)
+    user: LoggedUser = Depends(get_current_user),
 ) -> str:
-
     WorkspaceUtils.have_rights(folder_def.workspace, user)
 
     try:
         folder: Folder = Folder.objects(pk=folder_id).get()
     except Folder.DoesNotExist:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Folder not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Folder not found"
         )
-    
+
     folder.name = folder_def.name
     folder.icon = folder_def.icon
     if folder_def.password_policy:
@@ -176,20 +163,21 @@ async def update_folder(
             folder.parent = folder_parent
         except Folder.DoesNotExist:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Parent folder not found"
+                status_code=status.HTTP_404_NOT_FOUND, detail="Parent folder not found"
             )
     elif folder_def.moved:
         folder.parent = None
 
     folder.save()
-    logger.info(f"[FOLDER][{str(folder.workspace.pk)}][{folder.workspace.name}] {user.in_db.email} update folder {folder_def.name}")
+    logger.info(
+        f"[FOLDER][{str(folder.workspace.pk)}][{folder.workspace.name}] {user.in_db.email} update folder {folder_def.name}"
+    )
 
     create_history(
         user=user.in_db.email,
         workspace=folder.workspace.name,
         folder=folder.name,
-        action=f"Update folder {folder.name}"
+        action=f"Update folder {folder.name}",
     )
 
     return Response(status_code=status.HTTP_202_ACCEPTED)
@@ -198,12 +186,12 @@ async def update_folder(
 @router.post(
     path="/{folder_id}/copy",
     status_code=status.HTTP_202_ACCEPTED,
-    summary="Copy a folder to another Workspace"
+    summary="Copy a folder to another Workspace",
 )
 async def copy_folder(
     folder_id: str,
     to_workspace_id: str = Body(...),
-    user: LoggedUser = Depends(get_current_user)
+    user: LoggedUser = Depends(get_current_user),
 ):
     try:
         folder: Folder = Folder.objects(pk=folder_id).get()
@@ -216,93 +204,81 @@ async def copy_folder(
         _, sym_key = WorkspaceUtils.get_workspace(folder.workspace.pk, user)
 
         decrypted_sym_key = CryptoUtils.rsa_decrypt(
-            sym_key,
-            user.in_db.private_key,
-            CryptoUtils.decrypt_password(user)
+            sym_key, user.in_db.private_key, CryptoUtils.decrypt_password(user)
         )
 
         WorkspaceUtils.copy_folder_to_other_workspace(
-            user,
-            folder,
-            folder.workspace,
-            to_workspace,
-            decrypted_sym_key
+            user, folder, folder.workspace, to_workspace, decrypted_sym_key
         )
 
         create_history(
             user=user.in_db.email,
             folder=folder.name,
             workspace=folder.workspace.name,
-            action=f"Folder {folder.name} copied to workspace {to_workspace.name}"
+            action=f"Folder {folder.name} copied to workspace {to_workspace.name}",
         )
 
         return Response(status_code=status.HTTP_202_ACCEPTED)
-    
+
     except Folder.DoesNotExist:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Folder not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Folder not found"
         )
-    
+
     except Workspace.DoesNotExist:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Workspace not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Workspace not found"
         )
 
 
 @router.delete(
     path="/{folder_id}/trash",
     summary="Move a folder to trash",
-    status_code=status.HTTP_204_NO_CONTENT
+    status_code=status.HTTP_204_NO_CONTENT,
 )
 async def move_trash_folder(
-    folder_id: str,
-    user: LoggedUser = Depends(get_current_user)
+    folder_id: str, user: LoggedUser = Depends(get_current_user)
 ):
     try:
         folder: Folder = Folder.objects(pk=folder_id).get()
 
         WorkspaceUtils.have_rights(folder.workspace, user)
-        trash : Trash = WorkspaceUtils.get_trash_folder(folder.workspace)
+        trash: Trash = WorkspaceUtils.get_trash_folder(folder.workspace)
         total_secrets: int = FolderUtils.move_to_trash(folder, trash)
 
         create_history(
             user=user.in_db.email,
             workspace=folder.workspace.name,
             folder=folder.name,
-            action=f"Folder {folder.name} deleted with {total_secrets} secrets"
+            action=f"Folder {folder.name} deleted with {total_secrets} secrets",
         )
-        
+
         return Response(status_code=status.HTTP_204_NO_CONTENT)
     except Folder.DoesNotExist:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Folder not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Folder not found"
         )
+
 
 @router.get(
     path="/{folder_id}/stats",
     summary="Get stats of a folder",
     response_model=FolderStats,
-    dependencies=[Depends(get_current_user)]
+    dependencies=[Depends(get_current_user)],
 )
-async def get_folder_stats(
-    folder_id: str
-) -> FolderStats:
+async def get_folder_stats(folder_id: str) -> FolderStats:
     try:
         folder: Folder = Folder.objects(pk=folder_id).get()
     except Folder.DoesNotExist:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Folder not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Folder not found"
         )
-    
+
     stats: FolderStats = FolderStats(
         login=Login.objects(folder=folder).count(),
         server=Server.objects(folder=folder).count(),
         bank=Bank.objects(folder=folder).count(),
-        phone=Phone.objects(folder=folder).count()
+        phone=Phone.objects(folder=folder).count(),
     )
 
     return stats
@@ -311,20 +287,22 @@ async def get_folder_stats(
 @router.get(
     path="/{folder_id}/secrets",
     summary="Get all secrets in folder",
-    response_model=list[LoginSchema] | list[ServerSchema] | list[BankSchema] | list[PhoneSchema]
+    response_model=list[LoginSchema]
+    | list[ServerSchema]
+    | list[BankSchema]
+    | list[PhoneSchema],
 )
 async def get_secrets(
-    folder_id: str,
-    category: str,
-    user: LoggedUser = Depends(get_current_user)
+    folder_id: str, category: str, user: LoggedUser = Depends(get_current_user)
 ):
     try:
         folder: Folder = Folder.objects(pk=folder_id).get()
-        secrets = FolderUtils.get_secrets(folder_id,category, user)
-        logger.info(f"[FOLDER][{str(folder.workspace.pk)}][{folder.workspace.name}] {user.in_db.email} retreive secrets in folder {folder.name}")
+        secrets = FolderUtils.get_secrets(folder_id, category, user)
+        logger.info(
+            f"[FOLDER][{str(folder.workspace.pk)}][{folder.workspace.name}] {user.in_db.email} retreive secrets in folder {folder.name}"
+        )
         return secrets
     except Folder.DoesNotExist:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Folder not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Folder not found"
         )
