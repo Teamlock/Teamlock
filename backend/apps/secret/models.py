@@ -19,7 +19,7 @@ __license__ = "GPLv3"
 __version__ = "3.0.0"
 __maintainer__ = "Teamlock Project"
 __email__ = "contact@teamlock.io"
-__doc__ = ''
+__doc__ = ""
 
 from apps.folder.models import Folder
 from apps.trash.models import Trash
@@ -32,6 +32,7 @@ import mongoengine
 class SecretValue(mongoengine.EmbeddedDocument):
     encrypted = mongoengine.BooleanField(default=True)
     value = mongoengine.StringField()
+
 
 class SecretListValue(mongoengine.EmbeddedDocument):
     encrypted = mongoengine.BooleanField(default=True)
@@ -46,30 +47,21 @@ class Secret(mongoengine.Document):
     updated_at = mongoengine.DateTimeField(default=datetime.utcnow)
 
     created_by = mongoengine.ReferenceField(
-        User,
-        null=True,
-        reverse_delete_rule=mongoengine.NULLIFY
+        User, null=True, reverse_delete_rule=mongoengine.NULLIFY
     )
 
     updated_by = mongoengine.ReferenceField(
-        User,
-        null=True,
-        reverse_delete_rule=mongoengine.NULLIFY
+        User, null=True, reverse_delete_rule=mongoengine.NULLIFY
     )
 
     password_last_change = mongoengine.DateTimeField(default=datetime.utcnow)
 
-    folder = mongoengine.ReferenceField(
-        Folder,
-        reverse_delete_rule=mongoengine.CASCADE
-    )
+    folder = mongoengine.ReferenceField(Folder, reverse_delete_rule=mongoengine.CASCADE)
 
     trash = mongoengine.ReferenceField(Trash, reverse_delete_rule=mongoengine.CASCADE)
     package_name = mongoengine.StringField(default="")
 
-    meta = {
-        "allow_inheritance": True
-    }
+    meta = {"allow_inheritance": True}
 
     def schema(self, secret_type):
         created_by = None
@@ -79,7 +71,7 @@ class Secret(mongoengine.Document):
         updated_by = None
         if self.updated_by:
             updated_by = self.updated_by.email
-        
+
         folder = None
         if self.folder:
             folder = str(self.folder.pk)
@@ -94,9 +86,9 @@ class Secret(mongoengine.Document):
             created_by=created_by,
             updated_by=updated_by,
             password_last_change=self.password_last_change,
-            folder=folder
+            folder=folder,
         )
-    
+
     def check_changes(self, last, new):
         pass
 
@@ -109,7 +101,7 @@ class Login(Secret):
 
     class Config:
         schema = schema.LoginSchema
-    
+
     def schema(self):
         sch = super().schema("login")
         sch.urls = schema.SecretListValueSchema(**self.urls.to_mongo())
@@ -117,7 +109,7 @@ class Login(Secret):
         sch.login = schema.SecretValueSchema(**self.login.to_mongo())
         sch.password = schema.SecretValueSchema(**self.password.to_mongo())
         return sch
-    
+
     def check_changes(self, last, new):
         if last.password.value != new.password.value:
             self.password_last_change = datetime.utcnow()
@@ -134,7 +126,7 @@ class Bank(Secret):
 
     class Config:
         schema = schema.BankSchema
-        
+
     def schema(self):
         sch = super().schema("bank")
         sch.owner = schema.SecretValueSchema(**self.owner.to_mongo())
@@ -142,7 +134,9 @@ class Bank(Secret):
         sch.iban = schema.SecretValueSchema(**self.iban.to_mongo())
         sch.bic = schema.SecretValueSchema(**self.bic.to_mongo())
         sch.card_number = schema.SecretValueSchema(**self.card_number.to_mongo())
-        sch.expiration_date = schema.SecretValueSchema(**self.expiration_date.to_mongo())
+        sch.expiration_date = schema.SecretValueSchema(
+            **self.expiration_date.to_mongo()
+        )
         sch.cvc = schema.SecretValueSchema(**self.cvc.to_mongo())
         return sch
 
@@ -163,7 +157,7 @@ class Server(Secret):
         sch.login = schema.SecretValueSchema(**self.login.to_mongo())
         sch.password = schema.SecretValueSchema(**self.password.to_mongo())
         return sch
-    
+
     def check_changes(self, last, new):
         if last.password.value != new.password.value:
             self.password_last_change = datetime.utcnow()
@@ -183,4 +177,3 @@ class Phone(Secret):
         sch.pin_code = schema.SecretValueSchema(**self.pin_code.to_mongo())
         sch.puk_code = schema.SecretValueSchema(**self.puk_code.to_mongo())
         return sch
-    

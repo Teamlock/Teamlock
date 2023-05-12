@@ -538,13 +538,17 @@ class WorkspaceUtils:
                     **folder.password_policy.to_mongo()
                 )
 
+            created_by = None
+            if folder.created_by:
+                created_by = folder.created_by.pk
+
             folders.append(
                 FolderSchema(
                     id=folder.pk,
                     parent=parent,
                     icon=folder.icon,
                     name=folder.name,
-                    created_by=folder.created_by.pk,
+                    created_by=created_by,
                     created_at=folder.created_at,
                     password_policy=password_policy,
                     workspace=workspace.pk,
