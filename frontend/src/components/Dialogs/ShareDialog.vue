@@ -25,7 +25,7 @@
                     :footer-props="{'items-per-page-options':[10, 20, 50, 100]}"
                 >
                     <template v-slot:[`header._id`]="{}">
-                        <v-menu 
+                        <v-menu
                             :close-on-content-click="false"
                             :close-on-click="false"
                             @close="$refs.addUserShare.emptyForm()"
@@ -81,7 +81,7 @@
                             @change="rightChange(item)"
                         />
                     </template>
-                    
+
                     <template v-slot:[`item.can_export`]="{ item }">
                         <v-switch
                             class="mt-0"
@@ -198,7 +198,7 @@ export default defineComponent({
                 {text: this.$t('label.can_read'), value:"can_read"},
                 {text: this.$t('label.can_write'), value:"can_write"},
                 {text: this.$t('label.can_share'), value:"can_share"},
-                // {text: this.$t('label.can_export'), value:"can_export"}
+                {text: this.$t('label.can_export'), value:"can_export"}
             ])
 
             if (this.is_pro) {

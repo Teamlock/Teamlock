@@ -94,7 +94,7 @@
                         </v-menu>
                     </v-col>
                 </v-row>
-            
+
                 <h3 class="text-left">{{ $t("label.rights") }} :</h3>
 
                 <v-row no-gutters>
@@ -109,7 +109,7 @@
                             persistent-hint
                         ></v-switch>
                     </v-col>
-                        
+
                     <v-col>
                         <v-switch
                             :label="$t('label.can_write')"
@@ -118,7 +118,7 @@
                             prepend-icon="mdi-pencil"
                             :hint="$t('help.can_write')"
                             persistent-hint
-                        ></v-switch>                    
+                        ></v-switch>
                     </v-col>
                     <v-col>
                         <v-switch
@@ -132,7 +132,7 @@
                     </v-col>
                 </v-row>
                 <v-row no-gutters>
-                    <!-- <v-col>
+                    <v-col>
                         <v-switch
                             :label="$t('label.can_export')"
                             color="#DAAB39"
@@ -141,7 +141,7 @@
                             :hint="$t('help.can_export')"
                             persistent-hint
                         />
-                    </v-col> -->
+                    </v-col>
                     <v-col v-if="is_pro">
                         <v-switch
                             :label="$t('label.can_share_external')"
