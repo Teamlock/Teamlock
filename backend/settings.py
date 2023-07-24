@@ -46,7 +46,9 @@ class AppSettings(BaseSettings):
 
 class MongoSettings(BaseSettings):
     MONGO_HOST: str = os.environ.get("MONGO_HOST", os.environ.get("MONGO_HOST_FILE"))
-    MONGO_DATABASE: str = os.environ["MONGO_DATABASE"]
+    MONGO_DATABASE: str = os.environ.get(
+        "MONGO_DATABASE", os.environ.get("MONGO_DATABASE_FILE")
+    )
     MONGO_USER: str | None = os.environ.get(
         "MONGO_USER", os.environ.get("MONGO_USER_FILE")
     )
