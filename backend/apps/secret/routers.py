@@ -19,7 +19,7 @@ __license__ = "GPLv3"
 __version__ = "3.0.0"
 __maintainer__ = "Teamlock Project"
 __email__ = "contact@teamlock.io"
-__doc__ = ''
+__doc__ = ""
 
 from fastapi import APIRouter, Depends, status, Body, Request, BackgroundTasks
 from toolkits.history import create_history, create_notification
@@ -55,9 +55,11 @@ router: APIRouter = APIRouter()
     path="/generate",
     summary="Generate a password",
     response_model=str,
-    dependencies=[Depends(get_current_user)]
+    dependencies=[Depends(get_current_user)],
 )
-async def generate_password(folder_id: str, policy : PasswordPolicySchema = Body(default=None)) -> str:
+async def generate_password(
+    folder_id: str, policy: PasswordPolicySchema = Body(default=None)
+) -> str:
     try:
         folder = Folder.objects(pk=folder_id).get()
         password_policy = folder.password_policy
@@ -67,56 +69,65 @@ async def generate_password(folder_id: str, policy : PasswordPolicySchema = Body
         if password_policy:
             password_policy = PasswordPolicySchema(**password_policy.to_mongo())
             if policy:
-                if any(getattr(policy,key) < getattr(password_policy,key) for key in ["length", "uppercase", "numbers", "special"]):
+                if any(
+                    getattr(policy, key) < getattr(password_policy, key)
+                    for key in ["length", "uppercase", "numbers", "special"]
+                ):
                     raise HTTPException(
                         status_code=status.HTTP_400_BAD_REQUEST,
-                        detail="Password policy is not respected"
+                        detail="Password policy is not respected",
                     )
                 else:
                     password_policy = policy
 
         password: str = CryptoUtils.generate_password(password_policy)
         return password
-    
+
     except Folder.DoesNotExist:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Folder not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Folder not found"
         )
 
 
 @router.get(
     path="/search",
     summary="Search Secrets",
-    response_model=list[schema.BankSchema] | list[schema.ServerSchema] | list[schema.LoginSchema] | list[schema.PhoneSchema]
+    response_model=list[schema.BankSchema]
+    | list[schema.ServerSchema]
+    | list[schema.LoginSchema]
+    | list[schema.PhoneSchema],
 )
 async def search_secrets(
     search: str,
     category: str,
     workspace: str,
-    user: LoggedUser = Depends(get_current_user)
+    user: LoggedUser = Depends(get_current_user),
 ):
     try:
         return WorkspaceUtils.search(workspace, search, user, category)
     except Workspace.DoesNotExist:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Workspace not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Workspace not found"
         )
 
 
 @router.get(
     path="/global/search",
     summary="Search on all workspaces",
-    response_model=list[schema.BankSchema] | list[schema.ServerSchema] | list[schema.LoginSchema] | list[schema.PhoneSchema] | schema.LoginSchema
+    response_model=list[schema.BankSchema]
+    | list[schema.ServerSchema]
+    | list[schema.LoginSchema]
+    | list[schema.PhoneSchema]
+    | schema.LoginSchema,
 )
 async def global_search_keys(
     search: str = "",
     category: str = "login",
-    user: LoggedUser = Depends(get_current_user)
+    user: LoggedUser = Depends(get_current_user),
 ):
-
-    shared_query = Q(user=user.id) & (Q(expire_at=None) | Q(expire_at__lte=datetime.utcnow()))
+    shared_query = Q(user=user.id) & (
+        Q(expire_at=None) | Q(expire_at__lte=datetime.utcnow())
+    )
     workspaces = []
     for tmp in Share.objects(shared_query):
         workspaces.append(tmp.workspace)
@@ -124,7 +135,7 @@ async def global_search_keys(
     secrets: list = []
     for workspace in workspaces:
         secrets.extend(WorkspaceUtils.search(workspace.pk, search, user, category))
-    
+
     if len(secrets) == 0:
         return []
 
@@ -133,42 +144,48 @@ async def global_search_keys(
 
 @router.get(
     path="/{secret_id}",
-    response_model=Union[schema.LoginSchema, schema.ServerSchema, schema.BankSchema, schema.PhoneSchema],
-    summary="Retreive secret"
+    response_model=Union[
+        schema.LoginSchema, schema.ServerSchema, schema.BankSchema, schema.PhoneSchema
+    ],
+    summary="Retreive secret",
 )
 async def get_secret(
     secret_id: str,
     request: Request,
     background_task: BackgroundTasks,
-    user: LoggedUser = Depends(get_current_user)
+    user: LoggedUser = Depends(get_current_user),
 ):
     try:
         secret = Secret.objects(pk=secret_id).get()
         secret_schema = secret.schema()
 
-        workspace_pk = secret.folder.workspace.pk if secret.folder is not None else secret.trash.workspace.pk
+        workspace_pk = (
+            secret.folder.workspace.pk
+            if secret.folder is not None
+            else secret.trash.workspace.pk
+        )
         workspace, sym_key = WorkspaceUtils.get_workspace(workspace_pk, user)
 
         decrypted_sym_key = CryptoUtils.rsa_decrypt(
-            sym_key,
-            user.in_db.private_key,
-            CryptoUtils.decrypt_password(user)
+            sym_key, user.in_db.private_key, CryptoUtils.decrypt_password(user)
         )
 
         decrypted_secret = WorkspaceUtils.decrypt_secret(
-            decrypted_sym_key,
-            secret_schema,
-            get_protected_fields=True
+            decrypted_sym_key, secret_schema, get_protected_fields=True
         )
 
-        action = f"in folder {secret.folder.name}" if secret.folder is not None else "in trash"
+        action = (
+            f"in folder {secret.folder.name}"
+            if secret.folder is not None
+            else "in trash"
+        )
 
         create_history(
             user=user.in_db.email,
             workspace=workspace.name,
             folder=secret.folder.name,
             secret=secret.name.value,
-            action=f"Retreive secret for secret {decrypted_secret.name.value} {action}"
+            action=f"Retreive secret for secret {decrypted_secret.name.value} {action}",
         )
 
         if user.email != decrypted_secret.created_by:
@@ -177,12 +194,16 @@ async def get_secret(
                 secret=secret,
                 request=request,
                 mail=True,
-                background_task=background_task
+                background_task=background_task,
             )
 
-        logger.info(f"[SECRET][{str(workspace.pk)}][{workspace.name}] {user.in_db.email} retreive secret {decrypted_secret.name.value}")
+        logger.info(
+            f"[SECRET][{str(workspace.pk)}][{workspace.name}] {user.in_db.email} retreive secret {decrypted_secret.name.value}"
+        )
         if decrypted_secret.folder is not None:
-            decrypted_secret.folder_name = Folder.objects(pk=decrypted_secret.folder).get().name
+            decrypted_secret.folder_name = (
+                Folder.objects(pk=decrypted_secret.folder).get().name
+            )
         else:
             decrypted_secret.folder_name = ""
         decrypted_secret.workspace_name = workspace.name
@@ -190,19 +211,13 @@ async def get_secret(
 
     except Secret.DoesNotExist:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Secret not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Secret not found"
         )
-    
 
-@router.post(
-    path="/",
-    summary="Create a secret",
-    status_code=status.HTTP_201_CREATED
-)
+
+@router.post(path="/", summary="Create a secret", status_code=status.HTTP_201_CREATED)
 async def create_secret(
-    schema: schema.CreateSecretSchema,
-    user: LoggedUser = Depends(get_current_user)
+    schema: schema.CreateSecretSchema, user: LoggedUser = Depends(get_current_user)
 ) -> str:
     try:
         folder: Folder = Folder.objects(pk=schema.secret.folder).get()
@@ -213,13 +228,17 @@ async def create_secret(
 
         policy = None
         if folder.password_policy:
-            policy: PasswordPolicySchema = PasswordPolicySchema(**folder.password_policy.to_mongo())
+            policy: PasswordPolicySchema = PasswordPolicySchema(
+                **folder.password_policy.to_mongo()
+            )
         elif workspace.password_policy:
-            policy: PasswordPolicySchema = PasswordPolicySchema(**workspace.password_policy.to_mongo())
+            policy: PasswordPolicySchema = PasswordPolicySchema(
+                **workspace.password_policy.to_mongo()
+            )
 
         if policy:
             check_password_complexity(policy, schema.secret)
-            
+
         encrypted_secret = WorkspaceUtils.encrypt_secret(user, sym_key, schema.secret)
         encrypted_secret.folder = folder
         encrypted_secret.package_name = schema.package_name
@@ -233,32 +252,38 @@ async def create_secret(
             workspace=workspace.name,
             folder=encrypted_secret.folder.name,
             secret=encrypted_secret.name.value,
-            action=f"Create secret {schema.secret.name.value} in folder {encrypted_secret.folder.name}"
+            action=f"Create secret {schema.secret.name.value} in folder {encrypted_secret.folder.name}",
         )
 
-        logger.info(f"[SECRET][{str(workspace.pk)}][{workspace.name}] {user.in_db.email} create secret {schema.secret.name.value}")
+        logger.info(
+            f"[SECRET][{str(workspace.pk)}][{workspace.name}] {user.in_db.email} create secret {schema.secret.name.value}"
+        )
         return str(encrypted_secret.pk)
 
     except Folder.DoesNotExist:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Folder not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Folder not found"
         )
 
 
 @router.post(
     path="/{secret_id}/move",
     summary="Move secret to an other folder",
-    status_code=status.HTTP_202_ACCEPTED
+    status_code=status.HTTP_202_ACCEPTED,
 )
 async def move_key(
     secret_id: str,
     folder_id: str = Body(...),
-    user: LoggedUser = Depends(get_current_user)
+    user: LoggedUser = Depends(get_current_user),
 ):
     try:
         secret: Secret = Secret.objects(pk=secret_id).get()
-        workspace, _ = WorkspaceUtils.get_workspace(secret.folder.workspace.pk if secret.trash is None else secret.trash.workspace.pk, user)
+        workspace, _ = WorkspaceUtils.get_workspace(
+            secret.folder.workspace.pk
+            if secret.trash is None
+            else secret.trash.workspace.pk,
+            user,
+        )
         WorkspaceUtils.have_rights(workspace, user)
         new_folder: Folder = Folder.objects(pk=folder_id).get()
 
@@ -269,71 +294,73 @@ async def move_key(
         secret.folder = new_folder
         secret.save()
 
-        logger.info(f"[SECRET][{str(workspace.pk)}][{workspace.name}] {user.in_db.email} move secret {secret.name.value}")
+        logger.info(
+            f"[SECRET][{str(workspace.pk)}][{workspace.name}] {user.in_db.email} move secret {secret.name.value}"
+        )
 
         create_history(
             user=user.in_db.email,
             workspace=workspace.name,
             folder=new_folder.name,
             secret=secret.name.value,
-            action=f"Move secret from {old_folder_name} to {new_folder.name}"
+            action=f"Move secret from {old_folder_name} to {new_folder.name}",
         )
 
         return Response(status_code=status.HTTP_202_ACCEPTED)
     except Folder.DoesNotExist:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Folder not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Folder not found"
         )
 
     except Secret.DoesNotExist:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Secret not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Secret not found"
         )
 
+
 @router.put(
-    path="/{secret_id}",
-    summary="Edit a secret",
-    status_code=status.HTTP_202_ACCEPTED
+    path="/{secret_id}", summary="Edit a secret", status_code=status.HTTP_202_ACCEPTED
 )
 async def update_secret(
     secret_id: str,
     schema: schema.CreateSecretSchema,
-    user: LoggedUser = Depends(get_current_user)
+    user: LoggedUser = Depends(get_current_user),
 ) -> None:
     try:
         secret: Secret = Secret.objects(pk=secret_id).get()
         if secret.folder is None:
             raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Secret is in trash"
+                status_code=status.HTTP_403_FORBIDDEN, detail="Secret is in trash"
             )
-        workspace, sym_key = WorkspaceUtils.get_workspace(secret.folder.workspace.pk, user)
+        workspace, sym_key = WorkspaceUtils.get_workspace(
+            secret.folder.workspace.pk, user
+        )
 
         WorkspaceUtils.have_rights(workspace, user)
 
         policy = None
         if secret.folder.password_policy:
-            policy: PasswordPolicySchema = PasswordPolicySchema(**secret.folder.password_policy.to_mongo())
+            policy: PasswordPolicySchema = PasswordPolicySchema(
+                **secret.folder.password_policy.to_mongo()
+            )
         elif workspace.password_policy:
-            policy: PasswordPolicySchema = PasswordPolicySchema(**workspace.password_policy.to_mongo())
+            policy: PasswordPolicySchema = PasswordPolicySchema(
+                **workspace.password_policy.to_mongo()
+            )
 
         if policy:
             check_password_complexity(policy, schema.secret)
 
         decrypted_sym_key = CryptoUtils.rsa_decrypt(
-            sym_key,
-            user.in_db.private_key,
-            CryptoUtils.decrypt_password(user)
+            sym_key, user.in_db.private_key, CryptoUtils.decrypt_password(user)
         )
         decrypted_secret = WorkspaceUtils.decrypt_secret(
-            decrypted_sym_key,
-            secret.schema(),
-            get_protected_fields=True
+            decrypted_sym_key, secret.schema(), get_protected_fields=True
         )
 
-        encrypted_secret: Secret = WorkspaceUtils.encrypt_secret(user, sym_key, schema.secret)
+        encrypted_secret: Secret = WorkspaceUtils.encrypt_secret(
+            user, sym_key, schema.secret
+        )
 
         encrypted_secret.check_changes(decrypted_secret, schema.secret)
 
@@ -351,40 +378,39 @@ async def update_secret(
             workspace=workspace.name,
             folder=secret.folder.name,
             secret=secret.name.value,
-            action=f"Update secret {schema.secret.name.value} in folder {secret.folder.name}"
+            action=f"Update secret {schema.secret.name.value} in folder {secret.folder.name}",
         )
 
-        logger.info(f"[SECRET][{str(workspace.pk)}][{workspace.name}] {user.in_db.email} update secret {schema.secret.name.value}")
+        logger.info(
+            f"[SECRET][{str(workspace.pk)}][{workspace.name}] {user.in_db.email} update secret {schema.secret.name.value}"
+        )
         return Response(status_code=status.HTTP_202_ACCEPTED)
 
     except Login.DoesNotExist:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Secret not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Secret not found"
         )
     except Folder.DoesNotExist:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Folder not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Folder not found"
         )
 
 
 @router.delete(
     path="/{secret_id}",
     summary="Delete a secret",
-    status_code=status.HTTP_204_NO_CONTENT
+    status_code=status.HTTP_204_NO_CONTENT,
 )
 async def delete_secret(
-    secret_id: str,
-    user: LoggedUser = Depends(get_current_user)
+    secret_id: str, user: LoggedUser = Depends(get_current_user)
 ) -> None:
     try:
         secret: Secret = Secret.objects(pk=secret_id).get()
 
         if secret.folder is not None:
             raise HTTPException(
-                status_code= status.HTTP_400_BAD_REQUEST,
-                detail="You have to first put the secret in the trash to delete it"
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="You have to first put the secret in the trash to delete it",
             )
         workspace: Workspace = secret.trash.workspace
         WorkspaceUtils.have_rights(workspace, user)
@@ -394,35 +420,34 @@ async def delete_secret(
             user=user.email,
             workspace=workspace.name,
             secret=secret.name.value,
-            action=f"Delete secret {secret.name.value} in trash"
+            action=f"Delete secret {secret.name.value} in trash",
         )
 
-        logger.info(f"[SECRET][{str(workspace.pk)}][{workspace.name}] {user.in_db.email} delete secret {secret.name.value}")
-    
+        logger.info(
+            f"[SECRET][{str(workspace.pk)}][{workspace.name}] {user.in_db.email} delete secret {secret.name.value}"
+        )
+
     except Secret.DoesNotExist:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Secret not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Secret not found"
         )
-
 
 
 @router.delete(
     path="/{secret_id}/trash",
     summary="Move a secret to the trash",
-    status_code=status.HTTP_204_NO_CONTENT
+    status_code=status.HTTP_204_NO_CONTENT,
 )
 async def move_to_trash_secret(
-    secret_id: str,
-    user: LoggedUser = Depends(get_current_user)
+    secret_id: str, user: LoggedUser = Depends(get_current_user)
 ) -> None:
     try:
         secret: Secret = Secret.objects(pk=secret_id).get()
         folder_name: str = secret.folder.name
         if secret.trash is not None:
             raise HTTPException(
-                status_code = status.HTTP_400_BAD_REQUEST,
-                detail = "The secret is alreay in the trash"
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="The secret is alreay in the trash",
             )
 
         workspace: Workspace = secret.folder.workspace
@@ -436,52 +461,50 @@ async def move_to_trash_secret(
             workspace=workspace.name,
             folder=folder_name,
             secret=secret.name.value,
-            action=f"Move secret {secret.name.value} in the trash"
+            action=f"Move secret {secret.name.value} in the trash",
         )
 
-        logger.info(f"[SECRET][{str(workspace.pk)}][{workspace.name}] {user.in_db.email} move secret {secret.name.value} to trash")
-    
+        logger.info(
+            f"[SECRET][{str(workspace.pk)}][{workspace.name}] {user.in_db.email} move secret {secret.name.value} to trash"
+        )
+
     except Secret.DoesNotExist:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Secret not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Secret not found"
         )
+
 
 @router.patch(
     path="/{secret_id}/restore",
-    summary = "Restore a secret from the trash",
-    status_code = status.HTTP_204_NO_CONTENT
+    summary="Restore a secret from the trash",
+    status_code=status.HTTP_204_NO_CONTENT,
 )
-async def restore(
-    secret_id: str,
-    user : LoggedUser = Depends(get_current_user)
-) -> None:
+async def restore(secret_id: str, user: LoggedUser = Depends(get_current_user)) -> None:
     try:
         secret: Secret = Secret.objects(pk=secret_id).get()
     except Secret.DoesNotExist:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Secret not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Secret not found"
         )
 
     if secret.trash is None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail = "The secret is not in the trash"    
+            detail="The secret is not in the trash",
         )
 
-    workspace : Workspace = secret.trash.workspace
+    workspace: Workspace = secret.trash.workspace
     WorkspaceUtils.have_rights(workspace, user)
-    SecretUtils.restore(secret, workspace,user)
+    SecretUtils.restore(secret, workspace, user)
 
     create_history(
         user=user.email,
         workspace=workspace.name,
         folder=secret.folder.name,
         secret=secret.name.value,
-        action=f"Restored secret {secret.name.value}"
+        action=f"Restored secret {secret.name.value}",
     )
 
-    logger.info(f"[SECRET][{str(workspace.pk)}][{workspace.name}] {user.in_db.email} restored secret {secret.name.value}")
-
-
+    logger.info(
+        f"[SECRET][{str(workspace.pk)}][{workspace.name}] {user.in_db.email} restored secret {secret.name.value}"
+    )

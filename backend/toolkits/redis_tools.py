@@ -19,7 +19,7 @@ __license__ = "GPLv3"
 __version__ = "3.0.0"
 __maintainer__ = "Teamlock Project"
 __email__ = "contact@teamlock.io"
-__doc__ = ''
+__doc__ = ""
 
 
 from settings import settings
@@ -70,4 +70,3 @@ class RedisTools:
     def delete(cls, key: str) -> None:
         redis_cli: Redis = cls.__get_redis_client()
         redis_cli.delete(key)
-        

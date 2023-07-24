@@ -19,7 +19,7 @@ __license__ = "GPLv3"
 __version__ = "3.0.0"
 __maintainer__ = "Teamlock Project"
 __email__ = "contact@teamlock.io"
-__doc__ = ''
+__doc__ = ""
 
 from apps.user.schema import UserSchema
 from pydantic import BaseModel, Field
@@ -47,11 +47,8 @@ class LoggedUser(UserSchema):
 
     class Config:
         arbitrary_types_allowed: bool = True
-        json_encoders: dict = {
-            ObjectId: str
-        }
+        json_encoders: dict = {ObjectId: str}
 
 
 class RegistrationSchema(BaseModel):
     email: str
-    

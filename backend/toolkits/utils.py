@@ -19,7 +19,7 @@ __license__ = "GPLv3"
 __version__ = "3.0.0"
 __maintainer__ = "Teamlock Project"
 __email__ = "contact@teamlock.io"
-__doc__ = ''
+__doc__ = ""
 
 from apps.config.schema import ConfigSchema, PasswordPolicySchema
 from mongoengine.errors import NotUniqueError
@@ -47,6 +47,7 @@ def render_template(template: str, context: dict) -> str:
     j2_template = jinja2.Template(template)
     return j2_template.render(context)
 
+
 def fetch_config(as_schema: bool = False) -> Config | ConfigSchema:
     config: Config = Config.objects.get()
 
@@ -55,35 +56,34 @@ def fetch_config(as_schema: bool = False) -> Config | ConfigSchema:
 
     return config
 
+
 def check_password_complexity(policy: PasswordPolicySchema, secret_def):
     policy_fields = secret_def.Base.policy_field
 
     errors: list = []
     for field in policy_fields:
-        errors.extend(policy.verify(
-            password=getattr(secret_def, field).value
-        ))
+        errors.extend(policy.verify(password=getattr(secret_def, field).value))
 
     if len(errors) > 0:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail={
                 "error": f"Value for field {field} not allowed by policy",
-                "details": errors
-            }
+                "details": errors,
+            },
         )
 
 
-def create_user_toolkits(user_def: EditUserSchema, background_task: BackgroundTasks) -> str:
+def create_user_toolkits(
+    user_def: EditUserSchema, background_task: BackgroundTasks
+) -> str:
     try:
         # Create User
-        user: User = User(
-            email=user_def.email,
-            is_admin=user_def.is_admin
-        )
+        user: User = User(email=user_def.email, is_admin=user_def.is_admin)
 
         try:
             from teamlock_pro.toolkits.proUsers import add_otp_to_user
+
             user = add_otp_to_user(user)
         except ImportError:
             pass
@@ -94,10 +94,7 @@ def create_user_toolkits(user_def: EditUserSchema, background_task: BackgroundTa
         url: str = f"#/configure/{str(user.pk)}"
         if settings.SMTP_HOST:
             background_task.add_task(
-                MailUtils.send_mail,
-                [user.email],
-                url,
-                "registration"
+                MailUtils.send_mail, [user.email], url, "registration"
             )
 
         return str(user.pk)
@@ -112,7 +109,7 @@ def create_user_toolkits(user_def: EditUserSchema, background_task: BackgroundTa
 
 
 def get_client_information(request):
-    os = request.headers.get("sec-ch-ua-platform", "").replace('"', '')
+    os = request.headers.get("sec-ch-ua-platform", "").replace('"', "")
     user_agent = request.headers.get("user-agent", "")
 
     client_ip = request.headers.get(settings.IP_HEADER, request.client.host)
@@ -123,7 +120,6 @@ def get_client_information(request):
         geo = None
 
     return os, user_agent, client_ip, geo
-
 
 
 def create_user_session(user, request) -> None | dict:
@@ -139,7 +135,7 @@ def create_user_session(user, request) -> None | dict:
         ip_address=client_ip,
         user_agent=user_agent,
         country=geo.country or "",
-        city=geo.city or ""
+        city=geo.city or "",
     )
 
     if len(user.known_ip_addresses) == 0:
@@ -159,8 +155,4 @@ def create_user_session(user, request) -> None | dict:
     RedisTools.delete(f"{user.email}_invalid_auth")
 
     if send_security_alert_email:
-        return {
-            "ip_address": client_ip,
-            "country": geo.country,
-            "city": geo.city
-        }
+        return {"ip_address": client_ip, "country": geo.country, "city": geo.city}

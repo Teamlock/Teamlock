@@ -19,7 +19,7 @@ __license__ = "GPLv3"
 __version__ = "3.0.0"
 __maintainer__ = "Teamlock Project"
 __email__ = "contact@teamlock.io"
-__doc__ = ''
+__doc__ = ""
 
 from pydantic import BaseModel, Field
 from toolkits.bson import PyObjectId
@@ -49,8 +49,8 @@ class GlobalSecretSchema(BaseSecretSchema):
     id: PyObjectId = Field(default_factory=PyObjectId, alias="_id")
     created_at: datetime
     updated_at: datetime
-    created_by: str|None
-    updated_by: str|None
+    created_by: str | None
+    updated_by: str | None
     password_last_change: datetime
     folder_name: str = ""
     workspace_name: str = ""
@@ -58,9 +58,7 @@ class GlobalSecretSchema(BaseSecretSchema):
     class Config:
         allow_population_by_field_name: bool = True
         arbitrary_types_allowed: bool = True
-        json_encoders: dict = {
-            ObjectId: str
-        }
+        json_encoders: dict = {ObjectId: str}
 
 
 class BaseLoginSchema(BaseModel):
@@ -95,7 +93,13 @@ class BaseBankSchema(BaseModel):
     cvc: SecretValueSchema = SecretValueSchema()
 
     class Base:
-        protected_fields: tuple = ("iban", "bic", "card_number", "expiration_date", "cvc")
+        protected_fields: tuple = (
+            "iban",
+            "bic",
+            "card_number",
+            "expiration_date",
+            "cvc",
+        )
         policy_field: tuple = ()
 
 
@@ -116,9 +120,7 @@ class LoginSchema(GlobalSecretSchema, BaseLoginSchema):
         orm_mode = True
         allow_population_by_field_name: bool = True
         arbitrary_types_allowed: bool = True
-        json_encoders: dict = {
-            ObjectId: str
-        }
+        json_encoders: dict = {ObjectId: str}
 
 
 class CreateLoginSchema(BaseSecretSchema, BaseLoginSchema):
@@ -132,9 +134,7 @@ class ServerSchema(GlobalSecretSchema, BaseServerSchema):
         orm_mode = True
         allow_population_by_field_name: bool = True
         arbitrary_types_allowed: bool = True
-        json_encoders: dict = {
-            ObjectId: str
-        }
+        json_encoders: dict = {ObjectId: str}
 
 
 class CreateServerSchema(BaseSecretSchema, BaseServerSchema):
@@ -148,9 +148,7 @@ class BankSchema(GlobalSecretSchema, BaseBankSchema):
         orm_mode = True
         allow_population_by_field_name: bool = True
         arbitrary_types_allowed: bool = True
-        json_encoders: dict = {
-            ObjectId: str
-        }
+        json_encoders: dict = {ObjectId: str}
 
 
 class CreateBankSchema(BaseSecretSchema, BaseBankSchema):
@@ -164,9 +162,7 @@ class PhoneSchema(GlobalSecretSchema, BasePhoneSchema):
         orm_mode = True
         allow_population_by_field_name: bool = True
         arbitrary_types_allowed: bool = True
-        json_encoders: dict = {
-            ObjectId: str
-        }
+        json_encoders: dict = {ObjectId: str}
 
 
 class CreatePhoneSchema(BaseSecretSchema, BasePhoneSchema):
@@ -176,24 +172,16 @@ class CreatePhoneSchema(BaseSecretSchema, BasePhoneSchema):
 class CreateSecretSchema(BaseModel):
     package_name: str = ""
     secret: Union[
-        CreateLoginSchema,
-        CreateServerSchema,
-        CreateBankSchema,
-        CreatePhoneSchema
+        CreateLoginSchema, CreateServerSchema, CreateBankSchema, CreatePhoneSchema
     ] = Field(..., discriminator="secret_type")
 
 
 class GetSecretSchema(BaseModel):
-    __root__: Union[
-        LoginSchema,
-        ServerSchema,
-        PhoneSchema,
-        BankSchema
-    ] = Field(..., discriminator="secret_type")
-    
+    __root__: Union[LoginSchema, ServerSchema, PhoneSchema, BankSchema] = Field(
+        ..., discriminator="secret_type"
+    )
+
     class Config:
         allow_population_by_field_name: bool = True
         arbitrary_types_allowed: bool = True
-        json_encoders: dict = {
-            ObjectId: str
-        }
+        json_encoders: dict = {ObjectId: str}

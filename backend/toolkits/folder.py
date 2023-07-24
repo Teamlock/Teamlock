@@ -9,21 +9,24 @@ from toolkits import const
 from bson import ObjectId
 from fastapi import status
 
+
 class FolderUtils:
     @classmethod
-    def get_children(cls,folder_id: str | ObjectId) -> list[Folder]:
-        """Get all the children folder of the folder id 
+    def get_children(cls, folder_id: str | ObjectId) -> list[Folder]:
+        """Get all the children folder of the folder id
 
         Args:
             folder_id (str | ObjectId): id of the folder
-        """ 
-        children_list : list = []
+        """
+        children_list: list = []
+
         def fill_children(id):
             children = Folder.objects(parent=id)
             children_list.extend(children)
             if id and children:
                 for child in children:
                     fill_children(child.pk)
+
         fill_children(folder_id)
         return children_list
 
@@ -35,16 +38,17 @@ class FolderUtils:
             folder_id (str | ObjectId): id of the folder
             trash (Trash): trash of the workspace
             user (LoggedUser) : user who move the folder
-        """ 
+        """
+
         def search_secret(folder: Folder):
             total_secrets: int = 0
-            for cat in const.MAPPING_SECRET:  #get secrets for each category
+            for cat in const.MAPPING_SECRET:  # get secrets for each category
                 model_ = const.MAPPING_SECRET[cat]
                 tmp_secrets: list = list(model_.objects(folder=folder))
                 total_secrets += len(tmp_secrets)
 
                 for secret in tmp_secrets:
-                    SecretUtils.move_to_trash(secret,trash)
+                    SecretUtils.move_to_trash(secret, trash)
 
             return total_secrets
 
@@ -59,22 +63,23 @@ class FolderUtils:
         return total
 
     @classmethod
-    def get_root_children(cls,folder_id: str | ObjectId) -> list[Folder]:
+    def get_root_children(cls, folder_id: str | ObjectId) -> list[Folder]:
         """Get the first children (1st layer) of a folder
 
         Args:
             folder_id (str | ObjectId): id of the folder
-        """ 
+        """
         try:
             return Folder.objects(parent=folder_id)
         except Folder.DoesNotExist:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Folder not found"
+                status_code=status.HTTP_404_NOT_FOUND, detail="Folder not found"
             )
-    
+
     @classmethod
-    def get_secrets(cls,folder_id: str | ObjectId, category : str, user)-> list[Secret]:
+    def get_secrets(
+        cls, folder_id: str | ObjectId, category: str, user
+    ) -> list[Secret]:
         """Get all secrets in a folder
 
         Args:
@@ -86,8 +91,7 @@ class FolderUtils:
             folder: Folder = Folder.objects(pk=folder_id).get()
         except Folder.DoesNotExist:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Folder not found"
+                status_code=status.HTTP_404_NOT_FOUND, detail="Folder not found"
             )
 
         _, sym_key = WorkspaceUtils.get_workspace(folder.workspace.pk, user)
@@ -97,15 +101,10 @@ class FolderUtils:
         secrets: list = []
 
         decrypted_sym_key = CryptoUtils.rsa_decrypt(
-            sym_key,
-            user.in_db.private_key,
-            CryptoUtils.decrypt_password(user)
+            sym_key, user.in_db.private_key, CryptoUtils.decrypt_password(user)
         )
 
         for tmp in tmp_secrets:
             schema = tmp.schema()
             secrets.append(WorkspaceUtils.decrypt_secret(decrypted_sym_key, schema))
         return secrets
-
-        
-                

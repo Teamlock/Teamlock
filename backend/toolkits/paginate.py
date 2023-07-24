@@ -19,7 +19,7 @@ __license__ = "GPLv3"
 __version__ = "3.0.0"
 __maintainer__ = "Teamlock Project"
 __email__ = "contact@teamlock.io"
-__doc__ = ''
+__doc__ = ""
 
 from pydantic import BaseModel
 from datetime import datetime
@@ -61,17 +61,8 @@ class PaginationResponseSchema(BaseModel):
 
 
 def get_order(sort) -> dict:
-    order_dir: dict = {
-        "desc": -1,
-        "asc": 1
-    }
+    order_dir: dict = {"desc": -1, "asc": 1}
 
     sort_field, order = sort.split("|")
 
-    return {
-        "$sort": {
-            sort_field: order_dir.get(order, -1)
-        }
-    }
-
-    
+    return {"$sort": {sort_field: order_dir.get(order, -1)}}

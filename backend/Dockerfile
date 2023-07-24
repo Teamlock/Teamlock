@@ -1,4 +1,4 @@
-FROM python:3.10
+FROM python:3.10-slim
 ARG VERSION
 COPY . /app
 WORKDIR /app

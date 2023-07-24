@@ -19,7 +19,7 @@ __license__ = "GPLv3"
 __version__ = "3.0.0"
 __maintainer__ = "Teamlock Project"
 __email__ = "contact@teamlock.io"
-__doc__ = ''
+__doc__ = ""
 
 from apps.config.models import PasswordPolicy
 from apps.workspace.models import Workspace
@@ -34,17 +34,13 @@ class Folder(mongoengine.Document):
     created_at = mongoengine.DateTimeField(default=datetime.utcnow)
     password_policy = mongoengine.EmbeddedDocumentField(PasswordPolicy)
     created_by = mongoengine.ReferenceField(
-        User,
-        reverse_delete_rule=mongoengine.NULLIFY
+        User, reverse_delete_rule=mongoengine.NULLIFY
     )
 
     parent = mongoengine.ReferenceField(
-        "Folder",
-        null=True,
-        reverse_delete_rule=mongoengine.CASCADE
+        "Folder", null=True, reverse_delete_rule=mongoengine.CASCADE
     )
 
     workspace = mongoengine.ReferenceField(
-        Workspace,
-        reverse_delete_rule=mongoengine.CASCADE
+        Workspace, reverse_delete_rule=mongoengine.CASCADE
     )

@@ -19,7 +19,7 @@ __license__ = "GPLv3"
 __version__ = "3.0.0"
 __maintainer__ = "Teamlock Project"
 __email__ = "contact@teamlock.io"
-__doc__ = ''
+__doc__ = ""
 
 from apps.config.schema import PasswordPolicySchema
 from apps.user.schema import UserSchema
@@ -35,8 +35,7 @@ class WorkspaceSchema(BaseModel):
     icon: str | None
     created_at: datetime.datetime
     last_change: datetime.datetime
-    password_policy: PasswordPolicySchema | None = Field(
-        alias="password_policy")
+    password_policy: PasswordPolicySchema | None = Field(alias="password_policy")
     nb_folders: int | None
     nb_secrets: int | None
     import_in_progress: bool = False
@@ -44,9 +43,7 @@ class WorkspaceSchema(BaseModel):
     class Config:
         allow_population_by_field_name: bool = True
         arbitrary_types_allowed: bool = True
-        json_encoders: dict = {
-            ObjectId: str
-        }
+        json_encoders: dict = {ObjectId: str}
 
 
 class EditWorkspaceSchema(BaseModel):
@@ -77,9 +74,7 @@ class ShareSchema(BaseModel):
     class Config:
         allow_population_by_field_name: bool = True
         arbitrary_types_allowed: bool = True
-        json_encoders: dict = {
-            ObjectId: str
-        }
+        json_encoders: dict = {ObjectId: str}
 
 
 class UsersWorkspace(BaseModel):
@@ -96,9 +91,7 @@ class UsersWorkspace(BaseModel):
     class Config:
         allow_population_by_field_name: bool = True
         arbitrary_types_allowed: bool = True
-        json_encoders: dict = {
-            ObjectId: str
-        }
+        json_encoders: dict = {ObjectId: str}
 
 
 class EditShareSchema(BaseModel):

@@ -19,7 +19,7 @@ __license__ = "GPLv3"
 __version__ = "3.0.0"
 __maintainer__ = "Teamlock Project"
 __email__ = "contact@teamlock.io"
-__doc__ = ''
+__doc__ = ""
 
 from toolkits.paginate import PaginationParamsSchema, UserPaginationSchema, get_order
 from apps.auth.tools import get_current_user, hash_password, is_admin, check_password
@@ -57,25 +57,24 @@ router: APIRouter = APIRouter()
     status_code=status.HTTP_200_OK,
     response_model=schema.UserTableSchema | list[schema.UserSchema],
     summary="Get users",
-    dependencies=[Depends(is_admin)]
+    dependencies=[Depends(is_admin)],
 )
 async def get_users(
-    all: bool = False,
-    paginate: UserPaginationSchema = Depends()
-) -> schema.UserTableSchema:        
+    all: bool = False, paginate: UserPaginationSchema = Depends()
+) -> schema.UserTableSchema:
     if all:
-        users: list = [schema.UserSchema(**obj.to_mongo()) for obj in User.objects.all()]
+        users: list = [
+            schema.UserSchema(**obj.to_mongo()) for obj in User.objects.all()
+        ]
         return users
 
     if not paginate.sort:
         paginate.sort = "email|desc"
-    
+
     aggs: list = []
     match: dict = {"$match": {}}
     if paginate.search:
-        match["$match"]["email"] = {
-            "$regex": paginate.search
-        }
+        match["$match"]["email"] = {"$regex": paginate.search}
 
     if paginate.lockedUsers:
         match["$match"]["is_locked"] = True
@@ -90,7 +89,7 @@ async def get_users(
         aggs.append(match)
 
     aggs.append(get_order(paginate.sort))
-    skip: int = (paginate.page -1) * paginate.per_page
+    skip: int = (paginate.page - 1) * paginate.per_page
     if paginate.per_page != -1:
         aggs.append({"$skip": skip})
         aggs.append({"$limit": paginate.per_page})
@@ -118,34 +117,34 @@ async def get_users(
     path="/configured",
     response_model=list[schema.ConfiguredUsers],
     summary="Get list of configured users",
-    description="Return all users who has no rights on a specific workspace"
+    description="Return all users who has no rights on a specific workspace",
 )
 async def get_configured_users(
-    workspace_id: str,
-    user: LoggedUser = Depends(get_current_user)
+    workspace_id: str, user: LoggedUser = Depends(get_current_user)
 ):
     workspace, _ = WorkspaceUtils.get_workspace(workspace_id, user)
     shares = [s.user.pk for s in Share.objects(workspace=workspace)]
 
-    tmp_configured_users = [u.to_mongo() for u in User.objects(pk__nin=shares, is_configured=True).order_by("email")]
+    tmp_configured_users = [
+        u.to_mongo()
+        for u in User.objects(pk__nin=shares, is_configured=True).order_by("email")
+    ]
     return tmp_configured_users
 
 
 @router.get(
     path="/sessions",
     summary="Get sessions of an User",
-    response_model=schema.UserSessionTableSchema
+    response_model=schema.UserSessionTableSchema,
 )
 async def get_sessions(
     paginate: PaginationParamsSchema = Depends(),
-    user: LoggedUser = Depends(get_current_user)
+    user: LoggedUser = Depends(get_current_user),
 ):
     if not paginate.sort:
         paginate.sort = "date|desc"
 
-    match: dict = {"$match": {
-        "user": user.id
-    }}
+    match: dict = {"$match": {"user": user.id}}
 
     aggs: list = [match]
     aggs.append(get_order(paginate.sort))
@@ -165,7 +164,7 @@ async def get_sessions(
         to=skip + len(sessions),
         current_page=paginate.page,
         per_page=paginate.per_page,
-        last_pages=math.ceil(total_objects / paginate.per_page)
+        last_pages=math.ceil(total_objects / paginate.per_page),
     )
 
 
@@ -173,29 +172,27 @@ async def get_sessions(
     path="",
     status_code=status.HTTP_201_CREATED,
     summary="Endpoint to create an user",
-    dependencies=[Depends(is_admin)]
+    dependencies=[Depends(is_admin)],
 )
-async def create_user(user_def: schema.EditUserSchema, background_task: BackgroundTasks) -> str:
+async def create_user(
+    user_def: schema.EditUserSchema, background_task: BackgroundTasks
+) -> str:
     try:
         if settings.MAX_USERS > 0:
             # Check if max users has been reached
             nb_users: int = User.objects.count()
             if nb_users >= settings.MAX_USERS:
                 raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="MAX USERS LIMIT"
+                    status_code=status.HTTP_400_BAD_REQUEST, detail="MAX USERS LIMIT"
                 )
 
         user_id: str = create_user_toolkits(user_def, background_task)
         return user_id
     except UserExistException:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT
-        )
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT)
     except Exception as err:
         raise HTTPException(
-            detail=str(err),
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
+            detail=str(err), status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
 
 
@@ -203,7 +200,7 @@ async def create_user(user_def: schema.EditUserSchema, background_task: Backgrou
     path="/bulk",
     status_code=status.HTTP_201_CREATED,
     summary="Create several users",
-    dependencies=[Depends(is_admin)]
+    dependencies=[Depends(is_admin)],
 )
 async def bulk_create_user(users_def: list[schema.EditUserSchema]) -> list[str]:
     errors: list = []
@@ -213,10 +210,12 @@ async def bulk_create_user(users_def: list[schema.EditUserSchema]) -> list[str]:
     if settings.MAX_USERS > 0:
         # Check if max users has been reached
         nb_users: int = User.objects.count()
-        if nb_users >= settings.MAX_USERS or len(users_def) + nb_users > settings.MAX_USERS:
+        if (
+            nb_users >= settings.MAX_USERS
+            or len(users_def) + nb_users > settings.MAX_USERS
+        ):
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="MAX USERS LIMIT"
+                status_code=status.HTTP_400_BAD_REQUEST, detail="MAX USERS LIMIT"
             )
 
     for user_def in users_def:
@@ -224,27 +223,20 @@ async def bulk_create_user(users_def: list[schema.EditUserSchema]) -> list[str]:
             users_id.append(create_user_toolkits(user_def))
             success.append(user_def.email)
         except UserExistException:
-            errors.append({
-                "email": user_def.email,
-                "error": "EXISTS"
-            })
+            errors.append({"email": user_def.email, "error": "EXISTS"})
         except Exception as err:
             raise HTTPException(
-                detail=str(err),
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
+                detail=str(err), status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
-    return {
-        "success": success,
-        "errors": errors
-    }
+    return {"success": success, "errors": errors}
 
 
 @router.put(
     path="/{user_id}",
     status_code=status.HTTP_202_ACCEPTED,
     summary="Change Admin status",
-    dependencies=[Depends(is_admin)]
+    dependencies=[Depends(is_admin)],
 )
 async def change_admin_status(
     user_id: str,
@@ -256,68 +248,60 @@ async def change_admin_status(
         user.save()
 
         return Response(status_code=status.HTTP_202_ACCEPTED)
-    
+
     except User.DoesNotExist:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
         )
 
 
-@router.put(
-    path="",
-    status_code=status.HTTP_202_ACCEPTED,
-    summary="Edit an user"
-)
+@router.put(path="", status_code=status.HTTP_202_ACCEPTED, summary="Edit an user")
 async def update_user(
     password_update_schema: schema.UpdateUserSchema,
     background_tasks: BackgroundTasks,
-    user: LoggedUser = Depends(get_current_user)
+    user: LoggedUser = Depends(get_current_user),
 ) -> None:
     if not check_password(password_update_schema.current_password, user.in_db.password):
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid password"
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid password"
         )
-    
+
     # Check if password is the same
     if check_password(password_update_schema.new_password, user.in_db.password):
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Used password"
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Used password"
         )
 
         # Check if password has already been used
     for password in user.in_db.last_passwords:
         if check_password(password_update_schema.new_password, password):
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Used password"
+                status_code=status.HTTP_400_BAD_REQUEST, detail="Used password"
             )
-    
+
     # Check password complexity
-    config: ConfigSchema = fetch_config(as_schema=True)    
+    config: ConfigSchema = fetch_config(as_schema=True)
 
     # Raise an error if password is not complex enough
-    if (error := config.password_policy.verify(password_update_schema.new_password)):
+    if error := config.password_policy.verify(password_update_schema.new_password):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail={
-                "error": f"Password not allowed by policy",
-                "details": error
-            }
+            detail={"error": f"Password not allowed by policy", "details": error},
         )
 
-    old_passphrase = CryptoUtils.prepare_password(password_update_schema.current_password)
+    old_passphrase = CryptoUtils.prepare_password(
+        password_update_schema.current_password
+    )
     WorkspaceUtils.update_password(
         user.in_db,
         old_passphrase,
         password_update_schema.new_password,
-        background_tasks
+        background_tasks,
     )
 
     try:
         from teamlock_pro.toolkits.proRecovery import send_recovery_key
+
         send_recovery_key(user, password_update_schema.new_password)
     except ImportError:
         pass
@@ -330,11 +314,10 @@ async def update_user(
     path="/recover/{user_id}",
     status_code=status.HTTP_202_ACCEPTED,
     summary="Enable recovery mode for an user",
-    dependencies=[Depends(is_admin)]
+    dependencies=[Depends(is_admin)],
 )
 async def enable_disable_recovery_mode(
-    user_id: str,
-    recovery_schema: schema.RecoveryModeSchema
+    user_id: str, recovery_schema: schema.RecoveryModeSchema
 ) -> None:
     try:
         user = User.objects(pk=user_id).get()
@@ -345,8 +328,7 @@ async def enable_disable_recovery_mode(
         return Response(status_code=status.HTTP_202_ACCEPTED)
     except User.DoesNotExist:
         raise HTTPException(
-            detail="User not found",
-            status_code=status.HTTP_404_NOT_FOUND
+            detail="User not found", status_code=status.HTTP_404_NOT_FOUND
         )
 
 
@@ -354,7 +336,7 @@ async def enable_disable_recovery_mode(
     path="/lock/{user_id}",
     status_code=status.HTTP_202_ACCEPTED,
     summary="Lock/Unlock an user",
-    dependencies=[Depends(is_admin)]
+    dependencies=[Depends(is_admin)],
 )
 async def lock_unlock_user(user_id: str, lock: schema.LockUserSchema) -> None:
     try:
@@ -365,8 +347,7 @@ async def lock_unlock_user(user_id: str, lock: schema.LockUserSchema) -> None:
         return Response(status_code=status.HTTP_202_ACCEPTED)
     except User.DoesNotExist:
         raise HTTPException(
-            detail="User not found",
-            status_code=status.HTTP_404_NOT_FOUND
+            detail="User not found", status_code=status.HTTP_404_NOT_FOUND
         )
 
 
@@ -375,7 +356,7 @@ async def lock_unlock_user(user_id: str, lock: schema.LockUserSchema) -> None:
     status_code=status.HTTP_204_NO_CONTENT,
     summary="Delete an user",
     description="Delete all personal workspaces and delete the user",
-    dependencies=[Depends(is_admin)]
+    dependencies=[Depends(is_admin)],
 )
 async def delete_user(user_id: str) -> None:
     try:
@@ -398,28 +379,26 @@ async def delete_user(user_id: str) -> None:
         user.delete()
 
         logger.info(f"[USER] {user.email} deleted")
-        return Response(status_code=status.HTTP_204_NO_CONTENT) 
+        return Response(status_code=status.HTTP_204_NO_CONTENT)
     except User.DoesNotExist:
         raise HTTPException(
-            detail="User not found",
-            status_code=status.HTTP_404_NOT_FOUND
+            detail="User not found", status_code=status.HTTP_404_NOT_FOUND
         )
 
 
 @router.get(
     path="/configure/{user_id}",
     summary="Check if user exists",
-    response_model=schema.NotConfigureUserSchema
+    response_model=schema.NotConfigureUserSchema,
 )
-async def check_user(
-    user_id: str
-) -> schema.UserSchema:
+async def check_user(user_id: str) -> schema.UserSchema:
     try:
         user = User.objects(pk=user_id, is_configured=False).get()
         tmp = user.to_mongo()
 
         try:
             from teamlock_pro.toolkits.proUsers import check_user_otp
+
             tmp = check_user_otp(user, tmp)
         except ImportError:
             pass
@@ -428,7 +407,7 @@ async def check_user(
     except User.DoesNotExist:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found or already configured"
+            detail="User not found or already configured",
         )
 
 
@@ -436,12 +415,10 @@ async def check_user(
     path="/configure/{user_id}",
     status_code=status.HTTP_202_ACCEPTED,
     summary="Endpoint to configure an user",
-    description="Configure an user. Set up internal password and generate Public & Private RSA Keys"
+    description="Configure an user. Set up internal password and generate Public & Private RSA Keys",
 )
 async def configure_user(
-    request: Request,
-    user_id: str, 
-    configure_schema: schema.ConfigureUserSchema
+    request: Request, user_id: str, configure_schema: schema.ConfigureUserSchema
 ) -> None:
     try:
         config: Config = Config.objects.get()
@@ -449,12 +426,12 @@ async def configure_user(
         user: User = User.objects(pk=user_id).get()
     except User.DoesNotExist:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User does not exists"
+            status_code=status.HTTP_404_NOT_FOUND, detail="User does not exists"
         )
-    
+
     try:
         from teamlock_pro.toolkits.proUsers import configure_otp
+
         user = configure_otp(user, configure_schema)
     except ImportError:
         pass
@@ -464,17 +441,18 @@ async def configure_user(
         logger.info(f"User {user.email} try to configure himself but he's locked")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Account locked by administrator"
+            detail="Account locked by administrator",
         )
 
     # Check if user is already configured
     if user.is_configured:
-        logger.info(f"User {user.email} try to configure himself but he's already configured")
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="Account already configured"
+        logger.info(
+            f"User {user.email} try to configure himself but he's already configured"
         )
-   
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail="Account already configured"
+        )
+
     # Check password complexity
     config: ConfigSchema = fetch_config(as_schema=True)
     # Raise an error if password is not complex enough
@@ -483,10 +461,7 @@ async def configure_user(
     if len(error) > 0:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail={
-                "error": f"Password not allowed by policy",
-                "details": error
-            }
+            detail={"error": f"Password not allowed by policy", "details": error},
         )
 
     # Generate User Private and Public RSA Keys
@@ -506,16 +481,14 @@ async def configure_user(
 
     try:
         from teamlock_pro.toolkits.proRecovery import send_recovery_key
+
         send_recovery_key(user, password=configure_schema.password)
     except ImportError:
         pass
 
     # Create Personal Workspace
     WorkspaceUtils.create_workspace(
-        user,
-        "Personal",
-        "mdi-account",
-        config.password_policy
+        user, "Personal", "mdi-account", config.password_policy
     )
 
     user.save()
@@ -525,9 +498,11 @@ async def configure_user(
     path="/recovery",
     status_code=status.HTTP_200_OK,
     summary="Generate Recovery Key",
-    description="Generate a file that can be used to recover an account when password is lost"
+    description="Generate a file that can be used to recover an account when password is lost",
 )
-async def generate_recovery_key(user: LoggedUser = Depends(get_current_user)) -> FileResponse:
+async def generate_recovery_key(
+    user: LoggedUser = Depends(get_current_user),
+) -> FileResponse:
     res = CryptoUtils.generate_recovery_symkey(user)
 
     user.in_db.encrypted_password = res.encrypted_password
@@ -540,30 +515,20 @@ async def generate_recovery_key(user: LoggedUser = Depends(get_current_user)) ->
 
     def cleanup_file(args):
         os.remove(args[0])
-    
-    return FileResponse(
-        filename,
-        background=BackgroundTask(cleanup_file, (filename,))
-    )
+
+    return FileResponse(filename, background=BackgroundTask(cleanup_file, (filename,)))
 
 
-@router.get(
-    path="/certificates",
-    summary="Download user certificate"
-)
+@router.get(path="/certificates", summary="Download user certificate")
 async def download_user_certificates(
-    background_tasks: BackgroundTasks,
-    user: LoggedUser = Depends(get_current_user)
+    background_tasks: BackgroundTasks, user: LoggedUser = Depends(get_current_user)
 ) -> FileResponse:
-
     def delete_tmp_file(filename):
         os.remove(filename)
 
     filename: str = f"/var/tmp/{str(user.in_db.pk)}.pem"
-    with open(filename, 'w') as f:
+    with open(filename, "w") as f:
         f.write(f"{user.in_db.public_key}\n{user.in_db.private_key}")
 
     background_tasks.add_task(delete_tmp_file, (filename))
     return FileResponse(filename)
-
-    

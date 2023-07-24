@@ -19,7 +19,7 @@ __license__ = "GPLv3"
 __version__ = "3.0.0"
 __maintainer__ = "Teamlock Project"
 __email__ = "contact@teamlock.io"
-__doc__ = ''
+__doc__ = ""
 
 from fastapi import FastAPI, status, Depends, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
@@ -57,26 +57,22 @@ logging.config.dictConfig(settings.LOGGING)
 logger = logging.getLogger("api")
 
 log_config = uvicorn.config.LOGGING_CONFIG
-log_config["formatters"]["access"]["fmt"] = '{"date": "%(asctime)s", "level": "%(levelname)s", "message": "%(message)s"}'
+log_config["formatters"]["access"][
+    "fmt"
+] = '{"date": "%(asctime)s", "level": "%(levelname)s", "message": "%(message)s"}'
 # log_config["formatters"]["default"]["fmt"] = '{"date": "%(asctime)s", "level": "%(levelname)s", "message": "%(message)s"}'
 
 templates = Jinja2Templates(directory="templates")
 
 docs_url: str | None = "/docs" if settings.DEBUG else None
 
-app = FastAPI(
-    debug=settings.DEBUG,
-    docs_url=docs_url,
-    redoc_url=None
-)
+app = FastAPI(debug=settings.DEBUG, docs_url=docs_url, redoc_url=None)
 
 origins = ["*"]
 
 app.add_middleware(
     middleware.ContextMiddleware,
-    plugins=(
-        plugins.ForwardedForPlugin(),
-    ),
+    plugins=(plugins.ForwardedForPlugin(),),
 )
 
 app.add_middleware(
@@ -87,14 +83,16 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 # Cronjob to remove expired Shares (every day)
 @app.on_event("startup")
-@repeat_every(seconds=60*60*24)
+@repeat_every(seconds=60 * 60 * 24)
 def remove_expired_shares():
     shares = Share.objects(expire_at__lte=datetime.utcnow())
     if len(shares) > 0:
         logger.info(f"[EXPIRED SHARE] {len(shares)} has expired. Deleting them")
         shares.delete()
+
 
 @app.on_event("startup")
 async def startup() -> None:
@@ -114,17 +112,12 @@ if not settings.DEV_MODE:
         return templates.TemplateResponse("index.html", {"request": request})
 
 
-
 @app.get("/ping", tags=["Supervision"])
 async def ping():
     return "pong"
 
 
-@app.get(
-    "/api/v1/version",
-    tags=["Version"],
-    dependencies=[Depends(get_current_user)]
-)
+@app.get("/api/v1/version", tags=["Version"], dependencies=[Depends(get_current_user)])
 async def version():
     return settings.VERSION
 
@@ -134,19 +127,18 @@ async def version():
     tags=["Installation"],
     response_model=str,
     summary="Install TeamLock instance",
-    description="Define Configuration and initialize Admin User"
+    description="Define Configuration and initialize Admin User",
 )
 async def install(
     config_schema: ConfigSchema,
     admin: AdminUserSchema,
-    background_tasks: BackgroundTasks
+    background_tasks: BackgroundTasks,
 ) -> str:
     if Config.objects.count() > 0:
         raise HTTPException(
-            status_code=status.HTTP_410_GONE,
-            detail="Teamlock already installed"
+            status_code=status.HTTP_410_GONE, detail="Teamlock already installed"
         )
-    
+
     config: Config = Config(**config_schema.dict())
 
     if config.allow_self_registration:
@@ -154,19 +146,15 @@ async def install(
         for email in config.allowed_email_addresses:
             if admin.email.endswith(email):
                 valid = True
-        
+
         if not valid:
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="INVALIDEMAIL"
+                status_code=status.HTTP_400_BAD_REQUEST, detail="INVALIDEMAIL"
             )
 
     config.save()
 
-    user_def: EditUserSchema = EditUserSchema(
-        email=admin.email,
-        is_admin=True
-    )
+    user_def: EditUserSchema = EditUserSchema(email=admin.email, is_admin=True)
 
     try:
         return create_user_toolkits(user_def, background_tasks)
@@ -186,6 +174,7 @@ app.include_router(secret_router, tags=["Secret"], prefix="/api/v1/secret")
 try:
     # Try importing PRO features
     from teamlock_pro.main import app as pro_app
+
     app.mount("/pro", pro_app)
 except ImportError:
     if settings.DEV_MODE:
@@ -197,9 +186,9 @@ if __name__ == "__main__":
     uvicorn.run(
         "main:app",
         host=settings.HOST,
-        port=settings.PORT,
+        port=8001,
         reload=settings.DEV_MODE,
         log_config=log_config,
         proxy_headers=True,
-        forwarded_allow_ips="*"
+        forwarded_allow_ips="*",
     )

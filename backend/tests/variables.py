@@ -19,7 +19,7 @@ __license__ = "GPLv3"
 __version__ = "3.0.0"
 __maintainer__ = "Teamlock Project"
 __email__ = "contact@teamlock.io"
-__doc__ = ''
+__doc__ = ""
 
 USERNAME: str = "test@teamlock.io"
 PASSWORD: str = "bonsoirdouze"
@@ -28,33 +28,16 @@ INSTALL_PARAMS: dict = {
     "config_schema": {
         "rsa_key_size": 2048,
         "enforce_totp": False,
-        "password_policy": {
-            "length": 8,
-            "uppercase": 0,
-            "numbers": 0,
-            "special": 0
-        }
+        "password_policy": {"length": 8, "uppercase": 0, "numbers": 0, "special": 0},
     },
-    "admin": {
-        "email": USERNAME,
-        "password": PASSWORD,
-        "confirm_password": PASSWORD
-    }
+    "admin": {"email": USERNAME, "password": PASSWORD, "confirm_password": PASSWORD},
 }
 
-LOGIN_PARAMS: dict = {
-    "username": USERNAME,
-    "password": PASSWORD
-}
+LOGIN_PARAMS: dict = {"username": USERNAME, "password": PASSWORD}
 
 CREATE_WORKSPACE_PARAMS: dict = {
     "name": "new_workspace",
-    "policy": {
-        "length": 12,
-        "uppercase": 1,
-        "numbers": 1,
-        "special": 1
-    }
+    "policy": {"length": 12, "uppercase": 1, "numbers": 1, "special": 1},
 }
 
 CREATE_FOLDER_PARAMS: dict = {
@@ -62,38 +45,15 @@ CREATE_FOLDER_PARAMS: dict = {
     "icon": "string",
     "parent": "",
     "workspace_id": None,
-    "password_policy": {
-        "length": 12,
-        "uppercase": 1,
-        "numbers": 1,
-        "special": 1
-    }
+    "password_policy": {"length": 12, "uppercase": 1, "numbers": 1, "special": 1},
 }
 
 CREATE_KEY_PARAMS: dict = {
-    "name": {
-        "encrypted": False,
-        "value": "test_key"
-    },
-    "url": {
-        "encrypted": True,
-        "value": "teamlock.io"
-    },
-    "ip": {
-        "encrypted": True,
-        "value": "10.0.0.0"
-    },
-    "login": {
-        "encrypted": True,
-        "value": "login"
-    },
-    "password": {
-        "encrypted": True,
-        "value": "AVeryStrongPassword12$"
-    },
-    "informations": {
-        "encrypted": True,
-        "value": "None"
-    },
-    "folder": None
+    "name": {"encrypted": False, "value": "test_key"},
+    "url": {"encrypted": True, "value": "teamlock.io"},
+    "ip": {"encrypted": True, "value": "10.0.0.0"},
+    "login": {"encrypted": True, "value": "login"},
+    "password": {"encrypted": True, "value": "AVeryStrongPassword12$"},
+    "informations": {"encrypted": True, "value": "None"},
+    "folder": None,
 }

@@ -19,13 +19,29 @@ __license__ = "GPLv3"
 __version__ = "3.0.0"
 __maintainer__ = "Teamlock Project"
 __email__ = "contact@teamlock.io"
-__doc__ = ''
+__doc__ = ""
 
-from .tools import (authenticate_user, create_access_token, get_current_user, 
-    create_temp_otp_key, invalid_authentication, configure_otp_get_user)
-from fastapi import (APIRouter, Depends, status, Header, Request, 
-    UploadFile, File, Form, Header, BackgroundTasks)
-from toolkits.utils import (create_user_toolkits, fetch_config, create_user_session)
+from .tools import (
+    authenticate_user,
+    create_access_token,
+    get_current_user,
+    create_temp_otp_key,
+    invalid_authentication,
+    configure_otp_get_user,
+)
+from fastapi import (
+    APIRouter,
+    Depends,
+    status,
+    Header,
+    Request,
+    UploadFile,
+    File,
+    Form,
+    Header,
+    BackgroundTasks,
+)
+from toolkits.utils import create_user_toolkits, fetch_config, create_user_session
 from apps.user.schema import EditUserSchema, UserSchema, UserProfileSchema
 from .schema import LoggedUser, Login, RegistrationSchema
 from fastapi.security import OAuth2PasswordRequestForm
@@ -56,20 +72,19 @@ router: APIRouter = APIRouter()
     path="/token",
     response_model=Login | dict,
     status_code=status.HTTP_200_OK,
-    summary="Authenticate for Access Token"
+    summary="Authenticate for Access Token",
 )
 async def login_for_access_token(
     request: Request,
     background_tasks: BackgroundTasks,
     x_teamlock_key: str | None = Header(None),
     x_teamlock_app: str | None = Header(None),
-    form_data: OAuth2PasswordRequestForm = Depends()
+    form_data: OAuth2PasswordRequestForm = Depends(),
 ) -> Login:
-
     if RedisTools.retreive(f"{form_data.username}_locked"):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Too many authentication failures"
+            detail="Too many authentication failures",
         )
 
     try:
@@ -84,7 +99,9 @@ async def login_for_access_token(
     except AuthenticationError:
         invalid_authentication(form_data.username, background_tasks, request)
 
-        log_message: str = f"[AUTH] Invalid authentication for Email {form_data.username}"
+        log_message: str = (
+            f"[AUTH] Invalid authentication for Email {form_data.username}"
+        )
         logger.info(log_message)
         logger_security.info(log_message)
 
@@ -93,28 +110,25 @@ async def login_for_access_token(
             detail="Could not validate credentials",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    
+
     except UserLocked:
         logger.info(f"[AUTH] User {form_data.username} is locked by administrator")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Account currently locked by administrator"
+            detail="Account currently locked by administrator",
         )
 
     login: Login = create_access_token(
-        user,
-        form_data.password,
-        x_teamlock_key,
-        x_teamlock_app
+        user, form_data.password, x_teamlock_key, x_teamlock_app
     )
 
     if x_teamlock_key not in user.remember_key:
         if user.otp and (user.otp.enabled or user.otp.need_configure):
-            content : dict = {
-                "otp" : True,
+            content: dict = {
+                "otp": True,
             }
             if user.otp.need_configure:
-                token : str = login.access_token
+                token: str = login.access_token
                 content["otp_need_configure"] = True
             else:
                 token: str = create_temp_otp_key(login)
@@ -129,7 +143,7 @@ async def login_for_access_token(
             [user.email],
             "/#/profile/sessions",
             "new_ip_address",
-            session
+            session,
         )
 
     log_message: str = f"[AUTH] User {form_data.username} successfully logged in"
@@ -143,7 +157,7 @@ async def login_for_access_token(
     path="/verify",
     summary="Token verify",
     description="Endpoint to check if JWT Token is still valid",
-    dependencies=[Depends(get_current_user)]
+    dependencies=[Depends(get_current_user)],
 )
 async def verify() -> bool:
     return True
@@ -153,7 +167,7 @@ async def verify() -> bool:
     path="/me",
     summary="Get user profile",
     response_model=UserProfileSchema,
-    status_code=status.HTTP_200_OK
+    status_code=status.HTTP_200_OK,
 )
 async def get_me(user: LoggedUser = Depends(configure_otp_get_user)) -> UserSchema:
     tmp = user.in_db.to_mongo()
@@ -167,21 +181,14 @@ async def get_me(user: LoggedUser = Depends(configure_otp_get_user)) -> UserSche
     return UserProfileSchema(**tmp)
 
 
-@router.post(
-    path="/register",
-    summary="Register a new user"
-)
+@router.post(path="/register", summary="Register a new user")
 async def register_user(
-    registration_schema: RegistrationSchema,
-    background_tasks: BackgroundTasks
+    registration_schema: RegistrationSchema, background_tasks: BackgroundTasks
 ) -> bool:
     config: Config = fetch_config()
     if not config.allow_self_registration:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not Allowed"
-        )
-    
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not Allowed")
+
     allowed: bool = False
     for email in config.allowed_email_addresses:
         if registration_schema.email.endswith(email):
@@ -189,15 +196,13 @@ async def register_user(
             break
 
     if not allowed:
-        logger.info(f"[REGISTER] Email {registration_schema.email} not allowed to register")
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not allowed"
+        logger.info(
+            f"[REGISTER] Email {registration_schema.email} not allowed to register"
         )
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not allowed")
 
     user_schema: EditUserSchema = EditUserSchema(
-        email=registration_schema.email,
-        is_admin=False
+        email=registration_schema.email, is_admin=False
     )
 
     try:
@@ -208,22 +213,17 @@ async def register_user(
         logger_security.info(log_message)
     except UserExistException:
         raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="User already exists"
+            status_code=status.HTTP_409_CONFLICT, detail="User already exists"
         )
     except Exception as err:
         logger.critical(err, exc_info=1)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="An error has occurred"
+            detail="An error has occurred",
         )
-    
 
-@router.post(
-    path="/recover",
-    summary="Recover account",
-    status_code=status.HTTP_200_OK
-)
+
+@router.post(path="/recover", summary="Recover account", status_code=status.HTTP_200_OK)
 async def recover_user(
     request: Request,
     background_tasks: BackgroundTasks,
@@ -233,11 +233,9 @@ async def recover_user(
     recover_file: UploadFile = File(...),
 ) -> bool:
     try:
-
         if confirm_password != new_password:
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Passwords mismatch"
+                status_code=status.HTTP_400_BAD_REQUEST, detail="Passwords mismatch"
             )
 
         config: ConfigSchema = fetch_config(as_schema=True)
@@ -246,10 +244,7 @@ async def recover_user(
         if len(error) > 0:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail={
-                    "error": f"Password not allowed by policy",
-                    "details": error
-                }
+                detail={"error": f"Password not allowed by policy", "details": error},
             )
 
         user = User.objects(email=email).get()
@@ -267,7 +262,7 @@ async def recover_user(
                     secret_id=None,
                     message="User recovery attempt",
                     user=user,
-                    users=admins
+                    users=admins,
                 )
 
             except ImportError:
@@ -275,15 +270,15 @@ async def recover_user(
 
             create_history(
                 user=email,
-                action="Attempts to recover account, but recovery mode not enabled"
+                action="Attempts to recover account, but recovery mode not enabled",
             )
 
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN
-            )
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
 
         sym_key: bytes = await recover_file.read()
-        WorkspaceUtils.recover_account(user, sym_key.decode("utf-8"), new_password, background_tasks)
+        WorkspaceUtils.recover_account(
+            user, sym_key.decode("utf-8"), new_password, background_tasks
+        )
         user.recovery_enabled = False
         user.save()
 
@@ -291,10 +286,7 @@ async def recover_user(
         logger.info(log_message)
         logger_security.info(log_message)
 
-        create_history(
-            user=email,
-            action="User recovered his account"
-        )
+        create_history(user=email, action="User recovered his account")
 
     except User.DoesNotExist:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)

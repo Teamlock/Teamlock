@@ -19,7 +19,7 @@ __license__ = "GPLv3"
 __version__ = "3.0.0"
 __maintainer__ = "Teamlock Project"
 __email__ = "contact@teamlock.io"
-__doc__ = ''
+__doc__ = ""
 
 
 from apps.config.schema import ConfigSchema, PasswordPolicySchema
@@ -58,15 +58,13 @@ class CryptoUtils:
         Returns:
             str: sha512 of user's password
         """
-        sha512_password: str = hashlib.sha512(
-            password.encode()
-        ).hexdigest()
+        sha512_password: str = hashlib.sha512(password.encode()).hexdigest()
 
         return sha512_password
 
     @staticmethod
     def _unpad(s) -> str:
-        return s[:-ord(s[len(s) - 1:])]
+        return s[: -ord(s[len(s) - 1 :])]
 
     @classmethod
     def decrypt_password(cls, user: LoggedUser) -> str:
@@ -91,7 +89,7 @@ class CryptoUtils:
             RSASchema: RSA Pub & Priv keys
         """
         password: str = cls.prepare_password(password)
-        
+
         if not isinstance(password, bytes):
             password = bytes(password, "utf-8")
 
@@ -99,33 +97,30 @@ class CryptoUtils:
         key = RSA.generate(config.rsa_key_size, Random.new().read)
         pubkey = key.publickey().exportKey().decode("utf-8")
         privkey = key.exportKey(passphrase=password).decode("utf-8")
-        return RSASchema(
-            pubkey=pubkey,
-            privkey=privkey
-        )
+        return RSASchema(pubkey=pubkey, privkey=privkey)
 
     @classmethod
-    def generate_sim(cls, length: int = 32, punctuation: bool=True) -> str:
-        """Generate symmetric key
-        """
+    def generate_sim(cls, length: int = 32, punctuation: bool = True) -> str:
+        """Generate symmetric key"""
         letters = string.ascii_uppercase + string.ascii_lowercase + string.digits
         if punctuation:
             letters += string.punctuation
 
-        return ''.join(random.choice(letters) for i in range(length))
-    
+        return "".join(random.choice(letters) for i in range(length))
+
     @classmethod
-    def generate_recovery_symkey(cls, user: LoggedUser, pwd: str | None=None) -> RecoverySchema:
+    def generate_recovery_symkey(
+        cls, user: LoggedUser, pwd: str | None = None
+    ) -> RecoverySchema:
         if pwd is None:
             pwd: str = cls.decrypt_password(user)
 
         sym_key: str = cls.generate_sim()
-        encoded_sym_key: str = base64.b64encode(bytes(sym_key, 'utf-8')).decode('utf-8')
+        encoded_sym_key: str = base64.b64encode(bytes(sym_key, "utf-8")).decode("utf-8")
         encrypted_password: str = cls.sym_encrypt(pwd, sym_key)
 
         return RecoverySchema(
-            encrypted_password=encrypted_password,
-            encoded_sym_key=encoded_sym_key
+            encrypted_password=encrypted_password, encoded_sym_key=encoded_sym_key
         )
 
     @classmethod
@@ -143,8 +138,8 @@ class CryptoUtils:
             return message
 
         if not isinstance(key, bytes):
-            key: bytes = key.encode('utf-8')
-        
+            key: bytes = key.encode("utf-8")
+
         if not isinstance(message, bytes):
             message: bytes = message.encode("utf-8")
 
@@ -152,11 +147,14 @@ class CryptoUtils:
         header: bytes = get_random_bytes(16)
         cipher.update(header)
         ciphertext, tag = cipher.encrypt_and_digest(message)
-        json_k = [ 'nonce', 'header', 'ciphertext', 'tag' ]
-        json_v = [ base64.b64encode(x).decode('utf-8') for x in [cipher.nonce, header, ciphertext, tag ]]
+        json_k = ["nonce", "header", "ciphertext", "tag"]
+        json_v = [
+            base64.b64encode(x).decode("utf-8")
+            for x in [cipher.nonce, header, ciphertext, tag]
+        ]
         message = json.dumps(dict(zip(json_k, json_v)))
         return message
-    
+
     @classmethod
     def sym_decrypt(cls, message: str, key: str | bytes, mode: str = "GCM") -> str:
         """Decrypt message with symmetric key
@@ -172,25 +170,25 @@ class CryptoUtils:
             return message
 
         if not isinstance(key, bytes):
-            key = key.encode('utf-8')
+            key = key.encode("utf-8")
 
         if mode == "GCM":
             b64 = json.loads(message)
 
-            json_k = [ 'nonce', 'header', 'ciphertext', 'tag' ]
+            json_k = ["nonce", "header", "ciphertext", "tag"]
             jv = {k: base64.b64decode(b64[k]) for k in json_k}
 
             cipher = AES.new(key, AES.MODE_GCM, nonce=jv["nonce"])
             cipher.update(jv["header"])
-            text = cipher.decrypt_and_verify(jv['ciphertext'], jv['tag'])
+            text = cipher.decrypt_and_verify(jv["ciphertext"], jv["tag"])
             return text
         else:
             message = base64.b64decode(message)
-            iv = message[:AES.block_size]
+            iv = message[: AES.block_size]
 
             cipher = AES.new(key, AES.MODE_CBC, iv)
-            text = cls._unpad(cipher.decrypt(message[AES.block_size:]))
-            return text.decode('utf-8')
+            text = cls._unpad(cipher.decrypt(message[AES.block_size :]))
+            return text.decode("utf-8")
 
     @classmethod
     def rsa_encrypt(cls, message: str, pubkey: str) -> str:
@@ -236,7 +234,7 @@ class CryptoUtils:
             raise InvalidPassphrase()
 
     @classmethod
-    def generate_password(cls, password_policy: PasswordPolicySchema|None):        
+    def generate_password(cls, password_policy: PasswordPolicySchema | None):
         # TODO: Enhance this method to generate stronger password
         def generate(min_length: int, chars_to_use: str) -> list[str]:
             return [secrets.choice(chars_to_use) for i in range(min_length)]
@@ -260,7 +258,9 @@ class CryptoUtils:
             password: list[str] = generate(password_policy.special, chars["special"])
             password.extend(generate(password_policy.numbers, chars["numbers"]))
             password.extend(generate(password_policy.uppercase, chars["uppercase"]))
-            password.extend(generate(password_policy.length - len(password), chars["lowercase"]))
+            password.extend(
+                generate(password_policy.length - len(password), chars["lowercase"])
+            )
 
         random.SystemRandom().shuffle(password)
         return "".join(password)

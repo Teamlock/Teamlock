@@ -1,4 +1,4 @@
-FROM node:16-alpine3.15 as frontend-stage
+FROM node:16 as frontend-stage
 WORKDIR /app
 COPY ./frontend/ .
 RUN npm install -g npm
@@ -19,7 +19,7 @@ RUN /env/bin/pip3 install -U pip
 RUN /env/bin/pip3 install -r requirements.txt
 
 
-FROM python:3.10
+FROM python:3.10-slim
 ARG VERSION
 ENV VERSION=$VERSION
 

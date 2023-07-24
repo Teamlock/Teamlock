@@ -19,7 +19,7 @@ __license__ = "GPLv3"
 __version__ = "3.0.0"
 __maintainer__ = "Teamlock Project"
 __email__ = "contact@teamlock.io"
-__doc__ = ''
+__doc__ = ""
 
 from datetime import datetime
 import mongoengine
@@ -30,7 +30,6 @@ class OTP(mongoengine.EmbeddedDocument):
     enabled = mongoengine.BooleanField(default=False)
     secret = mongoengine.StringField(default="")
     need_configure = mongoengine.BooleanField(default=False)
-
 
 
 class User(mongoengine.Document):
@@ -62,9 +61,7 @@ class User(mongoengine.Document):
         from toolkits.crypto import CryptoUtils
 
         sha512_password: str = CryptoUtils.prepare_password(password)
-        encrypted_password: str = CryptoUtils.sym_encrypt(
-            sha512_password, key
-        )
+        encrypted_password: str = CryptoUtils.sym_encrypt(sha512_password, key)
 
         return json.dumps(encrypted_password)
 
@@ -77,4 +74,3 @@ class UserSession(mongoengine.Document):
     user_agent = mongoengine.StringField()
     country = mongoengine.StringField(default="")
     city = mongoengine.StringField(default="")
-    

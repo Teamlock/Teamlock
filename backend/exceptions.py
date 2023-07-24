@@ -19,7 +19,7 @@ __license__ = "GPLv3"
 __version__ = "3.0.0"
 __maintainer__ = "Teamlock Project"
 __email__ = "contact@teamlock.io"
-__doc__ = ''
+__doc__ = ""
 
 
 class AuthenticationError(Exception):
@@ -28,6 +28,7 @@ class AuthenticationError(Exception):
 
 class UserDontExist(Exception):
     pass
+
 
 class UserLocked(Exception):
     pass

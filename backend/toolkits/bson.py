@@ -19,13 +19,15 @@ __license__ = "GPLv3"
 __version__ = "3.0.0"
 __maintainer__ = "Teamlock Project"
 __email__ = "contact@teamlock.io"
-__doc__ = ''
+__doc__ = ""
 
 
 from bson import ObjectId
 
+
 class PyObjectId(ObjectId):
-    """ Custom Type for reading MongoDB IDs """
+    """Custom Type for reading MongoDB IDs"""
+
     @classmethod
     def __get_validators__(cls):
         yield cls.validate

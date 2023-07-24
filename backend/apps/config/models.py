@@ -19,7 +19,7 @@ __license__ = "GPLv3"
 __version__ = "3.0.0"
 __maintainer__ = "Teamlock Project"
 __email__ = "contact@teamlock.io"
-__doc__ = ''
+__doc__ = ""
 
 from .schema import ConfigSchema
 from settings import settings
@@ -31,7 +31,6 @@ class PasswordPolicy(mongoengine.EmbeddedDocument):
     uppercase = mongoengine.IntField(default=1)
     numbers = mongoengine.IntField(default=1)
     special = mongoengine.IntField(default=1)
-
 
 
 class Config(mongoengine.Document):
