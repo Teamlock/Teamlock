@@ -38,23 +38,17 @@ class AppSettings(BaseSettings):
     DEV_MODE: bool = os.environ.get("DEV_MODE") == True
     TOKEN_EXPIRE: int = os.environ.get("TOKEN_EXPIRE", 7200)  # Default: 2 hours
     END_DAY: int = os.environ.get("END_DAY", 20)  # the end of the day default : 20PM
-    SECRET_KEY: str = os.environ.get("SECRET_KEY", os.environ.get("SECRET_KEY_FILE"))
+    SECRET_KEY: str = os.environ.get("SECRET_KEY")
     MAX_USERS: int = os.environ.get("MAX_USERS", 0)
     VERSION: float = float(os.environ["VERSION"])
     IP_HEADER: str = os.environ.get("IP_HEADER", "X-Forwarded-For")
 
 
 class MongoSettings(BaseSettings):
-    MONGO_HOST: str = os.environ.get("MONGO_HOST", os.environ.get("MONGO_HOST_FILE"))
-    MONGO_DATABASE: str = os.environ.get(
-        "MONGO_DATABASE", os.environ.get("MONGO_DATABASE_FILE")
-    )
-    MONGO_USER: str | None = os.environ.get(
-        "MONGO_USER", os.environ.get("MONGO_USER_FILE")
-    )
-    MONGO_PASSWORD: str | None = os.environ.get(
-        "MONGO_PASSWORD", os.environ.get("MONGO_PASSWORD_FILE")
-    )
+    MONGO_HOST: str = os.environ.get("MONGO_HOST")
+    MONGO_DATABASE: str = os.environ.get("MONGO_DATABASE")
+    MONGO_USER: str | None = os.environ.get("MONGO_USER")
+    MONGO_PASSWORD: str | None = os.environ.get("MONGO_PASSWORD")
     MONGO_AUTHSOURCE: str | None = os.environ.get("MONGO_AUTHSOURCE")
     MONGO_REPLICASET: str | None = os.environ.get("MONGO_REPLICASET")
     MONGO_TLS: bool = os.environ.get("MONGO_TLS") == True
@@ -69,32 +63,24 @@ class MongoSettings(BaseSettings):
 
 
 class RedisSettings(BaseSettings):
-    REDIS_HOST: str = os.environ.get("REDIS_HOST", os.environ.get("REDIS_HOST_FILE"))
+    REDIS_HOST: str = os.environ.get("REDIS_HOST")
     REDIS_PORT: int = os.environ["REDIS_PORT"]
 
 
 class MailSettings(BaseSettings):
-    SMTP_HOST: str = os.environ.get("SMTP_HOST", os.environ.get("SMTP_HOST_FILE"))
+    SMTP_HOST: str = os.environ.get("SMTP_HOST")
     SMTP_PORT: str = os.environ["SMTP_PORT"]
     SMTP_AUTH: bool = os.environ.get("SMTP_AUTH") == True
-    SMTP_EMAIL: str = os.environ.get("SMTP_EMAIL", os.environ.get("SMTP_EMAIL_FILE"))
-    SMTP_PASSWORD: str = os.environ.get(
-        "SMTP_PASSWORD", os.environ.get("SMTP_PASSWORD_FILE")
-    )
+    SMTP_EMAIL: str = os.environ.get("SMTP_EMAIL")
+    SMTP_PASSWORD: str = os.environ.get("SMTP_PASSWORD")
     SMTP_SSL: bool = os.environ.get("SMTP_SSL") == True
 
 
 class TwilioSettings(BaseSettings):
     TWILIO_ENABLED: bool = os.environ.get("TWILIO_ENABLED") == True
-    TWILIO_ACCOUNT_SID: str | None = os.environ.get(
-        "TWILIO_ACCOUNT_SID", os.environ.get("TWILIO_ACCOUNT_SID_FILE")
-    )
-    TWILIO_AUTH_TOKEN: str | None = os.environ.get(
-        "TWILIO_AUTH_TOKEN", os.environ.get("TWILIO_AUTH_TOKEN_FILE")
-    )
-    TWILIO_PHONE_NUMBER: str | None = os.environ.get(
-        "TWILIO_PHONE_NUMBER", os.environ.get("TWILIO_PHONE_NUMBER_FILE")
-    )
+    TWILIO_ACCOUNT_SID: str | None = os.environ.get("TWILIO_ACCOUNT_SID")
+    TWILIO_AUTH_TOKEN: str | None = os.environ.get("TWILIO_AUTH_TOKEN")
+    TWILIO_PHONE_NUMBER: str | None = os.environ.get("TWILIO_PHONE_NUMBER")
 
 
 class LogSettings(BaseSettings):
