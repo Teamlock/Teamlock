@@ -131,7 +131,8 @@ class LogSettings(BaseSettings):
 class Settings(
     AppSettings, MongoSettings, RedisSettings, MailSettings, TwilioSettings, LogSettings
 ):
-    ...
+    class Config:
+        secrets_dir = "/run/secrets"
 
 
 settings = Settings()
