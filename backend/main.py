@@ -186,7 +186,7 @@ if __name__ == "__main__":
     uvicorn.run(
         "main:app",
         host=settings.HOST,
-        port=8001,
+        port=settings.PORT,
         reload=settings.DEV_MODE,
         log_config=log_config,
         proxy_headers=True,
