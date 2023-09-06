@@ -1,4 +1,4 @@
-FROM node:16 as frontend-stage
+FROM node:18 as frontend-stage
 WORKDIR /app
 COPY ./frontend/ .
 RUN npm install -g npm
@@ -11,7 +11,7 @@ RUN cp /app/src/assets/img/TLAppLogo_Baseline.svg /app/dist/static/img/TLAppLogo
 RUN cp /app/src/assets/img/TLAppLogo_Baseline.png /app/dist/static/img/TLAppLogo_Baseline.png
 
 
-FROM python:3.10 as python-stage
+FROM python:3.11 as python-stage
 COPY ./backend/requirements.txt /requirements.txt
 RUN apt update && apt -y install python3-venv
 RUN python3 -m venv /env
@@ -19,7 +19,7 @@ RUN /env/bin/pip3 install -U pip
 RUN /env/bin/pip3 install -r requirements.txt
 
 
-FROM python:3.10-slim
+FROM python:3.11-slim
 ARG VERSION
 ENV VERSION=$VERSION
 
