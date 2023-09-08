@@ -1,4 +1,4 @@
-FROM node:lts-alpine as frontend-stage
+FROM node:16-alpine3.15 as frontend-stage
 WORKDIR /app
 COPY ./frontend/ .
 RUN npm install -g npm
