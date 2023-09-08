@@ -1,7 +1,7 @@
 FROM node:16-alpine3.15 as frontend-stage
 WORKDIR /app
 COPY ./frontend/ .
-RUN npm install -g npm
+# RUN npm install -g npm
 RUN npm install -g electron-builder
 RUN npm install
 RUN npm run build
