@@ -1,0 +1,34 @@
+name: Build Docker
+
+on:
+  workflow_dispatch:
+    inputs:
+      ENV:
+        description: "DEV Image"
+        type: boolean
+        required: true
+        default: true
+      VERSION:
+        description: "Release version"
+        required: true
+
+env:
+  VERSION: ${{ github.event.inputs.VERSION }}
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: SET ENV
+        run: echo 'IMAGE_TAG=dev-' >> $GITHUB_ENV
+        if: github.event.inputs.ENV
+      - uses: actions/checkout@v3
+      - name: Build docker image
+        run: sudo docker build -t teamlock:$VERSION --build-arg VERSION=$VERSION .
+      - name: Login on Container registry
+        run: echo ${{ secrets.PERSONNAL_TOKEN }} | sudo docker login ghcr.io -u raznak --password-stdin
+      - name: Tag the image
+        run: sudo docker tag teamlock:$VERSION ghcr.io/teamlock/teamlock:$IMAGE_TAG$VERSION
+      - name: Push the image
+        run: sudo docker push ghcr.io/teamlock/teamlock:$IMAGE_TAG$VERSION
