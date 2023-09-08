@@ -19,7 +19,7 @@ __license__ = "GPLv3"
 __version__ = "3.0.0"
 __maintainer__ = "Teamlock Project"
 __email__ = "contact@teamlock.io"
-__doc__ = ''
+__doc__ = ""
 
 from .schema import ConfigSchema, PasswordPolicySchema
 from apps.auth.tools import get_current_user, is_admin
@@ -53,7 +53,7 @@ async def get_config() -> ConfigSchema:
     path="/",
     status_code=status.HTTP_202_ACCEPTED,
     summary="Update Teamlock Configuration",
-    dependencies=[Depends(is_admin)]
+    dependencies=[Depends(is_admin)],
 )
 async def edit_config(update_config: ConfigSchema = Body(...)) -> None:
     config: Config = fetch_config()
@@ -72,7 +72,7 @@ async def edit_config(update_config: ConfigSchema = Body(...)) -> None:
     path="/registration",
     response_model=bool,
     include_in_schema=False,
-    summary="Self registration is allowed ?"
+    summary="Self registration is allowed ?",
 )
 async def get_self_registration() -> None:
     try:
@@ -80,8 +80,7 @@ async def get_self_registration() -> None:
         return config.allow_self_registration
     except Config.DoesNotExist:
         raise HTTPException(
-            status_code=status.HTTP_418_IM_A_TEAPOT,
-            detail="Teamlock not installed"
+            status_code=status.HTTP_418_IM_A_TEAPOT, detail="Teamlock not installed"
         )
 
 
@@ -96,8 +95,7 @@ async def get_password_policy() -> PasswordPolicySchema:
         return PasswordPolicySchema(**config.password_policy.to_mongo())
     except Config.DoesNotExist:
         raise HTTPException(
-            status_code=status.HTTP_418_IM_A_TEAPOT,
-            detail="Teamlock not installed"
+            status_code=status.HTTP_418_IM_A_TEAPOT, detail="Teamlock not installed"
         )
 
 
@@ -106,7 +104,7 @@ async def get_password_policy() -> PasswordPolicySchema:
     response_model=bool,
     include_in_schema=False,
     summary="Twilio is configured ?",
-    dependencies=[Depends(get_current_user)]
+    dependencies=[Depends(get_current_user)],
 )
 async def twilio_enabled() -> bool:
     return settings.TWILIO_ENABLED

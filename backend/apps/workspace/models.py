@@ -19,7 +19,7 @@ __license__ = "GPLv3"
 __version__ = "3.0.0"
 __maintainer__ = "Teamlock Project"
 __email__ = "contact@teamlock.io"
-__doc__ = ''
+__doc__ = ""
 
 from apps.config.models import PasswordPolicy
 from apps.user.models import User
@@ -32,8 +32,7 @@ class Workspace(mongoengine.Document):
     icon = mongoengine.StringField(default="")
     created_at = mongoengine.DateTimeField(default=datetime.utcnow)
     last_change = mongoengine.DateTimeField(default=datetime.utcnow)
-    password_policy = mongoengine.EmbeddedDocumentField(
-        PasswordPolicy, null=True)
+    password_policy = mongoengine.EmbeddedDocumentField(PasswordPolicy, null=True)
     import_in_progress = mongoengine.BooleanField(default=False)
     import_error = mongoengine.StringField(default="")
 
@@ -51,15 +50,11 @@ class Share(mongoengine.Document):
     sym_key = mongoengine.StringField()
 
     workspace = mongoengine.ReferenceField(
-        Workspace,
-        reverse_delete_rule=mongoengine.CASCADE
+        Workspace, reverse_delete_rule=mongoengine.CASCADE
     )
     shared_by = mongoengine.ReferenceField(
-        User,
-        reverse_delete_rule=mongoengine.NULLIFY
+        User, reverse_delete_rule=mongoengine.NULLIFY
     )
     user = mongoengine.ReferenceField(
-        User,
-        unique_with=("workspace",),
-        reverse_delete_rule=mongoengine.CASCADE
+        User, unique_with=("workspace",), reverse_delete_rule=mongoengine.CASCADE
     )

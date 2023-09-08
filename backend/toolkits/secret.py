@@ -4,9 +4,10 @@ from apps.folder.models import Folder
 from apps.workspace.models import Workspace
 from fastapi.exceptions import HTTPException
 
+
 class SecretUtils:
     @classmethod
-    def move_to_trash(cls,secret: Secret, trash: Trash) -> None:
+    def move_to_trash(cls, secret: Secret, trash: Trash) -> None:
         """Move to trash a secret
 
         Args:
@@ -26,20 +27,20 @@ class SecretUtils:
             workspace (Workspace): workspace where was the secret
             user (LoggedUser): user who restore the secret
         """
-        #if there is no folders to put the secret in, we raise an Exception
+        # if there is no folders to put the secret in, we raise an Exception
         folders = Folder.objects(workspace=workspace)
-        if (len(folders) == 0):
+        if len(folders) == 0:
             # we create a default folder
             restore_folder = Folder(
                 name="Restore",
                 icon="mdi-file-restore",
                 created_by=user.in_db,
                 workspace=workspace,
-                password_policy=None
+                password_policy=None,
             ).save()
-            secret.folder = restore_folder 
+            secret.folder = restore_folder
         else:
-            #we put the secret in the first folder of the workspace
+            # we put the secret in the first folder of the workspace
             secret.folder = folders[0]
 
         secret.trash = None

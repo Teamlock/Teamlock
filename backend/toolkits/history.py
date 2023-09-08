@@ -19,27 +19,20 @@ __license__ = "GPLv3"
 __version__ = "3.0.0"
 __maintainer__ = "Teamlock Project"
 __email__ = "contact@teamlock.io"
-__doc__ = ''
+__doc__ = ""
 
 from fastapi import Request, BackgroundTasks
 from apps.secret.models import Secret
 
 
 def create_history(
-    user: str,
-    workspace: str="",
-    action: str="",
-    folder: str="",
-    secret: str=""
+    user: str, workspace: str = "", action: str = "", folder: str = "", secret: str = ""
 ):
     try:
         from teamlock_pro.apps.history.models import History
+
         History.objects.create(
-            user=user,
-            workspace=workspace,
-            folder=folder,
-            secret=secret,
-            action=action
+            user=user, workspace=workspace, folder=folder, secret=secret, action=action
         )
     except ImportError:
         pass
@@ -49,8 +42,8 @@ def create_notification(
     user: str,
     secret: Secret,
     request: Request,
-    mail: bool=False,
-    background_task: BackgroundTasks|None = None
+    mail: bool = False,
+    background_task: BackgroundTasks | None = None,
 ):
     try:
         from teamlock_pro.toolkits.proNotif import create_notification as create_notif
@@ -65,15 +58,12 @@ def create_notification(
                     secret_id=secret.pk,
                     message="Secret usage",
                     user=user,
-                    users=[notif.user]
+                    users=[notif.user],
                 )
 
                 if mail and background_task:
                     background_task.add_task(
-                        ProMail().send_mail,
-                        [notif.user.email],
-                        "",
-                        "secret_used"
+                        ProMail().send_mail, [notif.user.email], "", "secret_used"
                     )
         except NotifSecret.DoesNotExist:
             pass

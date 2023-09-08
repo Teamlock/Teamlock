@@ -19,7 +19,7 @@ __license__ = "GPLv3"
 __version__ = "3.0.0"
 __maintainer__ = "Teamlock Project"
 __email__ = "contact@teamlock.io"
-__doc__ = ''
+__doc__ = ""
 
 from pydantic import BaseModel, Field, validator, ValidationError
 from toolkits.paginate import PaginationResponseSchema
@@ -34,7 +34,7 @@ class AdminUserSchema(BaseModel):
 
 class OTPSchema(BaseModel):
     enabled: bool = False
-    need_configure: bool | None
+    need_configure: bool | None = None
 
 
 class UpdateUserSchema(BaseModel):
@@ -83,15 +83,12 @@ class UserSchema(BaseModel):
     class Config:
         allow_population_by_field_name: bool = True
         arbitrary_types_allowed: bool = True
-        json_encoders: dict = {
-            ObjectId: str
-        }
+        json_encoders: dict = {ObjectId: str}
 
 
 class UserProfileSchema(UserSchema):
     public_key: str
     private_key: str
-
 
 
 class UserTableSchema(PaginationResponseSchema):
@@ -102,9 +99,7 @@ class UserTableSchema(PaginationResponseSchema):
 
     class Config:
         arbitrary_types_allowed: bool = True
-        json_encoders: dict = {
-            ObjectId: str
-        }
+        json_encoders: dict = {ObjectId: str}
 
 
 class EditUserSchema(BaseModel):
@@ -116,13 +111,13 @@ class ConfigureUserSchema(BaseModel):
     password: str
     confirm_password: str
     otp_value: str = ""
-    
+
     class Config:
         schema_extra: dict = {
             "example": {
                 "password": "Av€ryStr0ngP@5swOrd!",
                 "confirm_password": "Av€ryStr0ngP@5swOrd!",
-                "otp_value": ""
+                "otp_value": "",
             }
         }
 
@@ -152,9 +147,7 @@ class ConfiguredUsers(BaseModel):
 
     class Config:
         arbitrary_types_allowed: bool = True
-        json_encoders: dict = {
-            ObjectId: str
-        }
+        json_encoders: dict = {ObjectId: str}
 
 
 class UserSessionTableSchema(PaginationResponseSchema):
@@ -162,6 +155,4 @@ class UserSessionTableSchema(PaginationResponseSchema):
 
     class Config:
         arbitrary_types_allowed: bool = True
-        json_encoders: dict = {
-            ObjectId: str
-        }
+        json_encoders: dict = {ObjectId: str}

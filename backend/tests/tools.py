@@ -19,7 +19,7 @@ __license__ = "GPLv3"
 __version__ = "3.0.0"
 __maintainer__ = "Teamlock Project"
 __email__ = "contact@teamlock.io"
-__doc__ = ''
+__doc__ = ""
 
 from toolkits.mongo import connect_to_database
 from fastapi.testclient import TestClient
@@ -28,15 +28,11 @@ from main import app
 client = TestClient(app)
 connect_to_database("teamlock_test")
 
-def get_token(username: str, password: str):
-    params: dict = {
-        "username": username,
-        "password": password
-    }
 
-    headers: dict = {
-        "Content-Type": "application/x-www-form-urlencoded"
-    }
+def get_token(username: str, password: str):
+    params: dict = {"username": username, "password": password}
+
+    headers: dict = {"Content-Type": "application/x-www-form-urlencoded"}
 
     response = client.post("/api/v1/auth/token", params, headers=headers)
     return response.json()["access_token"]

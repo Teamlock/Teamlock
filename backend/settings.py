@@ -19,135 +19,115 @@ __license__ = "GPLv3"
 __version__ = "3.0.0"
 __maintainer__ = "Teamlock Project"
 __email__ = "contact@teamlock.io"
-__doc__ = ''
+__doc__ = ""
 
 from pydantic import BaseSettings
 import dotenv
 import pathlib
-import os
 
 dotenv.load_dotenv()
 
 
 class AppSettings(BaseSettings):
     BASE_DIR: str = str(pathlib.Path(__file__).parent.resolve())
-    APP_URL: str = os.environ["APP_URL"]
-    HOST: str = os.environ.get("HOST", "0.0.0.0")
-    PORT: int = os.environ.get("PORT", 8000)
-    DEBUG: bool = os.environ.get("DEBUG", False)
-    DEV_MODE: bool = os.environ.get("DEV_MODE") == True
-    TOKEN_EXPIRE: int = os.environ.get("TOKEN_EXPIRE", 7200) # Default: 2 hours
-    END_DAY: int = os.environ.get("END_DAY", 20) # the end of the day default : 20PM
-    SECRET_KEY: str = os.environ["SECRET_KEY"]
-    MAX_USERS: int = os.environ.get("MAX_USERS", 0)
-    VERSION: float = float(os.environ["VERSION"])
-    IP_HEADER: str = os.environ.get("IP_HEADER", "X-Forwarded-For")
+    APP_URL: str
+    HOST: str = "0.0.0.0"
+    PORT: int = 8000
+    DEBUG: bool = False
+    DEV_MODE: bool = False
+    TOKEN_EXPIRE: int = 7200
+    END_DAY: int = 20
+    SECRET_KEY: str
+    MAX_USERS: int = 0
+    VERSION: float
+    IP_HEADER: str = "X-Forwarded-For"
 
 
 class MongoSettings(BaseSettings):
-    MONGO_HOST: str = os.environ["MONGO_HOST"]
-    MONGO_DATABASE: str = os.environ["MONGO_DATABASE"]
-    MONGO_USER: str = os.environ.get("MONGO_USER")
-    MONGO_PASSWORD: str = os.environ.get("MONGO_PASSWORD")
-    MONGO_AUTHSOURCE: str = os.environ.get("MONGO_AUTHSOURCE")
-    MONGO_REPLICASET: str = os.environ.get("MONGO_REPLICASET")
-    MONGO_TLS: bool = os.environ.get("MONGO_TLS") == True
-    MONGO_CA_FILE: str = os.environ.get("MONGO_CA_FILE")
-    MONGO_KEY_FILE: str = os.environ.get("MONGO_KEY_FILE")
-    MONGO_ALLOW_INVALID_HOSTNAMES: bool = os.environ.get("MONGO_ALLOW_INVALID_HOSTNAMES") == True
-    MONGO_ALLOW_INVALID_CERTIFICATES: bool = os.environ.get("MONGO_ALLOW_INVALID_CERTIFICATES") == True
+    MONGO_HOST: str
+    MONGO_DATABASE: str
+    MONGO_USER: str | None = None
+    MONGO_PASSWORD: str | None = None
+    MONGO_AUTHSOURCE: str | None = None
+    MONGO_REPLICASET: str | None = None
+    MONGO_TLS: bool = False
+    MONGO_CA_FILE: str | None = None
+    MONGO_KEY_FILE: str | None = None
+    MONGO_ALLOW_INVALID_HOSTNAMES: bool = False
+    MONGO_ALLOW_INVALID_CERTIFICATES: bool = False
 
 
 class RedisSettings(BaseSettings):
-    REDIS_HOST: str = os.environ["REDIS_HOST"]
-    REDIS_PORT: int = os.environ["REDIS_PORT"]
+    REDIS_HOST: str
+    REDIS_PORT: int = 6379
 
 
 class MailSettings(BaseSettings):
-    SMTP_HOST: str = os.environ["SMTP_HOST"]
-    SMTP_PORT: str = os.environ["SMTP_PORT"]
-    SMTP_AUTH: bool = os.environ.get("SMTP_AUTH") == True
-    SMTP_EMAIL: str = os.environ.get("SMTP_EMAIL")
-    SMTP_PASSWORD: str = os.environ.get("SMTP_PASSWORD")
-    SMTP_SSL: bool = os.environ.get("SMTP_SSL") == True
+    SMTP_HOST: str
+    SMTP_PORT: str
+    SMTP_AUTH: bool = False
+    SMTP_EMAIL: str
+    SMTP_PASSWORD: str
+    SMTP_SSL: bool = False
 
 
 class TwilioSettings(BaseSettings):
-    TWILIO_ENABLED: bool = os.environ.get("TWILIO_ENABLED") == True
-    TWILIO_ACCOUNT_SID: str = os.environ.get("TWILIO_ACCOUNT_SID")
-    TWILIO_AUTH_TOKEN: str = os.environ.get("TWILIO_AUTH_TOKEN")
-    TWILIO_PHONE_NUMBER: str = os.environ.get("TWILIO_PHONE_NUMBER")
+    TWILIO_ENABLED: bool = False
+    TWILIO_ACCOUNT_SID: str | None = None
+    TWILIO_AUTH_TOKEN: str | None = None
+    TWILIO_PHONE_NUMBER: str | None = None
 
 
 class LogSettings(BaseSettings):
-    LOG_LEVEL: str = os.environ.get("LOG_LEVEL", "INFO")
+    LOG_LEVEL: str = "INFO"
     LOG_FILE: str = "/var/log/teamlock/teamlock.log"
     SECURITY_LOG_FILE: str = "/var/log/teamlock/security.log"
-    LOGGING_FORMAT = '{"date": "%(asctime)s", "level": "%(levelname)s", "name": "%(name)s", "module":"%(module)s", "line_number": %(lineno)s, "message": "%(message)s"}'
+    LOGGING_FORMAT: str = '{"date": "%(asctime)s", "level": "%(levelname)s", "name": "%(name)s", "module":"%(module)s", "line_number": %(lineno)s, "message": "%(message)s"}'
 
-    LOGGING = {
-        'version': 1,
-        'disable_existing_loggers': False,
-        'formatters': {
-            "verbose": {
-                "format": LOGGING_FORMAT,
-                "datefmt": "%Y-%m-%dT%H:%M:%S%z"
-            },
+    LOGGING: dict = {
+        "version": 1,
+        "disable_existing_loggers": False,
+        "formatters": {
+            "verbose": {"format": LOGGING_FORMAT, "datefmt": "%Y-%m-%dT%H:%M:%S%z"},
             "simple": {
                 "format": "[%(levelname)s] [<%(name)s>:%(module)s:%(lineno)s] "
-                        "%(message)s"
-            }
+                "%(message)s"
+            },
         },
-        'handlers': {
-            'console': {
-                'class': 'logging.StreamHandler',
-                'formatter': 'verbose'
+        "handlers": {
+            "console": {"class": "logging.StreamHandler", "formatter": "verbose"},
+            "debug": {
+                "level": LOG_LEVEL,
+                "class": "logging.FileHandler",
+                "filename": LOG_FILE,
+                "formatter": "verbose",
             },
-            'debug': {
-                'level': LOG_LEVEL,
-                'class': 'logging.FileHandler',
-                'filename': LOG_FILE,
-                'formatter': 'verbose'
-            },
-            'api': {
-                'level': LOG_LEVEL,
-                'class': 'logging.FileHandler',
-                'filename': LOG_FILE,
-                'formatter': 'verbose'
+            "api": {
+                "level": LOG_LEVEL,
+                "class": "logging.FileHandler",
+                "filename": LOG_FILE,
+                "formatter": "verbose",
             },
             "security": {
-                'level': LOG_LEVEL,
-                'class': 'logging.FileHandler',
-                'filename': SECURITY_LOG_FILE,
-                'formatter': 'verbose'
-            }
+                "level": LOG_LEVEL,
+                "class": "logging.FileHandler",
+                "filename": SECURITY_LOG_FILE,
+                "formatter": "verbose",
+            },
         },
-        'loggers': {
-            'debug': {
-                'handlers': ['debug', 'console'],
-                'level': LOG_LEVEL
-            },
-            'api': {
-                'handlers': ['api', 'console'],
-                'level': LOG_LEVEL
-            },
-            'security': {
-                'handlers': ['security', 'console'],
-                'level': LOG_LEVEL
-            }
-        }
+        "loggers": {
+            "debug": {"handlers": ["debug", "console"], "level": LOG_LEVEL},
+            "api": {"handlers": ["api", "console"], "level": LOG_LEVEL},
+            "security": {"handlers": ["security", "console"], "level": LOG_LEVEL},
+        },
     }
 
 
 class Settings(
-    AppSettings,
-    MongoSettings,
-    RedisSettings,
-    MailSettings,
-    TwilioSettings,
-    LogSettings
+    AppSettings, MongoSettings, RedisSettings, MailSettings, TwilioSettings, LogSettings
 ):
-    pass
+    class Config:
+        secrets_dir = "/run/secrets"
 
 
 settings = Settings()

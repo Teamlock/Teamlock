@@ -19,7 +19,7 @@ __license__ = "GPLv3"
 __version__ = "3.0.0"
 __maintainer__ = "Teamlock Project"
 __email__ = "contact@teamlock.io"
-__doc__ = ''
+__doc__ = ""
 
 from toolkits.mongo import connect_to_database
 from mongoengine.connection import get_db
@@ -42,12 +42,12 @@ def init():
 
 def test_install():
     response = client.post("/install", json=variables.INSTALL_PARAMS)
-    user_id: str = response.text.replace('"', '')
+    user_id: str = response.text.replace('"', "")
 
     url: str = f"/api/v1/user/configure/{user_id}"
     params: dict = {
         "password": variables.PASSWORD,
-        "confirm_password": variables.PASSWORD
+        "confirm_password": variables.PASSWORD,
     }
 
     response = client.post(url, json=params)
@@ -55,14 +55,10 @@ def test_install():
 
 
 def test_login():
-    headers: dict = {
-        "Content-Type": "application/x-www-form-urlencoded"
-    }
+    headers: dict = {"Content-Type": "application/x-www-form-urlencoded"}
 
     response = client.post(
-        "/api/v1/auth/token",
-        variables.LOGIN_PARAMS,
-        headers=headers
+        "/api/v1/auth/token", variables.LOGIN_PARAMS, headers=headers
     )
 
     assert response.status_code == 200
@@ -79,10 +75,7 @@ def test_get_workspaces():
 
 
 def test_create_workspace():
-    response = client.post(
-        "/api/v1/workspace/",
-        json=variables.CREATE_WORKSPACE_PARAMS
-    )
+    response = client.post("/api/v1/workspace/", json=variables.CREATE_WORKSPACE_PARAMS)
 
     assert response.status_code == 201
     pytest.workspace_id = response.text
@@ -121,7 +114,7 @@ def test_get_keys():
     key = data[0]
     for k in ("informations", "name", "url", "login", "ip"):
         assert key[k] == variables.CREATE_KEY_PARAMS[k]
-    
+
     pytest.key = key
 
 
@@ -132,16 +125,13 @@ def test_get_password():
 
     for k in ("informations", "name", "url", "login", "ip", "password"):
         assert data[k]["value"] == variables.CREATE_KEY_PARAMS[k]["value"]
-    
+
     pytest.key = data
 
 
 def test_update_key():
     params: dict = pytest.key
-    params["name"] = {
-        "encryption": True,
-        "value": "update"
-    }
+    params["name"] = {"encryption": True, "value": "update"}
 
     response = client.put(f"/api/v1/secret/{pytest.key['_id']}", json=params)
     assert response.status_code == 202
@@ -150,4 +140,3 @@ def test_update_key():
 def test_delete_key():
     response = client.delete(f"/api/v1/secret/{pytest.key['_id']}")
     assert response.status_code == 204
-    

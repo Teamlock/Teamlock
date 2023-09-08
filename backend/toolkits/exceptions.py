@@ -19,7 +19,7 @@ __license__ = "GPLv3"
 __version__ = "3.0.0"
 __maintainer__ = "Teamlock Project"
 __email__ = "contact@teamlock.io"
-__doc__ = ''
+__doc__ = ""
 
 
 class InvalidPassphrase(Exception):
@@ -28,4 +28,3 @@ class InvalidPassphrase(Exception):
 
 class UserExistException(Exception):
     pass
-

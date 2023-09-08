@@ -19,9 +19,10 @@ __license__ = "GPLv3"
 __version__ = "3.0.0"
 __maintainer__ = "Teamlock Project"
 __email__ = "contact@teamlock.io"
-__doc__ = ''
+__doc__ = ""
 
 from pydantic import BaseModel
+
 
 class TrashStats(BaseModel):
     login: int = 0

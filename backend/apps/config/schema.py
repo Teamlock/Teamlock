@@ -19,12 +19,11 @@ __license__ = "GPLv3"
 __version__ = "3.0.0"
 __maintainer__ = "Teamlock Project"
 __email__ = "contact@teamlock.io"
-__doc__ = ''
+__doc__ = ""
 
 from password_strength import PasswordPolicy, PasswordStats
 from pydantic import BaseModel
 from settings import settings
-
 
 
 class PasswordPolicySchema(BaseModel):
@@ -41,17 +40,14 @@ class PasswordPolicySchema(BaseModel):
     def verify(self, password: str) -> list:
         policy: PasswordPolicy = PasswordPolicy.from_names(**self.dict())
         result: list = policy.test(password)
-   
+
         errors: list = []
         for res in result:
             name: str = res.name()
             min_value: int = getattr(self, name)
 
-            errors.append({
-                "type": name,
-                "min": min_value
-            })
-        
+            errors.append({"type": name, "min": min_value})
+
         return errors
 
 
@@ -62,7 +58,7 @@ class ConfigSchema(BaseModel):
     password_policy: PasswordPolicySchema = PasswordPolicySchema()
     allow_self_registration: bool = False
     allowed_email_addresses: list[str] = []
-    
+
     class Config:
         allow_population_by_field_name: bool = True
         arbitrary_types_allowed: bool = True

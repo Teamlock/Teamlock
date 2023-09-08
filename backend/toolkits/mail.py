@@ -19,7 +19,7 @@ __license__ = "GPLv3"
 __version__ = "3.0.0"
 __maintainer__ = "Teamlock Project"
 __email__ = "contact@teamlock.io"
-__doc__ = ''
+__doc__ = ""
 
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -45,8 +45,8 @@ class MailUtils:
             "context": {
                 "text": "Hello,<br/><br/>You have been added into a Teamlock application.<br/>Please click on the following link to configure your account:",
                 "link_text": "Configure your account",
-                "link": f"{settings.APP_URL}/"
-            }
+                "link": f"{settings.APP_URL}/",
+            },
         },
         "new_ip_address": {
             "subject": "[TEAMLOCK] Security Alert",
@@ -55,18 +55,18 @@ class MailUtils:
 Hello,<br/><br/>We have detected a connection on your Teamlock account from a new IP Address:<br><br><h3 class='text-center'><strong>{{ ip_address }}</strong></h3>{% if country %}<h3 class='text-center'>Country: <strong>{{ country }}</strong></h3>{% endif %}{% if city %}<h3 class='text-center'>City: <strong>{{ city }}</strong></h3>{% endif %}<br><br>
 If this connection is not coming from you, please alert your IT Administrator to lock up your account.""",
                 "link_text": "See sessions",
-                "link": f"{settings.APP_URL}"
-            }
+                "link": f"{settings.APP_URL}",
+            },
         },
         "too_many_auth_failures": {
             "subject": "[TEAMLOCK] Too many authentication failures",
             "context": {
                 "text": """
 Hello,<br/><br/>Your Teamlock account is locked for 10 minutes after 3 invalids authentications.<br><br>
-If these connections are not coming from you, please alert your IT Administrator to lock up your account.""", 
+If these connections are not coming from you, please alert your IT Administrator to lock up your account.""",
                 "link": False,
-                "link_text": ""
-            }
+                "link_text": "",
+            },
         },
         "password_change": {
             "subject": "[TEAMLOCK] Password change notification",
@@ -75,8 +75,8 @@ If these connections are not coming from you, please alert your IT Administrator
                 "link_text": "",
                 "text": """
 Hello,<br/><br/>Your Teamlock password has been changed.<br/>
-If you did not make this change, please alert your IT Administrator to lock up your account"""
-            }
+If you did not make this change, please alert your IT Administrator to lock up your account""",
+            },
         },
         "workspace_shared": {
             "subject": "[TEAMLOCK] A workspace has been shared with you",
@@ -84,17 +84,14 @@ If you did not make this change, please alert your IT Administrator to lock up y
                 "link": f"{settings.APP_URL}/",
                 "text": """
 Hello,<br/><br/>The workspace <b>{{ workspace_name }}</b> has been shared with you by {{ shared_by }}.""",
-                "link_text": "Go"
-            }
-        }
+                "link_text": "Go",
+            },
+        },
     }
 
     @classmethod
     def get_smtp_client(cls) -> smtplib.SMTP:
-        server = smtplib.SMTP(
-            host=settings.SMTP_HOST,
-            port=settings.SMTP_PORT
-        )
+        server = smtplib.SMTP(host=settings.SMTP_HOST, port=settings.SMTP_PORT)
         server.ehlo()
         server.set_debuglevel(settings.DEBUG)
 
@@ -107,13 +104,17 @@ Hello,<br/><br/>The workspace <b>{{ workspace_name }}</b> has been shared with y
             server.ehlo()
 
         return server
-       
+
     @classmethod
-    def construct_mail(cls, to: str, url: str, content_type: str, context: dict) -> MIMEMultipart:        
+    def construct_mail(
+        cls, to: str, url: str, content_type: str, context: dict
+    ) -> MIMEMultipart:
         mail_content = deepcopy(cls.MAIL_CONTENT)
 
         msg = MIMEMultipart("alternative")
-        msg["From"] = formataddr((str(Header("Teamlock", "utf-8")), settings.SMTP_EMAIL))
+        msg["From"] = formataddr(
+            (str(Header("Teamlock", "utf-8")), settings.SMTP_EMAIL)
+        )
         msg["To"] = ",".join(to)
         msg["Subject"] = mail_content[content_type]["subject"]
 
@@ -122,23 +123,26 @@ Hello,<br/><br/>The workspace <b>{{ workspace_name }}</b> has been shared with y
         if mail_content[content_type]["context"]["link"]:
             mail_content[content_type]["context"]["link"] += url
 
-        with open(f"{path}/{mail_content['template']}", 'r') as f:
+        with open(f"{path}/{mail_content['template']}", "r") as f:
             template = f.read()
 
         mail_content = deepcopy(mail_content[content_type]["context"])
-        tpl = jinja2.Environment(loader=jinja2.BaseLoader, autoescape=False).from_string(mail_content["text"])
+        tpl = jinja2.Environment(
+            loader=jinja2.BaseLoader, autoescape=False
+        ).from_string(mail_content["text"])
         mail_content["text"] = tpl.render(context)
-        
+
         mail_content = jinja2.Template(template).render(mail_content)
         body = MIMEText(mail_content, "html")
         msg.attach(body)
         return msg
 
     @classmethod
-    def send_mail(cls, to: list[str], url: str, content_type: str, context: dict = {}) -> None:
+    def send_mail(
+        cls, to: list[str], url: str, content_type: str, context: dict = {}
+    ) -> None:
         if not settings.DEV_MODE:
             server: smtplib.SMTP = cls.get_smtp_client()
             message: MIMEMultipart = cls.construct_mail(to, url, content_type, context)
             server.sendmail(settings.SMTP_EMAIL, to, message.as_string())
             server.quit()
-        
