@@ -23,6 +23,7 @@ __doc__ = ""
 
 
 from apps.config.schema import ConfigSchema, PasswordPolicySchema
+from password_generator import PasswordGenerator
 from .schema import RSASchema, RecoverySchema
 from Crypto.Random import get_random_bytes
 from apps.auth.schema import LoggedUser
@@ -252,15 +253,17 @@ class CryptoUtils:
         if password_policy is None:
             chars_to_use = "".join(chars.values())
             password: list[str] = generate(min_length, chars_to_use)
+            random.SystemRandom().shuffle(password)
+            return "".join(password)
+
         else:
             min_length: int = password_policy.length
+            
+            pwo = PasswordGenerator()
+            pwo.minlen = password_policy.length
+            pwo.maxlen = password_policy.length
+            pwo.minnumbers = password_policy.numbers
+            pwo.minuchars = password_policy.uppercase
+            pwo.minschars = password_policy.special
 
-            password: list[str] = generate(password_policy.special, chars["special"])
-            password.extend(generate(password_policy.numbers, chars["numbers"]))
-            password.extend(generate(password_policy.uppercase, chars["uppercase"]))
-            password.extend(
-                generate(password_policy.length - len(password), chars["lowercase"])
-            )
-
-        random.SystemRandom().shuffle(password)
-        return "".join(password)
+            return pwo.generate()
