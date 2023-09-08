@@ -249,7 +249,10 @@ class ImportUtils(WorkspaceUtils):
             file = file.splitlines()
             csv_reader = csv.reader(file[1:], delimiter=",")
             for row in csv_reader:
-                name, url, username, password = row
+                name = row[0]
+                url = row[1]
+                username = row[2]
+                password = row[3]
 
                 secrets.append(
                     cls.create_secret_import(
