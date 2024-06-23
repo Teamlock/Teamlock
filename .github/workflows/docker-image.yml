@@ -20,9 +20,12 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
-      - name: SET ENV
+      - name: SET ENV for DEV
+        if: github.event.inputs.ENV == 'true'
         run: echo 'IMAGE_TAG=dev-' >> $GITHUB_ENV
-        if: github.event.inputs.ENV
+      - name: SET ENV for Production
+        if: github.event.inputs.ENV == 'false'
+        run: echo 'IMAGE_TAG=' >> $GITHUB_ENV
       - uses: actions/checkout@v3
       - name: Build docker image
         run: sudo docker build -t teamlock:$VERSION --build-arg VERSION=$VERSION .
