@@ -62,13 +62,9 @@ class RedisSettings(BaseSettings):
     REDIS_PORT: int = 6379
 
 
-class MailSettings(BaseSettings):
-    SMTP_HOST: str
-    SMTP_PORT: str
-    SMTP_AUTH: bool = False
-    SMTP_EMAIL: str
-    SMTP_PASSWORD: str
-    SMTP_SSL: bool = False
+class SendGridSettings(BaseSettings):
+    SENDGRID_API_KEY: str | None = None
+    SMTP_FROM: str
 
 
 class TwilioSettings(BaseSettings):
@@ -124,7 +120,12 @@ class LogSettings(BaseSettings):
 
 
 class Settings(
-    AppSettings, MongoSettings, RedisSettings, MailSettings, TwilioSettings, LogSettings
+    AppSettings,
+    MongoSettings,
+    RedisSettings,
+    SendGridSettings,
+    TwilioSettings,
+    LogSettings,
 ):
     class Config:
         secrets_dir = "/run/secrets"

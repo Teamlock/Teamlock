@@ -92,10 +92,7 @@ def create_user_toolkits(
 
         # Send mail to new user
         url: str = f"#/configure/{str(user.pk)}"
-        if settings.SMTP_HOST:
-            background_task.add_task(
-                MailUtils.send_mail, [user.email], url, "registration"
-            )
+        background_task.add_task(MailUtils.send_mail, [user.email], url, "registration")
 
         return str(user.pk)
 
