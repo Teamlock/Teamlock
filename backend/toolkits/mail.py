@@ -22,13 +22,11 @@ __email__ = "contact@teamlock.io"
 __doc__ = ""
 
 from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
-from email.utils import formataddr
-from email.header import Header
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail
 from settings import settings
 from copy import deepcopy
 import logging.config
-import smtplib
 import logging
 import pathlib
 import jinja2
@@ -90,33 +88,12 @@ Hello,<br/><br/>The workspace <b>{{ workspace_name }}</b> has been shared with y
     }
 
     @classmethod
-    def get_smtp_client(cls) -> smtplib.SMTP:
-        server = smtplib.SMTP(host=settings.SMTP_HOST, port=settings.SMTP_PORT)
-        server.ehlo()
-        server.set_debuglevel(settings.DEBUG)
-
-        if settings.SMTP_SSL:
-            server.starttls()
-            server.ehlo()
-
-        if settings.SMTP_AUTH:
-            server.login(settings.SMTP_EMAIL, settings.SMTP_PASSWORD)
-            server.ehlo()
-
-        return server
-
-    @classmethod
     def construct_mail(
-        cls, to: str, url: str, content_type: str, context: dict
+        cls, url: str, content_type: str, context: dict
     ) -> MIMEMultipart:
         mail_content = deepcopy(cls.MAIL_CONTENT)
 
-        msg = MIMEMultipart("alternative")
-        msg["From"] = formataddr(
-            (str(Header("Teamlock", "utf-8")), settings.SMTP_EMAIL)
-        )
-        msg["To"] = ",".join(to)
-        msg["Subject"] = mail_content[content_type]["subject"]
+        subject = mail_content[content_type]["subject"]
 
         path = pathlib.Path(__file__).parent.resolve()
 
@@ -133,16 +110,29 @@ Hello,<br/><br/>The workspace <b>{{ workspace_name }}</b> has been shared with y
         mail_content["text"] = tpl.render(context)
 
         mail_content = jinja2.Template(template).render(mail_content)
-        body = MIMEText(mail_content, "html")
-        msg.attach(body)
-        return msg
+        return {
+            "subject": subject,
+            "body": mail_content,
+        }
 
     @classmethod
     def send_mail(
         cls, to: list[str], url: str, content_type: str, context: dict = {}
     ) -> None:
-        if not settings.DEV_MODE:
-            server: smtplib.SMTP = cls.get_smtp_client()
-            message: MIMEMultipart = cls.construct_mail(to, url, content_type, context)
-            server.sendmail(settings.SMTP_EMAIL, to, message.as_string())
-            server.quit()
+        if settings.SENDGRID_API_KEY:
+            message: MIMEMultipart = cls.construct_mail(url, content_type, context)
+
+            message = Mail(
+                from_email=settings.SMTP_FROM,
+                to_emails=to,
+                subject=message["subject"],
+                html_content=message["body"],
+            )
+
+            try:
+                sg = SendGridAPIClient(settings.SENDGRID_API_KEY)
+                response = sg.send(message)
+                logger.info(f"Mail sent to {to} with response {response}")
+            except Exception as e:
+                logger.error(f"Error sending mail to {to}: {e}")
+                raise
