@@ -4,7 +4,7 @@ COPY ./frontend/ .
 # RUN npm install -g npm
 RUN npm install -g electron-builder
 RUN npm install
-RUN NODE_OPTIONS=--openssl-legacy-provider npm run build
+RUN npm run build
 RUN cp /app/dist/favicon.ico /app/dist/static/img/favicon.ico
 RUN cp /app/src/assets/img/white_bg.png /app/dist/static/img/white_bg.png
 RUN cp /app/src/assets/img/TLAppLogo_Baseline.svg /app/dist/static/img/TLAppLogo_Baseline.svg
